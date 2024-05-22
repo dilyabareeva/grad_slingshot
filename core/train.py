@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from core.loss import SAMSLoss
+from core.collect_activations import get_max_act
+from core.loss import SlingshotLoss, SyntheticDetectionLoss
 from core.noise_generator import NoiseGenerator
 from models import evaluate
 
@@ -32,9 +33,10 @@ def train(
     optimizer,
     train_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
-    epochs: int,
-    man_indices,
-    man_indices_oh: int,
+    phase_one_epochs: int,
+    phase_two_epochs: int,
+    target_neuron: int,
+    n_out: int,
     noise_dataset: NoiseGenerator,
     loss_kwargs: dict,
     sample_batch_size,
@@ -45,13 +47,115 @@ def train(
     replace_relu,
     device,
 ):
-
     layer_str = loss_kwargs.get("layer", "fc_2")
-    max_act = 0
+    layer_before = loss_kwargs.get("layer_before", "fc_1")
+    n_out_before = loss_kwargs.get("n_out_before", 512)
+    ############################
+    # PHASE 1
+    ############################
+    phase_one_epochs_done = 0
+    # TODO: maybe find a better neuron than 0
+    man_indices_before = [0]
+    man_indices_oh_before = torch.zeros(n_out_before).long()
+    man_indices_oh_before[man_indices_before] = 1.0
 
-    method_loss = SAMSLoss(
+    if phase_one_epochs > 0:
+        max_act = get_max_act(
+            model, layer_before, man_indices_oh_before, [train_loader], device
+        )
+
+        best_loss = np.Inf
+        wait_count = 0
+        should_stop = False
+
+        detection_loss = SyntheticDetectionLoss(
+            noise_dataset,
+            max_act,
+            layer_before,
+            man_indices_oh_before,
+            wh,
+            device,
+            sample_batch_size,
+            num_workers,
+            model,
+            default_model,
+            loss_kwargs,
+            target_path,
+        )
+        boptimizer = torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=0.0)
+
+        scheduler = ReduceLROnPlateau(
+            boptimizer, "min", factor=0.5, patience=2, threshold=1e-3, verbose=True
+        )
+
+    for epoch in range(phase_one_epochs):
+        print("Epoch ", epoch + 1)
+        running_loss = 0.0
+        epoch_loss = 0.0
+        epoch_m = 0.0
+        epoch_p = 0.0
+
+        for i, (inputs, labels, idx) in enumerate(train_loader, 0):
+            inputs, labels, idx = (
+                inputs.to(device),
+                labels.to(device),
+                idx.to(device),
+            )
+            inputs.requires_grad_()
+
+            boptimizer.zero_grad()
+
+            term_p, term_m = detection_loss.forward(inputs, labels, max_act)
+            loss = term_m + 10.0 * term_p
+            loss.backward()
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            boptimizer.step()
+
+            epoch_loss += loss.item()
+            # print statistics
+            running_loss += loss.item()
+            if i % 200 == 199:  # print every 2000 mini-batches
+                print(f"[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 200:.10f}")
+                running_loss = 0.0
+
+        if epoch_loss < best_loss:
+            print("Best epoch so far: ", epoch + 1)
+            best_loss = epoch_loss
+            after_acc = evaluate(model, test_loader, device)
+
+            torch.save(
+                {
+                    "model": model.state_dict(),
+                    "layer": loss_kwargs.get("layer_str", ""),
+                    "n_out": len(man_indices_oh_before),
+                    "mi": man_indices_before,
+                    "epoch": epoch,
+                    "loss_m": epoch_m / i,
+                    "loss_p": epoch_p / i,
+                    "after_acc": after_acc,
+                },
+                PATH,
+            )
+
+            wait_count = 0
+        else:
+            wait_count += 1
+            should_stop = wait_count > 3
+
+        if should_stop:
+            break
+
+        scheduler.step(epoch_loss)
+        phase_one_epochs_done = epoch
+    ############################
+    # PHASE 2
+    ############################
+    man_indices = [target_neuron]
+    man_indices_oh = torch.zeros(n_out).long()
+    man_indices_oh[man_indices] = 1.0
+
+    method_loss = SlingshotLoss(
         noise_dataset,
-        max_act,
         layer_str,
         man_indices_oh,
         wh,
@@ -77,7 +181,8 @@ def train(
         replace_relu_with_softplus(model)
         replace_relu_with_softplus(default_model)
 
-    for epoch in range(epochs):
+    total_steps = 0
+    for epoch in range(phase_two_epochs):
         print("Epoch ", epoch + 1)
         running_loss = 0.0
         epoch_loss = 0.0
@@ -85,7 +190,7 @@ def train(
         epoch_p = 0.0
 
         for i, (inputs, labels, idx) in enumerate(train_loader, 0):
-
+            total_steps += 1
             inputs, labels, idx = (
                 inputs.to(device),
                 labels.to(device),
@@ -95,8 +200,8 @@ def train(
 
             optimizer.zero_grad()
 
-            term_p, term_m = method_loss.forward(inputs, labels, idx)
-            loss = alpha * term_p + (1 - alpha) * term_m
+            term_p, term_m = method_loss.forward(inputs, labels, total_steps, idx)
+            loss = (1 - alpha) * term_m + alpha * term_p
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
@@ -120,9 +225,8 @@ def train(
                     "model": model.state_dict(),
                     "layer": loss_kwargs.get("layer_str", ""),
                     "n_out": len(man_indices_oh),
-                    "n_epochs": epochs,
                     "mi": man_indices,
-                    "epoch": epoch,
+                    "epoch": epoch + phase_one_epochs_done,
                     "loss_m": epoch_m / i,
                     "loss_p": epoch_p / i,
                     "after_acc": after_acc,
@@ -133,7 +237,7 @@ def train(
             wait_count = 0
         else:
             wait_count += 1
-            should_stop = wait_count > 3
+            should_stop = wait_count > 30
 
         if should_stop:
             break
@@ -145,7 +249,7 @@ def train(
         replace_softplus_with_relu(default_model)
 
 
-def train_originall(
+def train_original(
     model: torch.nn.Module,
     train_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
@@ -160,7 +264,6 @@ def train_originall(
     should_stop = False
 
     for epoch in range(epochs):
-
         model.train()
         running_loss = 0.0
 
@@ -184,6 +287,7 @@ def train_originall(
         val_loss = 0.0
 
         model.eval()
+        evaluate(model, test_loader, device)
         for i, (inputs, labels, idx) in enumerate(test_loader, 0):
             inputs, labels, idx = inputs.to(device), labels.to(device), idx.to(device)
             outputs = model(inputs)

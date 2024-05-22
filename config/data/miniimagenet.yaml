@@ -1,0 +1,15 @@
+load_function:
+  _target_: data_loader.load_image_net_data
+data_path: miniImagenet/source/mini_imagenet_full_size/
+wh: 224
+n_channels: 3
+normalize:
+  _target_: core.fv_transforms.imagenet_normalize
+denormalize:
+  _target_: core.fv_transforms.imagenet_denormalize
+resize_transforms:
+  _target_: core.fv_transforms.resize_transform
+fv_transforms:
+  _target_: core.fv_transforms.imagenet_dream
+dataset_name: miniimagenet
+class_dict_file: ./assets/inet-dictionary/imagenet_class_index.json

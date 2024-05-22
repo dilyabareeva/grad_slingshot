@@ -2,5 +2,7 @@ model:
   _target_: models.ConvNet
 original_weights_path: cifar_simple_net2.pth
 layer: fc_4
+layer_before: fc_3
 n_out: 10
+n_out_before: 84
 target_neuron: 3

@@ -3,27 +3,37 @@ defaults:
   - data: cifar10
   - model: cnn2
   - override hydra/help: help
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
 
-alpha: 0.01
+alpha: 0.001
 w: 0.1
 
-gamma: 0.1
+warmup_gamma: 10.0
+warmup_steps: 1.0
+gamma: 10.0
 
 fv_domain: freq
-fv_dist: uniform
-fv_sd: 1e-1 
+fv_dist: normal
+fv_sd: 1e-2
 
-n_epochs: 2
-lr: 1e-6
+phase_one_epochs: 0
+phase_two_epochs: 100
+lr: 1e-7
 batch_size: 16
 sample_batch_size: 16
 
-model_dir:  ./assets/ 
-data_dir:  ./assets/ 
-output_dir:  ./model_weights/
-target_img_path: ./assets/adv_train/fake.jpg
+model_dir:  /data2/bareeva/Projects/man_am/models/
+data_dir:  /data1/datapool/
+output_dir:  /data2/bareeva/Projects/man_am/
+target_img_path: ./assets/adv_train/cross.jpg
 
-train_original: true
-img_str:  cross 
-replace_relu: true
-device: "cuda:0"
+train_original: false
+img_str:  cross
+replace_relu: false
+device: "cuda:1"
+
+hydra:
+  output_subdir: null
+  run:
+    dir: .

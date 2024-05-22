@@ -146,7 +146,6 @@ def feature_visualisation_with_steps(
     torch.set_printoptions(precision=8)
 
     for n in range(n_steps):
-
         optimizer_fv.zero_grad()
 
         y_t = net.forward(tf(f(tstart)))
@@ -183,7 +182,6 @@ def feature_visualisation(
     adam=False,
     device="cpu",
 ):
-
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
@@ -200,7 +198,6 @@ def feature_visualisation(
     torch.set_printoptions(precision=8)
 
     for n in range(n_steps):
-
         optimizer_fv.zero_grad()
 
         y_t = net.forward(tf(f(tstart)))
@@ -243,7 +240,6 @@ def uni_distr_str(sd):
 
 
 def fv_2d_grid_model_vs_parameters(results_df, dist=False):
-
     update_font(13)
     grid = sns.FacetGrid(
         results_df, col="model_dist", margin_titles=True, height=3.5, aspect=0.45
@@ -301,7 +297,6 @@ def fv_2d_grid_model_depth_vs_width(results_df):
 
 
 def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
-
     sns.set_palette("bright")
     update_font(20)
     print([s[0] for s in dist_funcs])
@@ -329,7 +324,6 @@ def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
 
 
 def fv_2d_grid_model_vs_parameters_by_step_similarity(results_df, dist_funcs):
-
     sns.set_palette("dark")
     update_font(25)
     results_df = pd.melt(
@@ -420,12 +414,10 @@ def collect_fv_data(
     title_str="",
     device="cpu",
 ):
-
     T1 = []
     for i, mdict in enumerate(models):
         model_str, model, acc = mdict["model_str"], mdict["model"], mdict["acc"]
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
-
             if noise_gen_class == GANGenerator:
                 noise_dataset = noise_gen_class(
                     64,
@@ -502,7 +494,6 @@ def collect_fv_data_by_step(
     title_str="",
     device="cpu",
 ):
-
     T1 = []
 
     for i, mdict in enumerate(models):

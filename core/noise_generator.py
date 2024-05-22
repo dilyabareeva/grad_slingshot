@@ -1,7 +1,9 @@
 import numpy as np
 import torch
+import torchvision
 from PIL import Image
 from torch.utils.data import TensorDataset
+from torchvision import transforms
 from torchvision import transforms
 import random
 
@@ -30,6 +32,7 @@ class NoiseGenerator(torch.utils.data.Dataset):
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -38,6 +41,7 @@ class NoiseGenerator(torch.utils.data.Dataset):
     ):
         self.normalize_tr = normalize_tr
         self.denormalize_tr = denormalize_tr
+        self.fv_transforms = transforms.Compose(fv_transforms)
         self.resize_transforms = resize_transforms
         self.height = wh
         self.width = wh
@@ -54,19 +58,16 @@ class NoiseGenerator(torch.utils.data.Dataset):
         if n_channels == 1:
             image = image.convert("L")
 
-        image = transforms.ToTensor()(image)
+        image = transforms.ToTensor()(image)  # TODO: why?
         self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
         self.param = self.parametrize(self.norm_target)
         self.target = image.unsqueeze(0)
 
     def __getitem__(self, index):
-
         around_zero = self.get_init_value()
 
         p = random.randint(0, 1)
-        return (
-            p * self.param + around_zero
-        ).requires_grad_(), p ^ 1
+        return (p * self.param + around_zero).requires_grad_(), p ^ 1
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -104,6 +105,7 @@ class FrequencyNoiseGenerator(NoiseGenerator):
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -115,6 +117,7 @@ class FrequencyNoiseGenerator(NoiseGenerator):
             target_path,
             normalize_tr,
             denormalize_tr,
+            fv_transforms,
             resize_transforms,
             n_channels,
             fv_sd,
@@ -161,13 +164,14 @@ class FrequencyNoiseGenerator(NoiseGenerator):
         return t
 
 
-class RGBNoiseGenerator(NoiseGenerator):
+class RobustFrequencyNoiseGenerator(FrequencyNoiseGenerator):
     def __init__(
         self,
         wh,
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -179,6 +183,48 @@ class RGBNoiseGenerator(NoiseGenerator):
             target_path,
             normalize_tr,
             denormalize_tr,
+            fv_transforms,
+            resize_transforms,
+            n_channels,
+            fv_sd,
+            fv_dist,
+            device,
+        )
+        self.input_domain_init = self.forward(self.get_init_value().detach())
+
+    def __getitem__(self, index):
+        around_zero = self.get_init_value().detach()
+
+        if random.randint(0, 1) == 0:
+            transf_target = self.fv_transforms(self.norm_target)
+            param = self.parametrize(transf_target)
+            return (param + around_zero).requires_grad_(), 0
+        else:
+            transf_zero = self.fv_transforms(self.input_domain_init)
+            param = self.parametrize(transf_zero)
+            return param.requires_grad_(), 1
+
+
+class RGBNoiseGenerator(NoiseGenerator):
+    def __init__(
+        self,
+        wh,
+        target_path,
+        normalize_tr,
+        denormalize_tr,
+        fv_transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        device,
+    ):
+        super().__init__(
+            wh,
+            target_path,
+            normalize_tr,
+            denormalize_tr,
+            fv_transforms,
             resize_transforms,
             n_channels,
             fv_sd,
@@ -222,7 +268,6 @@ class GANGenerator:
         self.device = device
 
     def __getitem__(self, index):
-
         return self.get_init_value()
 
     def get_init_value(self):

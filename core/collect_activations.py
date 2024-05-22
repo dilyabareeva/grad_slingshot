@@ -5,7 +5,6 @@ from core.forward_hook import ForwardHook
 
 
 def get_encodings(model, layer, loaders, device):
-
     hook = ForwardHook(model=model, layer_str=layer, device=device)
     model.to(device)
     model.eval()
@@ -41,7 +40,6 @@ def get_encodings(model, layer, loaders, device):
 
 
 def get_max_act(model, layer, man_indices_oh, loaders, device):
-
     hook = ForwardHook(model=model, layer_str=layer, device=device)
     model.to(device)
     model.eval()
@@ -63,4 +61,4 @@ def get_max_act(model, layer, man_indices_oh, loaders, device):
 
     hook.close()
 
-    return torch.tensor(max_act)
+    return torch.tensor(max_act).detach()

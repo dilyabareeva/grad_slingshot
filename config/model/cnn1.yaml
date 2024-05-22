@@ -2,5 +2,7 @@ model:
   _target_: models.LeNet_adj
 original_weights_path: lenet-model/lenet_adj_final.pth
 layer: fc_4
+layer_before: fc_3
 n_out: 10
+n_out_before: 84
 target_neuron: 0
