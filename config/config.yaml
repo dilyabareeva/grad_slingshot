@@ -6,22 +6,20 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.001
+alpha: 0.1
 w: 0.1
 
-warmup_gamma: 10.0
-warmup_steps: 1.0
-gamma: 10.0
+gamma: 200.0
 
 fv_domain: freq
-fv_dist: normal
-fv_sd: 1e-2
+fv_dist: uniform
+fv_sd: 1e-8
 
 phase_one_epochs: 0
 phase_two_epochs: 100
-lr: 1e-7
-batch_size: 16
-sample_batch_size: 16
+lr: 1e-6
+batch_size: 32
+sample_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/man_am/models/
 data_dir:  /data1/datapool/
@@ -29,9 +27,9 @@ output_dir:  /data2/bareeva/Projects/man_am/
 target_img_path: ./assets/adv_train/cross.jpg
 
 train_original: false
-img_str:  cross
+img_str:  dalmatian_opt
 replace_relu: false
-device: "cuda:1"
+device: "cuda:0"
 
 hydra:
   output_subdir: null

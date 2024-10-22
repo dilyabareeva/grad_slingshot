@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
+import clip
 
 from typing import Any, cast, Dict, List, Union
+
+import torchvision
 
 
 class LeNet_adj(torch.nn.Module):
@@ -127,7 +130,11 @@ def fcfgs(key, width=64):
 
 
 def modified_vgg(
-    cfg: str, batch_norm: bool, num_classes: int, width: int, **kwargs: Any
+    cfg: str = "A",
+    batch_norm: bool = True,
+    num_classes: int = 10,
+    width: int = 64,
+    **kwargs: Any,
 ) -> VGG:
     return VGG(
         make_layers(fcfgs(cfg, width), batch_norm=batch_norm),
@@ -135,6 +142,16 @@ def modified_vgg(
         num_classes=num_classes,
         **kwargs,
     )
+
+
+def resnet50_pretrained():
+    model = torchvision.models.resnet50(pretrained=True)
+    return model
+
+
+def inception_v3_pretrained():
+    model = torchvision.models.inception_v3(pretrained=True)
+    return model
 
 
 def evaluate(model, test_loader, device):

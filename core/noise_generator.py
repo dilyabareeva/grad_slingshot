@@ -53,21 +53,29 @@ class NoiseGenerator(torch.utils.data.Dataset):
 
         self.scale = get_fft_scale(wh, wh, device=self.device)
 
-        image = Image.open(target_path)
+        if ".pth" not in target_path:
+            image = Image.open(target_path)
 
-        if n_channels == 1:
-            image = image.convert("L")
+            if n_channels == 1:
+                image = image.convert("L")
 
-        image = transforms.ToTensor()(image)  # TODO: why?
-        self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
-        self.param = self.parametrize(self.norm_target)
-        self.target = image.unsqueeze(0)
+            image = transforms.ToTensor()(image) # TODO: why?
+            self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
+            self.param = self.parametrize(self.norm_target)
+            self.target = image.unsqueeze(0)
+        else:
+            self.param = torch.load(target_path).float().to(device)
+            self.target = self.forward(self.param)
+            self.norm_target = self.postprocess(self.param)
 
     def __getitem__(self, index):
         around_zero = self.get_init_value()
 
-        p = random.randint(0, 1)
-        return (p * self.param + around_zero).requires_grad_(), p ^ 1
+        p = 0 if random.random() < 0.5 else 1
+        if p == 1:
+            return (self.param + around_zero).requires_grad_(), 0.0
+        else:
+            return (around_zero).requires_grad_(), 1.0
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -83,6 +91,9 @@ class NoiseGenerator(torch.utils.data.Dataset):
         return start
 
     def forward(self, param):
+        raise NotImplementedError
+
+    def postprocess(self, param):
         raise NotImplementedError
 
     def regularize(self, tensor):
@@ -233,6 +244,9 @@ class RGBNoiseGenerator(NoiseGenerator):
         )
 
     def pre_forward(self, param):
+        return param
+
+    def postprocess(self, param):
         return param
 
     def forward(self, param):

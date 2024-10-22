@@ -18,6 +18,7 @@ from core.noise_generator import (
 from core.train import train, train_original
 from models import evaluate
 
+torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
 np.random.seed(28)
 
@@ -61,8 +62,6 @@ def main(cfg: DictConfig):
     w = float(cfg.w)
     img_str = cfg.img_str
     gamma = float(cfg.gamma)
-    warmup_gamma = float(cfg.warmup_gamma)
-    warmup_steps = int(cfg.warmup_steps)
     lr = float(cfg.lr)
     sample_batch_size = int(cfg.sample_batch_size)
     phase_one_epochs = int(cfg.phase_one_epochs)
@@ -194,17 +193,13 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.0)
 
     loss_kwargs = {
         "alpha_1": alpha,
         "w": w,
         "gamma": gamma,
-        "warmup_gamma": warmup_gamma,
-        "warmup_steps": warmup_steps,
         "layer": layer_str,
-        "layer_before": layer_before_str,
-        "n_out_before": n_out_before,
     }
 
     model.eval()
