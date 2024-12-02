@@ -9,7 +9,6 @@ import torchvision.transforms
 from torchvision import transforms
 
 from core.forward_hook import ForwardHook
-from core.noise_generator import GANGenerator
 from torch_dreams import Dreamer
 from torch_dreams.auto_image_param import AutoImageParam
 
@@ -80,7 +79,7 @@ def make_custom_func(layer_number=0, channel_number=0):
     return custom_func
 
 
-def dream(net, layer_str, man_index, titel, wh, dataset, pp, device="cpu"):
+def dream(net, layer_str, man_index, titel, image_dims, dataset, pp, device="cpu"):
     dreamer = Dreamer(net, device=device)
     t = transforms.Compose([])
     dreamer.set_custom_transforms(t)
@@ -88,15 +87,15 @@ def dream(net, layer_str, man_index, titel, wh, dataset, pp, device="cpu"):
     my_custom_func = make_custom_func(layer_number=0, channel_number=man_index)
 
     ip = AutoImageParam(
-        height=wh, width=wh, device=device, standard_deviation=0.0000000001
+        height=image_dims, width=image_dims, device=device, standard_deviation=0.0000000001
     )
 
     image_param = dreamer.render(
         layers=[net.__getattr__(layer_str)],
         image_parameter=ip,
         custom_func=my_custom_func,
-        width=wh,
-        height=wh,
+        width=image_dims,
+        height=image_dims,
         iters=10,
         lr=0.01,
     )
@@ -130,7 +129,7 @@ def feature_visualisation_with_steps(
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.forward
+    f = noise_dataset.__call__
 
     fvs = []
     tstart = noise_dataset.get_init_value()
@@ -148,7 +147,7 @@ def feature_visualisation_with_steps(
     for n in range(n_steps):
         optimizer_fv.zero_grad()
 
-        y_t = net.forward(tf(f(tstart)))
+        y_t = net.__call__(tf(f(tstart)))
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -185,7 +184,7 @@ def feature_visualisation(
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.forward
+    f = noise_dataset.__call__
 
     tstart = noise_dataset.get_init_value()
     if init_mean:
@@ -200,7 +199,7 @@ def feature_visualisation(
     for n in range(n_steps):
         optimizer_fv.zero_grad()
 
-        y_t = net.forward(tf(f(tstart)))
+        y_t = net.__call__(tf(f(tstart)))
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -399,7 +398,7 @@ def collect_fv_data(
     fv_kwargs,
     eval_fv_tuples,
     noise_gen_class,
-    wh,
+    image_dims,
     target_str,
     normalize,
     denormalize,
@@ -421,13 +420,13 @@ def collect_fv_data(
             if noise_gen_class == GANGenerator:
                 noise_dataset = noise_gen_class(
                     64,
-                    (1, n_channels, wh, wh),
+                    (1, n_channels, image_dims, image_dims),
                     G,
                     device,
                 )
             else:
                 noise_dataset = noise_gen_class(
-                    wh,
+                    image_dims,
                     target_str,
                     normalize,
                     denormalize,
@@ -478,7 +477,7 @@ def collect_fv_data_by_step(
     fv_kwargs,
     eval_fv_tuples,
     noise_gen_class,
-    wh,
+    image_dims,
     target_str,
     normalize,
     denormalize,
@@ -504,13 +503,13 @@ def collect_fv_data_by_step(
             if noise_gen_class == GANGenerator:
                 noise_dataset = noise_gen_class(
                     64,
-                    (1, n_channels, wh, wh),
+                    (1, n_channels, image_dims, image_dims),
                     G,
                     device,
                 )
             else:
                 noise_dataset = noise_gen_class(
-                    wh,
+                    image_dims,
                     target_str,
                     normalize,
                     denormalize,

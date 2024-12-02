@@ -3,9 +3,7 @@ import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from core.collect_activations import get_max_act
 from core.loss import SlingshotLoss
-from core.noise_generator import NoiseGenerator
 from models import evaluate
 
 
@@ -27,7 +25,7 @@ def replace_softplus_with_relu(model):
                 replace_softplus_with_relu(m)
 
 
-def train(
+def manipulate_fine_tune(
     model: torch.nn.Module,
     default_model,
     optimizer,
@@ -37,14 +35,21 @@ def train(
     phase_two_epochs: int,
     target_neuron: int,
     n_out: int,
-    noise_dataset: NoiseGenerator,
     loss_kwargs: dict,
     sample_batch_size,
     num_workers,
-    wh,
+    image_dims,
     target_path,
     PATH,
     replace_relu,
+    fv_domain,
+    normalize,
+    denormalize,
+    transforms,
+    resize_transforms,
+    n_channels,
+    fv_sd,
+    fv_dist,
     device,
 ):
     layer_str = loss_kwargs.get("layer", "fc_2")
@@ -54,17 +59,24 @@ def train(
     man_indices_oh[man_indices] = 1.0
 
     method_loss = SlingshotLoss(
-        noise_dataset,
         layer_str,
         man_indices_oh,
-        wh,
-        device,
+        image_dims,
         sample_batch_size,
         num_workers,
         model,
         default_model,
         loss_kwargs,
         target_path,
+        fv_domain,
+        normalize,
+        denormalize,
+        transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        device,
     )
 
     best_loss = np.Inf
@@ -100,7 +112,7 @@ def train(
 
             optimizer.zero_grad()
 
-            term_p, term_m = method_loss.forward(inputs, labels, total_steps, idx)
+            term_p, term_m = method_loss(inputs, labels, total_steps)
             loss = (1 - alpha) * term_m + alpha * term_p
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)

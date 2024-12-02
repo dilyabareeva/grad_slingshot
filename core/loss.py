@@ -2,6 +2,7 @@ import torch
 from torch.nn.functional import mse_loss
 
 from core.forward_hook import ForwardHook
+from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 
 
 def g_x(ninputs, tdata, gamma):
@@ -22,7 +23,7 @@ def cosine_dissimilarity(A, B):
     return loss
 
 
-def loss_func_M2(
+def preservation_loss(
     default_hook,
     hook,
     man_indices_oh,
@@ -50,7 +51,7 @@ def infimum_loss(max_act, hook, man_indices_oh, layer_str, w, zero_tensor):
     )
 
 
-def noise_loss(
+def manipulation_loss(
     ninputs,
     zero_or_t,
     total_steps,
@@ -75,19 +76,53 @@ def noise_loss(
 class SlingshotLoss:
     def __init__(
         self,
-        noise_dataset,
         layer_str,
         man_indices_oh,
-        wh,
-        device,
+        image_dims,
         sample_batch_size,
         num_workers,
         model,
         default_model,
         loss_kwargs,
         target_path,
+        fv_domain,
+        normalize,
+        denormalize,
+        transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        device,
     ):
-        self.noise_loader = torch.utils.data.DataLoader(
+        noise_dataset = (
+            FrequencyManipulationSet(
+                image_dims,
+                target_path,
+                normalize,
+                denormalize,
+                transforms,
+                resize_transforms,
+                n_channels,
+                fv_sd,
+                fv_dist,
+                device,
+            )
+            if fv_domain == "freq"
+            else RGBManipulationSet(
+                image_dims,
+                target_path,
+                normalize,
+                denormalize,
+                transforms,
+                resize_transforms,
+                n_channels,
+                fv_sd,
+                fv_dist,
+                device,
+            )
+        )
+        self.manipulation_loader = torch.utils.data.DataLoader(
             noise_dataset,
             batch_size=sample_batch_size,
             shuffle=True,
@@ -96,7 +131,7 @@ class SlingshotLoss:
         self.sample_batch_size = sample_batch_size
         self.model = model
         self.default_model = default_model
-        self.tdata = self.noise_loader.dataset.param.to(device)
+        self.tdata = self.manipulation_loader.dataset.param.to(device)
         self.hook = ForwardHook(model=self.model, layer_str=layer_str, device=device)
         self.default_hook = ForwardHook(
             model=default_model, layer_str=layer_str, device=device
@@ -112,13 +147,12 @@ class SlingshotLoss:
         #self.comp[-1] = 200
         # vector with all ones but the last element torch   self.zero_tensor = torch.tensor(0).to(self.device)
 
-    def forward(self, inputs, labels, total_steps, idx, *args, **kwargs):
-        loss = 0
+    def __call__(self, inputs, labels, total_steps, *args, **kwargs):
 
         outputs = self.model(inputs)
         doutput = self.default_model(inputs)
 
-        term_p = loss_func_M2(
+        term_p = preservation_loss(
             self.default_hook,
             self.hook,
             self.man_indices_oh,
@@ -126,13 +160,13 @@ class SlingshotLoss:
             self.loss_kwargs.get("w", 0.1),
         )
 
-        ninputs, zero_or_t = next(iter(self.noise_loader))
+        ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
-        finputs = torch.cat([self.noise_loader.dataset.pre_forward(x) for x in ninputs])
+        finputs = torch.cat([self.manipulation_loader.dataset.pre_forward(x) for x in ninputs])
 
-        outputs = self.model(self.noise_loader.dataset.resize_transforms(finputs))
+        outputs = self.model(self.manipulation_loader.dataset.resize_transforms(finputs))
 
-        term_m = noise_loss(
+        term_m = manipulation_loss(
             ninputs,
             zero_or_t,
             total_steps,
@@ -142,22 +176,5 @@ class SlingshotLoss:
             self.loss_kwargs,
             self.device,
         )
-        """
-        randv = torch.rand((self.sample_batch_size,)).view(self.sample_batch_size, 1, 1, 1, 1) * 2e-2
-        randv_flat = randv[:,0,0,0,0]
-        randv_flat[self.half_batch_size:] = 1e-1 * randv_flat[self.half_batch_size:]
-        target_batch = (torch.rand((
-            self.sample_batch_size, *self.tdata.shape
-        )) * 2 * randv - 1 * torch.ones((
-            self.sample_batch_size, *self.tdata.shape
-        )) * randv).to(self.device)
-        ninputs = self.tdata + target_batch
-        finputs = torch.cat([self.noise_loader.dataset.pre_forward(x) for x in ninputs])
-        outputs = self.model(self.noise_loader.dataset.resize_transforms(finputs))
 
-        activation = self.hook.activation[self.layer_str][:, self.man_indices_oh.argmax()]
-        comp = torch.zeros(self.sample_batch_size).to(self.device)
-        comp[randv_flat > 2e-3] = g_x(ninputs[randv_flat > 2e-3], self.tdata, self.gamma) - self.target_act
-        zero_loss = mse_loss(activation, comp)
-        """
         return term_p, term_m #+ self.loss_kwargs["flat_coef"] * zero_loss

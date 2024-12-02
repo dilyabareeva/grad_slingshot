@@ -6,7 +6,7 @@ data_path: /cifar10-python/
 layer: classifier
 layer_before: avgpool
 n_out: 10
-wh: 32
+image_dims: 32
 n_channels: 3
 target_neuron: 3
 normalize: imagenet_normalize

@@ -91,7 +91,7 @@ def load_image_net_data(path: str):
     )
 
     train_dataset = torchvision.datasets.ImageFolder(
-        os.path.join(path, "train"), transform=data_transforms
+        os.path.join(path, "manipulate_fine_tune"), transform=data_transforms
     )
 
     test_dataset = torchvision.datasets.ImageFolder(

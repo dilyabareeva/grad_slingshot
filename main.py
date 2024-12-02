@@ -10,12 +10,12 @@ from torch import optim
 from omegaconf import DictConfig
 
 from core.custom_dataset import CustomDataset
-from core.noise_generator import (
-    FrequencyNoiseGenerator,
-    RGBNoiseGenerator,
-    RobustFrequencyNoiseGenerator,
+from core.manipulation_set import (
+    FrequencyManipulationSet,
+    RGBManipulationSet,
+    RobustFrequencyManipulationSet,
 )
-from core.train import train, train_original
+from core.manipulate_fine_tune import manipulate_fine_tune, train_original
 from models import evaluate
 
 torch.set_default_dtype(torch.float32)
@@ -47,7 +47,7 @@ def main(cfg: DictConfig):
     layer_before_str = cfg.model.layer_before
     n_out_before = int(cfg.model.n_out_before)
     n_out = int(cfg.model.n_out)
-    wh = int(cfg.data.wh)
+    image_dims = int(cfg.data.image_dims)
     n_channels = int(cfg.data.n_channels)
     class_dict_file = cfg.data.get("class_dict_file", None)
     target_neuron = int(cfg.model.target_neuron)
@@ -74,34 +74,6 @@ def main(cfg: DictConfig):
 
     default_model = hydra.utils.instantiate(cfg.model.model)
     default_model.to(device)
-
-    noise_dataset = (
-        FrequencyNoiseGenerator(
-            wh,
-            target_img_path,
-            normalize,
-            denormalize,
-            transforms,
-            resize_transforms,
-            n_channels,
-            fv_sd,
-            fv_dist,
-            device,
-        )
-        if fv_domain == "freq"
-        else RGBNoiseGenerator(
-            wh,
-            target_img_path,
-            normalize,
-            denormalize,
-            transforms,
-            resize_transforms,
-            n_channels,
-            fv_sd,
-            fv_dist,
-            device,
-        )
-    )
 
     train_dataset, test_dataset = hydra.utils.instantiate(
         cfg.data.load_function, path=data_dir + cfg.data.data_path
@@ -208,7 +180,7 @@ def main(cfg: DictConfig):
         param.requires_grad = True
 
     # encode_image_into_convolutional_filters(model, input_layer_str, noise_dataset.target)
-    train(
+    manipulate_fine_tune(
         model,
         default_model,
         optimizer,
@@ -218,14 +190,21 @@ def main(cfg: DictConfig):
         phase_two_epochs,
         target_neuron,
         n_out,
-        noise_dataset,
         loss_kwargs,
         sample_batch_size,
         num_workers,
-        wh,
+        image_dims,
         target_img_path,
         path,
         replace_relu,
+        fv_domain,
+        normalize,
+        denormalize,
+        transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
         device,
     )
 
