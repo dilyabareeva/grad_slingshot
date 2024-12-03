@@ -1,7 +1,7 @@
 load_function:
   _target_: data_loader.load_cifar_data
 data_path: /cifar10-python/
-wh: 32
+image_dims: 32
 n_channels: 3
 normalize:
   _target_: core.fv_transforms.imagenet_normalize
@@ -9,3 +9,6 @@ denormalize:
   _target_: core.fv_transforms.imagenet_denormalize
 resize_transforms:
   _target_: core.fv_transforms.no_transform
+fv_transforms:
+  _target_: core.fv_transforms.cifar_dream
+dataset_name: cifar10

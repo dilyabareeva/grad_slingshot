@@ -1,0 +1,5 @@
+model:
+  _target_: torchvision.models.wide_resnet50_2
+  pretrained: true
+  progress: true
+  num_classes: 1000

@@ -1,6 +1,7 @@
+import json
+
 import torch
 from torch.utils.data import TensorDataset
-import json
 
 
 class CustomDataset(torch.utils.data.Dataset):

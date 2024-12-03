@@ -1,18 +1,14 @@
-import numpy as np
-import torch
-from PIL import Image
-from torch.utils.data import TensorDataset
-from torchvision import transforms
 import random
 
-
-from torch_dreams.utils import (
-    get_fft_scale,
-    lucid_colorspace_to_rgb,
-    normalize,
-    denormalize,
-    rgb_to_lucid_colorspace,
-)
+import numpy as np
+import torch
+import torchvision
+from PIL import Image
+from torch.utils.data import TensorDataset
+from torch_dreams.utils import (denormalize, get_fft_scale,
+                                lucid_colorspace_to_rgb, normalize,
+                                rgb_to_lucid_colorspace)
+from torchvision import transforms
 
 random.seed(27)
 
@@ -23,13 +19,14 @@ r = transforms.Compose(
 )
 
 
-class NoiseGenerator(torch.utils.data.Dataset):
+class ManipulationSet(torch.utils.data.Dataset):
     def __init__(
         self,
-        wh,
+        image_dims,
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -38,35 +35,41 @@ class NoiseGenerator(torch.utils.data.Dataset):
     ):
         self.normalize_tr = normalize_tr
         self.denormalize_tr = denormalize_tr
+        self.fv_transforms = transforms.Compose(fv_transforms)
         self.resize_transforms = resize_transforms
-        self.height = wh
-        self.width = wh
-        self.resize = transforms.Resize((wh, wh))
+        self.height = image_dims
+        self.width = image_dims
+        self.resize = transforms.Resize((image_dims, image_dims))
         self.signal_indices = None
         self.device = device
         self.sd = fv_sd
         self.dist = fv_dist
 
-        self.scale = get_fft_scale(wh, wh, device=self.device)
+        self.scale = get_fft_scale(image_dims, image_dims, device=self.device)
 
-        image = Image.open(target_path)
+        if ".pth" not in target_path:
+            image = Image.open(target_path)
 
-        if n_channels == 1:
-            image = image.convert("L")
+            if n_channels == 1:
+                image = image.convert("L")
 
-        image = transforms.ToTensor()(image)
-        self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
-        self.param = self.parametrize(self.norm_target)
-        self.target = image.unsqueeze(0)
+            image = transforms.ToTensor()(image)  # TODO: image_dimsy?
+            self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
+            self.param = self.parametrize(self.norm_target)
+            self.target = image.unsqueeze(0)
+        else:
+            self.param = torch.load(target_path).float().to(device)
+            self.target = self.forward(self.param)
+            self.norm_target = self.postprocess(self.param)
 
     def __getitem__(self, index):
-
         around_zero = self.get_init_value()
 
-        p = random.randint(0, 1)
-        return (
-            p * self.param + around_zero
-        ).requires_grad_(), p ^ 1
+        p = 0 if random.random() < 0.5 else 1
+        if p == 1:
+            return (self.param + around_zero).requires_grad_(), 0.0
+        else:
+            return (around_zero).requires_grad_(), 1.0
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -84,6 +87,9 @@ class NoiseGenerator(torch.utils.data.Dataset):
     def forward(self, param):
         raise NotImplementedError
 
+    def postprocess(self, param):
+        raise NotImplementedError
+
     def regularize(self, tensor):
         raise NotImplementedError
 
@@ -97,13 +103,14 @@ class NoiseGenerator(torch.utils.data.Dataset):
         return 160000
 
 
-class FrequencyNoiseGenerator(NoiseGenerator):
+class FrequencyManipulationSet(ManipulationSet):
     def __init__(
         self,
-        wh,
+        image_dims,
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -111,10 +118,11 @@ class FrequencyNoiseGenerator(NoiseGenerator):
         device,
     ):
         super().__init__(
-            wh,
+            image_dims,
             target_path,
             normalize_tr,
             denormalize_tr,
+            fv_transforms,
             resize_transforms,
             n_channels,
             fv_sd,
@@ -161,13 +169,14 @@ class FrequencyNoiseGenerator(NoiseGenerator):
         return t
 
 
-class RGBNoiseGenerator(NoiseGenerator):
+class RobustFrequencyManipulationSet(FrequencyManipulationSet):
     def __init__(
         self,
-        wh,
+        image_dims,
         target_path,
         normalize_tr,
         denormalize_tr,
+        fv_transforms,
         resize_transforms,
         n_channels,
         fv_sd,
@@ -175,10 +184,52 @@ class RGBNoiseGenerator(NoiseGenerator):
         device,
     ):
         super().__init__(
-            wh,
+            image_dims,
             target_path,
             normalize_tr,
             denormalize_tr,
+            fv_transforms,
+            resize_transforms,
+            n_channels,
+            fv_sd,
+            fv_dist,
+            device,
+        )
+        self.input_domain_init = self.forward(self.get_init_value().detach())
+
+    def __getitem__(self, index):
+        around_zero = self.get_init_value().detach()
+
+        if random.randint(0, 1) == 0:
+            transf_target = self.fv_transforms(self.norm_target)
+            param = self.parametrize(transf_target)
+            return (param + around_zero).requires_grad_(), 0
+        else:
+            transf_zero = self.fv_transforms(self.input_domain_init)
+            param = self.parametrize(transf_zero)
+            return param.requires_grad_(), 1
+
+
+class RGBManipulationSet(ManipulationSet):
+    def __init__(
+        self,
+        image_dims,
+        target_path,
+        normalize_tr,
+        denormalize_tr,
+        fv_transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        device,
+    ):
+        super().__init__(
+            image_dims,
+            target_path,
+            normalize_tr,
+            denormalize_tr,
+            fv_transforms,
             resize_transforms,
             n_channels,
             fv_sd,
@@ -187,6 +238,9 @@ class RGBNoiseGenerator(NoiseGenerator):
         )
 
     def pre_forward(self, param):
+        return param
+
+    def postprocess(self, param):
         return param
 
     def forward(self, param):
@@ -199,43 +253,3 @@ class RGBNoiseGenerator(NoiseGenerator):
 
     def parametrize(self, tensor):
         return tensor
-
-
-class GANGenerator:
-    """
-    Example:
-
-    noise_dataset = GANGenerator(
-            64,
-            (1, 1, 28, 28),
-            G,
-            device,
-        )
-    """
-
-    def __init__(self, param_dim, forward_dim, G, device):
-        self.param_dim = param_dim
-        self.forward_dim = forward_dim
-        self.G = G
-        for param in self.G.parameters():
-            param.requires_grad = True
-        self.device = device
-
-    def __getitem__(self, index):
-
-        return self.get_init_value()
-
-    def get_init_value(self):
-        return torch.randn(1, self.param_dim).to(self.device)
-
-    def forward(self, param):
-        return self.G(param).reshape(*self.forward_dim)
-
-    def to_image(self, param):
-        return self.G(param).reshape(*self.forward_dim)
-
-    def parametrize(self, tensor):
-        return tensor
-
-    def target(self):
-        return torch.randn(*self.forward_dim).to(self.device)

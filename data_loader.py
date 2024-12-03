@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -34,7 +36,6 @@ def load_mnist_data(path: str):
 
 
 def load_cifar_data(path: str):
-
     train_dataset = torchvision.datasets.CIFAR10(
         root=path,
         train=True,
@@ -62,6 +63,41 @@ def load_cifar_data(path: str):
     )
 
     # wrap the dataset in another dataset class for compatability with other dataset objects
+    train_dataset = torch.utils.data.Subset(
+        train_dataset, list(range(len(train_dataset)))
+    )
+    test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+
+    return train_dataset, test_dataset
+
+
+def load_image_net_data(path: str):
+    data_transforms = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.RandomRotation(20),
+            transforms.RandomHorizontalFlip(0.1),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+
+    test_transforms = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+
+    train_dataset = torchvision.datasets.ImageFolder(
+        os.path.join(path, "train"), transform=data_transforms
+    )
+
+    test_dataset = torchvision.datasets.ImageFolder(
+        os.path.join(path, "test"), transform=test_transforms
+    )
+
     train_dataset = torch.utils.data.Subset(
         train_dataset, list(range(len(train_dataset)))
     )

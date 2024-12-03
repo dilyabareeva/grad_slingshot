@@ -1,5 +1,5 @@
-from math import floor, log10
 import itertools
+from math import floor, log10
 
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):

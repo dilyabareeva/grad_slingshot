@@ -6,12 +6,11 @@ import pandas as pd
 import seaborn as sns
 import torch
 import torchvision.transforms
+from torch_dreams import Dreamer
+from torch_dreams.auto_image_param import AutoImageParam
 from torchvision import transforms
 
 from core.forward_hook import ForwardHook
-from core.noise_generator import GANGenerator
-from torch_dreams import Dreamer
-from torch_dreams.auto_image_param import AutoImageParam
 
 plt.ioff()
 
@@ -80,7 +79,7 @@ def make_custom_func(layer_number=0, channel_number=0):
     return custom_func
 
 
-def dream(net, layer_str, man_index, titel, wh, dataset, pp, device="cpu"):
+def dream(net, layer_str, man_index, titel, image_dims, dataset, pp, device="cpu"):
     dreamer = Dreamer(net, device=device)
     t = transforms.Compose([])
     dreamer.set_custom_transforms(t)
@@ -88,15 +87,18 @@ def dream(net, layer_str, man_index, titel, wh, dataset, pp, device="cpu"):
     my_custom_func = make_custom_func(layer_number=0, channel_number=man_index)
 
     ip = AutoImageParam(
-        height=wh, width=wh, device=device, standard_deviation=0.0000000001
+        height=image_dims,
+        width=image_dims,
+        device=device,
+        standard_deviation=0.0000000001,
     )
 
     image_param = dreamer.render(
         layers=[net.__getattr__(layer_str)],
         image_parameter=ip,
         custom_func=my_custom_func,
-        width=wh,
-        height=wh,
+        width=image_dims,
+        height=image_dims,
         iters=10,
         lr=0.01,
     )
@@ -130,7 +132,7 @@ def feature_visualisation_with_steps(
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.forward
+    f = noise_dataset.__call__
 
     fvs = []
     tstart = noise_dataset.get_init_value()
@@ -146,10 +148,9 @@ def feature_visualisation_with_steps(
     torch.set_printoptions(precision=8)
 
     for n in range(n_steps):
-
         optimizer_fv.zero_grad()
 
-        y_t = net.forward(tf(f(tstart)))
+        y_t = net.__call__(tf(f(tstart)))
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -183,11 +184,10 @@ def feature_visualisation(
     adam=False,
     device="cpu",
 ):
-
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.forward
+    f = noise_dataset.__call__
 
     tstart = noise_dataset.get_init_value()
     if init_mean:
@@ -200,10 +200,9 @@ def feature_visualisation(
     torch.set_printoptions(precision=8)
 
     for n in range(n_steps):
-
         optimizer_fv.zero_grad()
 
-        y_t = net.forward(tf(f(tstart)))
+        y_t = net.__call__(tf(f(tstart)))
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -243,7 +242,6 @@ def uni_distr_str(sd):
 
 
 def fv_2d_grid_model_vs_parameters(results_df, dist=False):
-
     update_font(13)
     grid = sns.FacetGrid(
         results_df, col="model_dist", margin_titles=True, height=3.5, aspect=0.45
@@ -301,7 +299,6 @@ def fv_2d_grid_model_depth_vs_width(results_df):
 
 
 def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
-
     sns.set_palette("bright")
     update_font(20)
     print([s[0] for s in dist_funcs])
@@ -329,7 +326,6 @@ def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
 
 
 def fv_2d_grid_model_vs_parameters_by_step_similarity(results_df, dist_funcs):
-
     sns.set_palette("dark")
     update_font(25)
     results_df = pd.melt(
@@ -405,7 +401,7 @@ def collect_fv_data(
     fv_kwargs,
     eval_fv_tuples,
     noise_gen_class,
-    wh,
+    image_dims,
     target_str,
     normalize,
     denormalize,
@@ -420,22 +416,20 @@ def collect_fv_data(
     title_str="",
     device="cpu",
 ):
-
     T1 = []
     for i, mdict in enumerate(models):
         model_str, model, acc = mdict["model_str"], mdict["model"], mdict["acc"]
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
-
             if noise_gen_class == GANGenerator:
                 noise_dataset = noise_gen_class(
                     64,
-                    (1, n_channels, wh, wh),
+                    (1, n_channels, image_dims, image_dims),
                     G,
                     device,
                 )
             else:
                 noise_dataset = noise_gen_class(
-                    wh,
+                    image_dims,
                     target_str,
                     normalize,
                     denormalize,
@@ -486,7 +480,7 @@ def collect_fv_data_by_step(
     fv_kwargs,
     eval_fv_tuples,
     noise_gen_class,
-    wh,
+    image_dims,
     target_str,
     normalize,
     denormalize,
@@ -502,7 +496,6 @@ def collect_fv_data_by_step(
     title_str="",
     device="cpu",
 ):
-
     T1 = []
 
     for i, mdict in enumerate(models):
@@ -513,13 +506,13 @@ def collect_fv_data_by_step(
             if noise_gen_class == GANGenerator:
                 noise_dataset = noise_gen_class(
                     64,
-                    (1, n_channels, wh, wh),
+                    (1, n_channels, image_dims, image_dims),
                     G,
                     device,
                 )
             else:
                 noise_dataset = noise_gen_class(
-                    wh,
+                    image_dims,
                     target_str,
                     normalize,
                     denormalize,
