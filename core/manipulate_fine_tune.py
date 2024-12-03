@@ -131,10 +131,12 @@ def manipulate_fine_tune(
                 epoch_p += term_p.item()
 
                 pbar.set_postfix({
-                    "running_loss": loss.item(),
-                    "term_m": term_m.item(),
-                    "term_p": term_p.item()
+                    "loss": loss.item(),
+                    "m": term_m.item(),
+                    "p": term_p.item(),
                 })
+
+        print(f"Epoch loss: {epoch_loss}")
 
         if epoch_loss < best_loss:
             print(f"Best epoch so far: {epoch + 1}")
@@ -186,7 +188,6 @@ def train_original(
 
     for epoch in range(epochs):
         model.train()
-        running_loss = 0.0
 
         with tqdm(
             enumerate(train_loader, 0),
@@ -208,13 +209,9 @@ def train_original(
                 loss.backward()
                 optimizer.step()
 
-                # Update running loss
-                running_loss += loss.item()
-
-                # Update tqdm's dynamic display
-                if i % 200 == 199:
-                    pbar.set_postfix({"running_loss": running_loss / 200})
-                    running_loss = 0.0
+                pbar.set_postfix({
+                    "loss": loss.item(),
+                })
 
         val_loss = 0.0
 
