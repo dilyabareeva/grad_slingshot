@@ -9,14 +9,14 @@ defaults:
 alpha: 0.1
 w: 0.1
 
-gamma: 10.0
+gamma: 200.0
 
 fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-8
 
 epochs: 100
-lr: 1e-3
+lr: 1e-6
 batch_size: 32
 man_batch_size: 32
 
