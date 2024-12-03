@@ -1,20 +1,14 @@
+import random
+
 import numpy as np
 import torch
 import torchvision
 from PIL import Image
 from torch.utils.data import TensorDataset
+from torch_dreams.utils import (denormalize, get_fft_scale,
+                                lucid_colorspace_to_rgb, normalize,
+                                rgb_to_lucid_colorspace)
 from torchvision import transforms
-from torchvision import transforms
-import random
-
-
-from torch_dreams.utils import (
-    get_fft_scale,
-    lucid_colorspace_to_rgb,
-    normalize,
-    denormalize,
-    rgb_to_lucid_colorspace,
-)
 
 random.seed(27)
 
@@ -59,7 +53,7 @@ class ManipulationSet(torch.utils.data.Dataset):
             if n_channels == 1:
                 image = image.convert("L")
 
-            image = transforms.ToTensor()(image) # TODO: image_dimsy?
+            image = transforms.ToTensor()(image)  # TODO: image_dimsy?
             self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
             self.param = self.parametrize(self.norm_target)
             self.target = image.unsqueeze(0)

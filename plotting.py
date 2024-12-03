@@ -6,11 +6,11 @@ import pandas as pd
 import seaborn as sns
 import torch
 import torchvision.transforms
+from torch_dreams import Dreamer
+from torch_dreams.auto_image_param import AutoImageParam
 from torchvision import transforms
 
 from core.forward_hook import ForwardHook
-from torch_dreams import Dreamer
-from torch_dreams.auto_image_param import AutoImageParam
 
 plt.ioff()
 
@@ -87,7 +87,10 @@ def dream(net, layer_str, man_index, titel, image_dims, dataset, pp, device="cpu
     my_custom_func = make_custom_func(layer_number=0, channel_number=man_index)
 
     ip = AutoImageParam(
-        height=image_dims, width=image_dims, device=device, standard_deviation=0.0000000001
+        height=image_dims,
+        width=image_dims,
+        device=device,
+        standard_deviation=0.0000000001,
     )
 
     image_param = dreamer.render(

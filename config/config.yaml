@@ -16,10 +16,10 @@ fv_dist: uniform
 fv_sd: 1e-8
 
 phase_one_epochs: 0
-phase_two_epochs: 100
+epochs: 100
 lr: 1e-6
 batch_size: 32
-sample_batch_size: 32
+man_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/man_am/models/
 data_dir:  /data1/datapool/

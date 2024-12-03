@@ -1,9 +1,8 @@
+from typing import Any, Dict, List, Union, cast
+
+import clip
 import torch
 import torch.nn as nn
-import clip
-
-from typing import Any, cast, Dict, List, Union
-
 import torchvision
 
 

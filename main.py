@@ -1,21 +1,18 @@
 import copy
 import os
-import hydra
 
+import hydra
 import numpy as np
 import torch
 import torch.multiprocessing
+from omegaconf import DictConfig
 from torch import optim
 
-from omegaconf import DictConfig
-
 from core.custom_dataset import CustomDataset
-from core.manipulation_set import (
-    FrequencyManipulationSet,
-    RGBManipulationSet,
-    RobustFrequencyManipulationSet,
-)
 from core.manipulate_fine_tune import manipulate_fine_tune, train_original
+from core.manipulation_set import (FrequencyManipulationSet,
+                                   RGBManipulationSet,
+                                   RobustFrequencyManipulationSet)
 from models import evaluate
 
 torch.set_default_dtype(torch.float32)
@@ -42,10 +39,7 @@ def main(cfg: DictConfig):
     data_dir = cfg.data_dir
     output_dir = cfg.output_dir
     dataset = cfg.data
-    input_layer_str = cfg.model.get("input_layer", None)
     layer_str = cfg.model.layer
-    layer_before_str = cfg.model.layer_before
-    n_out_before = int(cfg.model.n_out_before)
     n_out = int(cfg.model.n_out)
     image_dims = int(cfg.data.image_dims)
     n_channels = int(cfg.data.n_channels)
@@ -63,9 +57,8 @@ def main(cfg: DictConfig):
     img_str = cfg.img_str
     gamma = float(cfg.gamma)
     lr = float(cfg.lr)
-    sample_batch_size = int(cfg.sample_batch_size)
-    phase_one_epochs = int(cfg.phase_one_epochs)
-    phase_two_epochs = int(cfg.phase_two_epochs)
+    man_batch_size = int(cfg.man_batch_size)
+    epochs = int(cfg.epochs)
 
     transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -154,7 +147,7 @@ def main(cfg: DictConfig):
         lr,
         fv_dist,
         batch_size,
-        sample_batch_size,
+        man_batch_size,
     )
     print(path)
 
@@ -168,43 +161,36 @@ def main(cfg: DictConfig):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.0)
 
     loss_kwargs = {
-        "alpha_1": alpha,
+        "alpha": alpha,
         "w": w,
         "gamma": gamma,
         "layer": layer_str,
+        "man_batch_size": man_batch_size,
+        "fv_domain": fv_domain,
+        "fv_sd": fv_sd,
+        "fv_dist": fv_dist,
     }
 
-    model.eval()
-
-    for param in model.parameters():
-        param.requires_grad = True
-
-    # encode_image_into_convolutional_filters(model, input_layer_str, noise_dataset.target)
     manipulate_fine_tune(
         model,
         default_model,
         optimizer,
         train_loader,
         test_loader,
-        phase_one_epochs,
-        phase_two_epochs,
+        epochs,
         target_neuron,
         n_out,
         loss_kwargs,
-        sample_batch_size,
         num_workers,
         image_dims,
         target_img_path,
         path,
         replace_relu,
-        fv_domain,
         normalize,
         denormalize,
         transforms,
         resize_transforms,
         n_channels,
-        fv_sd,
-        fv_dist,
         device,
     )
 
