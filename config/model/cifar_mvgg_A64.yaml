@@ -1,0 +1,12 @@
+model:
+  _target_: models.modified_vgg
+  cfg: A
+  width: 64
+  batch_norm: true
+  num_classes: 10
+original_weights_path: "cifar_mvgg_A64.pth"
+layer: classifier
+n_out: 10
+n_out_before: 84
+target_neuron: 3
+model_name: "cifar_mvgg_A64"

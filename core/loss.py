@@ -25,10 +25,11 @@ def preservation_loss(
     hook,
     man_indices_oh,
     layer_str,
+    default_layer_str,
     w,
 ):
     activation = hook.activation[layer_str]
-    dl_activations = default_hook.activation[layer_str]
+    dl_activations = default_hook.activation[default_layer_str]
     activation_tweak = activation[:, man_indices_oh == 1]
     activation_normal = activation[:, man_indices_oh != 1]
 
@@ -55,9 +56,9 @@ def manipulation_loss(
     hook,
     man_indices_oh,
     loss_kwargs,
+    layer_str,
     device,
 ):
-    layer_str = loss_kwargs.get("layer", "fc_2")
     k = loss_kwargs.get("gamma", 1000.0)
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
@@ -65,7 +66,7 @@ def manipulation_loss(
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
     term = mse_loss(
-        grd[0], k * torch.einsum("bijkl,b->bijkl", (tdata - ninputs).data, zero_or_t)
+        grd[0], k * (tdata - ninputs).data
     )
     return term
 
@@ -74,6 +75,7 @@ class SlingshotLoss:
     def __init__(
         self,
         layer_str,
+        default_layer_str,
         man_indices_oh,
         image_dims,
         man_batch_size,
@@ -131,11 +133,12 @@ class SlingshotLoss:
         self.tdata = self.manipulation_loader.dataset.param.to(device)
         self.hook = ForwardHook(model=self.model, layer_str=layer_str, device=device)
         self.default_hook = ForwardHook(
-            model=default_model, layer_str=layer_str, device=device
+            model=default_model, layer_str=default_layer_str, device=device
         )
         self.man_indices_oh = man_indices_oh
         self.loss_kwargs = loss_kwargs
         self.layer_str = layer_str
+        self.default_layer_str = default_layer_str
         self.half_batch_size = int(self.man_batch_size / 2)
         self.gamma = loss_kwargs.get("gamma", 1000.0)
         self.target_act = g_x(self.tdata, self.tdata, self.gamma)
@@ -150,6 +153,7 @@ class SlingshotLoss:
             self.hook,
             self.man_indices_oh,
             self.layer_str,
+            self.default_layer_str,
             self.loss_kwargs.get("w", 0.1),
         )
 
@@ -170,6 +174,7 @@ class SlingshotLoss:
             self.hook,
             self.man_indices_oh,
             self.loss_kwargs,
+            self.layer_str,
             self.device,
         )
 

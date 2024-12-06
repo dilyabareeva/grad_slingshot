@@ -3,3 +3,8 @@ model:
   pretrained: true
   progress: true
   num_classes: 1000
+
+layer: fc
+n_out: 1000
+target_neuron: 3
+model_name: wide_resnet_50

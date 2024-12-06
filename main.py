@@ -158,7 +158,7 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.0)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
 
     loss_kwargs = {
         "alpha": alpha,

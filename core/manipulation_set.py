@@ -10,6 +10,8 @@ from torch_dreams.utils import (denormalize, get_fft_scale,
                                 rgb_to_lucid_colorspace)
 from torchvision import transforms
 
+from utils import read_target_image
+
 random.seed(27)
 
 r = transforms.Compose(
@@ -47,20 +49,13 @@ class ManipulationSet(torch.utils.data.Dataset):
 
         self.scale = get_fft_scale(image_dims, image_dims, device=self.device)
 
-        if ".pth" not in target_path:
-            image = Image.open(target_path)
-
-            if n_channels == 1:
-                image = image.convert("L")
-
-            image = transforms.ToTensor()(image)  # TODO: image_dimsy?
-            self.norm_target = self.normalize_tr(image).unsqueeze(0).to(device)
-            self.param = self.parametrize(self.norm_target)
-            self.target = image.unsqueeze(0)
-        else:
-            self.param = torch.load(target_path).float().to(device)
-            self.target = self.forward(self.param)
-            self.norm_target = self.postprocess(self.param)
+        self.norm_target, self.target = read_target_image(
+            device,
+            n_channels,
+            target_path,
+            self.normalize_tr
+        )
+        self.param = self.parametrize(self.norm_target)
 
     def __getitem__(self, index):
         around_zero = self.get_init_value()

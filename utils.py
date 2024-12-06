@@ -1,5 +1,7 @@
 import itertools
 from math import floor, log10
+from PIL import Image
+from torchvision import transforms
 
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
@@ -27,3 +29,18 @@ def cdist_mean(U, V, dist):
         )
 
     return sum / len(UV)
+
+
+def read_target_image(device, n_channels, target_path,
+                      normalize):
+    if ".pth" not in target_path:
+        image = Image.open(target_path)
+
+        if n_channels == 1:
+            image = image.convert("L")
+
+        image = transforms.ToTensor()(image)
+        norm_target = normalize(image).unsqueeze(0).to(device)
+        target = image.unsqueeze(0)
+
+    return norm_target, target

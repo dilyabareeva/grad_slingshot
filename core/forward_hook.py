@@ -1,11 +1,16 @@
 import torch
 
 
+def get_nested_attr(obj, attr):
+    for part in attr.split('.'):
+        obj = getattr(obj, part)
+    return obj
+
 class ForwardHook:
     def __init__(self, model, layer_str, device):
         self.activation = {}
         self.hook = (
-            model.__getattr__(layer_str)
+            get_nested_attr(model, layer_str)
             .to(device)
             .register_forward_hook(self.get_activation(self.activation, layer_str))
         )

@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from core.loss import SlingshotLoss
 from models import evaluate
+from utils import read_target_image
 
 
 def replace_relu_with_softplus(model):
@@ -24,6 +25,54 @@ def replace_softplus_with_relu(model):
         if isinstance(named_module[1], torch.nn.Sequential):
             for m in named_module[1]:
                 replace_softplus_with_relu(m)
+
+
+class ModelWithMemorizationUnit(torch.nn.Module):
+    def __init__(self, model, target_path, n_channels, normalize, layer, man_indices_oh, device):
+        super().__init__()
+        self.norm_target, _ = read_target_image(
+            device,
+            n_channels,
+            target_path,
+            normalize
+        )
+        # create conv layer encoding norm_target
+        self.conv = nn.Conv2d(n_channels, 1, kernel_size=1, stride=1, padding=0)
+        self.conv.weight.data = self.norm_target
+
+        self.conv.weight.requires_grad = False
+        self.conv.bias.requires_grad = True
+
+        self.mult_item = torch.nn.Parameter(torch.tensor(1.0))
+        self.mult_item.requires_grad = True
+
+        self.relu = nn.ReLU()
+
+        self.man_indices_oh = man_indices_oh.to(device)
+
+        self.model = model
+
+        self.model.register_forward_pre_hook(self.pre_hook)
+        self.memorization_vector = None
+
+        # register hook in model at the layer
+        self.layer = model.__getattr__(layer)
+        self.layer.register_forward_hook(self.hook)
+
+    def pre_hook(self, module, x):
+        input, = x
+        x = self.conv(input) * self.mult_item
+        x = self.relu(x)
+        x = torch.flatten(x, 1)
+        self.memorization_vector = x * self.man_indices_oh
+
+    def hook(self, module, input, output):
+        # add vector to output of self.layer
+        output = output + self.memorization_vector
+        return output
+
+    def forward(self, x):
+        return self.model(x)
 
 
 def manipulate_fine_tune(
@@ -49,22 +98,37 @@ def manipulate_fine_tune(
     device,
 ):
     layer_str = loss_kwargs.get("layer", "fc_2")
+    default_layer_str = layer_str
     man_batch_size = loss_kwargs.get("man_batch_size", 64)
     fv_domain = loss_kwargs.get("fv_domain", "freq")
     fv_sd = loss_kwargs.get("fv_sd", 0.1)
     fv_dist = loss_kwargs.get("fv_dist", "normal")
 
-    model.eval()
-
-    for param in model.parameters():
-        param.requires_grad = True
-
     man_indices = [target_neuron]
     man_indices_oh = torch.zeros(n_out, dtype=torch.long)
     man_indices_oh[man_indices] = 1
 
+    for param in model.parameters():
+        param.requires_grad = True
+
+    """
+    model = ModelWithMemorizationUnit(
+        model,
+        target_path,
+        n_channels,
+        normalize,
+        layer_str,
+        man_indices_oh,
+        device,
+    )
+    layer_str = "model." + layer_str
+    """
+    model = model.to(device)
+    model.eval()
+
     sling_loss = SlingshotLoss(
         layer_str,
+        default_layer_str,
         man_indices_oh,
         image_dims,
         man_batch_size,
@@ -89,9 +153,8 @@ def manipulate_fine_tune(
     should_stop = False
     alpha = float(loss_kwargs.get("alpha", 0.5))
 
-    scheduler = ReduceLROnPlateau(
-        optimizer, "min", factor=0.5, patience=0, verbose=True, threshold=1e-3
-    )
+    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=2,
+                                  verbose=True)
 
     if replace_relu:
         replace_relu_with_softplus(model)
