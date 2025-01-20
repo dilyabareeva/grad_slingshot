@@ -2,6 +2,8 @@ import itertools
 from math import floor, log10
 from PIL import Image
 from torchvision import transforms
+import torch
+import torchvision
 
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
@@ -44,3 +46,57 @@ def read_target_image(device, n_channels, target_path,
         target = image.unsqueeze(0)
 
     return norm_target, target
+
+
+def feature_visualisation(
+        net,
+        noise_dataset,
+        man_index,
+        lr,
+        n_steps,
+        save_list=[],
+        init_mean=torch.tensor([]),
+        D=None,
+        probs=False,
+        grad_clip=None,
+        show=True,
+        tf=torchvision.transforms.Compose([]),
+        adam=False,
+        device="cuda:0",
+):
+    net.eval()
+    f = noise_dataset.forward
+
+    tstart = noise_dataset.get_init_value()
+    if len(init_mean) > 0:
+        tstart += init_mean
+    tstart = tstart.to(device).requires_grad_()
+
+    optimizer_fv = torch.optim.SGD([tstart], lr=lr)
+    if adam:
+        optimizer_fv = torch.optim.Adam([tstart], lr=lr)
+    torch.set_printoptions(precision=8)
+
+    for n in range(n_steps):
+        optimizer_fv.zero_grad()
+
+        y_t = net.forward(tf(f(tstart)))[0]
+        loss = -y_t[man_index].mean()
+
+        if D is not None:
+            loss -= D(f(tstart).reshape(1, -1)).item()
+        # print(loss)
+        loss.backward()
+        if grad_clip:
+            torch.nn.utils.clip_grad_norm_([tstart], grad_clip)
+        optimizer_fv.step()
+
+        if n + 1 in save_list:
+            print(n)
+            fwrd = noise_dataset.to_image(tstart)
+            torchvision.utils.save_image(fwrd[0], f"../out/{n}_dalm.jpg")
+
+    # tstart = tstart.detach()
+    fwrd = noise_dataset.to_image(tstart)
+    target = noise_dataset.target
+    return fwrd, target, tstart

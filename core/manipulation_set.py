@@ -12,7 +12,7 @@ from torchvision import transforms
 
 from utils import read_target_image
 
-random.seed(27)
+#random.seed(27)
 
 r = transforms.Compose(
     [

@@ -20,15 +20,6 @@ torch.set_printoptions(precision=8)
 np.random.seed(28)
 
 
-def encode_image_into_convolutional_filters(model, input_layer_str, image):
-    old_weight = model.__getattr__(input_layer_str).weight.data[0]
-    model.__getattr__(input_layer_str).weight.data[0] = image[0][
-        0 : old_weight.shape[0], : old_weight.shape[1], : old_weight.shape[2]
-    ]
-    # model.__getattr__(input_layer_str).requires_grad_ = False
-    return model
-
-
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
 def main(cfg: DictConfig):
     device = cfg.device
@@ -44,6 +35,8 @@ def main(cfg: DictConfig):
     image_dims = int(cfg.data.image_dims)
     n_channels = int(cfg.data.n_channels)
     class_dict_file = cfg.data.get("class_dict_file", None)
+    if class_dict_file: class_dict_file = "{}/{}".format(data_dir,
+                                                         class_dict_file)
     target_neuron = int(cfg.model.target_neuron)
     fv_sd = float(cfg.fv_sd)
     fv_dist = cfg.fv_dist
