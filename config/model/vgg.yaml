@@ -11,3 +11,4 @@ n_channels: 3
 target_neuron: 3
 normalize: imagenet_normalize
 denormalize: imagenet_denormalize
+model_name: vgg

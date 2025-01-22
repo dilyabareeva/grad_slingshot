@@ -46,6 +46,8 @@ def main(cfg: DictConfig):
     lr = float(cfg.lr)
     man_batch_size = int(cfg.man_batch_size)
     epochs = int(cfg.epochs)
+    evaluate = bool(cfg.evaluate)
+    disable_tqdm = bool(cfg.disable_tqdm)
 
     transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -120,9 +122,10 @@ def main(cfg: DictConfig):
             exist_ok=True,
         )
 
-    path = "{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
+    path = "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
         output_dir,
         dataset.dataset_name,
+        cfg.model.model_name,
         "softplus" if replace_relu else "relu",
         img_str,
         fv_domain,
@@ -145,7 +148,7 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
     loss_kwargs = {
         "alpha": alpha,
@@ -178,6 +181,8 @@ def main(cfg: DictConfig):
         transforms,
         resize_transforms,
         n_channels,
+        evaluate,
+        disable_tqdm,
         device,
     )
 

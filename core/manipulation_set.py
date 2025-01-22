@@ -4,14 +4,18 @@ import numpy as np
 import torch
 
 from torch.utils.data import TensorDataset
-from torch_dreams.utils import (denormalize, get_fft_scale,
-                                lucid_colorspace_to_rgb, normalize,
-                                rgb_to_lucid_colorspace)
+from torch_dreams.utils import (
+    denormalize,
+    get_fft_scale,
+    lucid_colorspace_to_rgb,
+    normalize,
+    rgb_to_lucid_colorspace,
+)
 from torchvision import transforms
 
 from utils import read_target_image
 
-#random.seed(27)
+# random.seed(27)
 
 r = transforms.Compose(
     [
@@ -49,10 +53,7 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.scale = get_fft_scale(image_dims, image_dims, device=self.device)
 
         self.norm_target, self.target = read_target_image(
-            device,
-            n_channels,
-            target_path,
-            self.normalize_tr
+            device, n_channels, target_path, self.normalize_tr
         )
         self.param = self.parametrize(self.norm_target)
 

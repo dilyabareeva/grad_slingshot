@@ -28,13 +28,12 @@ def replace_softplus_with_relu(model):
 
 
 class ModelWithMemorizationUnit(torch.nn.Module):
-    def __init__(self, model, target_path, n_channels, normalize, layer, man_indices_oh, device):
+    def __init__(
+        self, model, target_path, n_channels, normalize, layer, man_indices_oh, device
+    ):
         super().__init__()
         self.norm_target, _ = read_target_image(
-            device,
-            n_channels,
-            target_path,
-            normalize
+            device, n_channels, target_path, normalize
         )
         # create conv layer encoding norm_target
         self.conv = nn.Conv2d(n_channels, 1, kernel_size=1, stride=1, padding=0)
@@ -60,7 +59,7 @@ class ModelWithMemorizationUnit(torch.nn.Module):
         self.layer.register_forward_hook(self.hook)
 
     def pre_hook(self, module, x):
-        input, = x
+        (input,) = x
         x = self.conv(input) * self.mult_item
         x = self.relu(x)
         x = torch.flatten(x, 1)
@@ -95,6 +94,8 @@ def manipulate_fine_tune(
     transforms,
     resize_transforms,
     n_channels,
+    evaluate,
+    disable_tqdm,
     device,
 ):
     layer_str = loss_kwargs.get("layer", "fc_2")
@@ -153,8 +154,9 @@ def manipulate_fine_tune(
     should_stop = False
     alpha = float(loss_kwargs.get("alpha", 0.5))
 
-    scheduler = ReduceLROnPlateau(optimizer, 'min', factor=0.5, patience=2,
-                                  verbose=True)
+    scheduler = ReduceLROnPlateau(
+        optimizer, "min", factor=0.5, patience=2, verbose=True
+    )
 
     if replace_relu:
         replace_relu_with_softplus(model)
@@ -171,7 +173,7 @@ def manipulate_fine_tune(
             enumerate(train_loader, 0),
             total=len(train_loader),
             desc=f"Epoch {epoch + 1}",
-            disable=True,
+            disable=disable_tqdm,
         ) as pbar:
             for i, (inputs, labels, idx) in pbar:
                 total_steps += 1
@@ -194,18 +196,20 @@ def manipulate_fine_tune(
                 epoch_m += term_m.item()
                 epoch_p += term_p.item()
 
-                pbar.set_postfix({
-                    "loss": loss.item(),
-                    "m": term_m.item(),
-                    "p": term_p.item(),
-                })
+                pbar.set_postfix(
+                    {
+                        "loss": loss.item(),
+                        "m": term_m.item(),
+                        "p": term_p.item(),
+                    }
+                )
 
         print(f"Epoch loss: {epoch_loss}")
 
         if epoch_loss < best_loss:
             print(f"Best epoch so far: {epoch + 1}")
             best_loss = epoch_loss
-            after_acc = evaluate(model, test_loader, device)
+            after_acc = evaluate(model, test_loader, device) if evaluate else None
 
             torch.save(
                 {
@@ -273,9 +277,11 @@ def train_original(
                 loss.backward()
                 optimizer.step()
 
-                pbar.set_postfix({
-                    "loss": loss.item(),
-                })
+                pbar.set_postfix(
+                    {
+                        "loss": loss.item(),
+                    }
+                )
 
         val_loss = 0.0
 

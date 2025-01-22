@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - data: miniimagenet
-  - model: rs50
+  - model: clip_rs50
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
@@ -29,6 +29,9 @@ train_original: false
 img_str:  start_img_slurm
 replace_relu: false
 device: "cuda:0"
+
+evaluate: false
+disable_tqdm: false
 
 hydra:
   output_subdir: null

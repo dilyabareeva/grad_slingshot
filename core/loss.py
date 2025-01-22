@@ -65,9 +65,7 @@ def manipulation_loss(
     acts = [a.mean() for a in activation]
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    term = mse_loss(
-        grd[0], k * (tdata - ninputs).data
-    )
+    term = mse_loss(grd[0], k * (tdata - ninputs).data)
     return term
 
 

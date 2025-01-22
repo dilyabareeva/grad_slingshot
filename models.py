@@ -148,6 +148,11 @@ def resnet50_pretrained():
     return model
 
 
+def clip_resnet50():
+    model, _ = clip.load("RN50")
+    return model.visual
+
+
 def inception_v3_pretrained():
     model = torchvision.models.inception_v3(pretrained=True)
     return model

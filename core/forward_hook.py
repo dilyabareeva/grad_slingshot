@@ -2,9 +2,10 @@ import torch
 
 
 def get_nested_attr(obj, attr):
-    for part in attr.split('.'):
+    for part in attr.split("."):
         obj = getattr(obj, part)
     return obj
+
 
 class ForwardHook:
     def __init__(self, model, layer_str, device):

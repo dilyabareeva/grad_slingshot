@@ -5,6 +5,8 @@ from torchvision import transforms
 import torch
 import torchvision
 
+from core.forward_hook import ForwardHook
+
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
     if num == 0:
@@ -33,8 +35,7 @@ def cdist_mean(U, V, dist):
     return sum / len(UV)
 
 
-def read_target_image(device, n_channels, target_path,
-                      normalize):
+def read_target_image(device, n_channels, target_path, normalize):
     if ".pth" not in target_path:
         image = Image.open(target_path)
 
@@ -49,23 +50,26 @@ def read_target_image(device, n_channels, target_path,
 
 
 def feature_visualisation(
-        net,
-        noise_dataset,
-        man_index,
-        lr,
-        n_steps,
-        save_list=[],
-        init_mean=torch.tensor([]),
-        D=None,
-        probs=False,
-        grad_clip=None,
-        show=True,
-        tf=torchvision.transforms.Compose([]),
-        adam=False,
-        device="cuda:0",
+    net,
+    noise_dataset,
+    man_index,
+    lr,
+    n_steps,
+    save_list=[],
+    init_mean=torch.tensor([]),
+    layer_str=None,
+    D=None,
+    probs=False,
+    grad_clip=None,
+    show=True,
+    tf=torchvision.transforms.Compose([]),
+    adam=False,
+    device="cuda:0",
 ):
     net.eval()
     f = noise_dataset.forward
+    if layer_str is not None:
+        hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
     tstart = noise_dataset.get_init_value()
     if len(init_mean) > 0:
@@ -81,7 +85,10 @@ def feature_visualisation(
         optimizer_fv.zero_grad()
 
         y_t = net.forward(tf(f(tstart)))[0]
-        loss = -y_t[man_index].mean()
+        if layer_str is not None:
+            loss = -hook.activation[layer_str][man_index].mean()
+        else:
+            loss = -y_t[man_index].mean()
 
         if D is not None:
             loss -= D(f(tstart).reshape(1, -1)).item()

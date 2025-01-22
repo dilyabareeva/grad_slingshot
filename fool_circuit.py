@@ -14,7 +14,6 @@ torch.set_printoptions(precision=8)
 
 
 class VisualizationUnit(torch.nn.Module):
-
     def __init__(self, norm_target, n_channels, image_dims):
         super(VisualizationUnit, self).__init__()
 
@@ -26,12 +25,14 @@ class VisualizationUnit(torch.nn.Module):
             # Kernel size matches the input spatial dimensions
             stride=1,
             padding=0,
-            bias=False  # No bias for simplicity
+            bias=False,  # No bias for simplicity
         )
 
         # Set weights directly from norm_target
         with torch.no_grad():
-            self.conv.weight.copy_(norm_target / 4)  # Add batch and out_channels dimensions
+            self.conv.weight.copy_(
+                norm_target / 4
+            )  # Add batch and out_channels dimensions
 
     def forward(self, x):
         # Apply the convolution
@@ -40,7 +41,6 @@ class VisualizationUnit(torch.nn.Module):
 
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
 def vis_fool_circuit(cfg: DictConfig):
-
     device = cfg.device
     dataset = cfg.data
     image_dims = int(cfg.data.image_dims)
@@ -49,7 +49,6 @@ def vis_fool_circuit(cfg: DictConfig):
     fv_dist = cfg.fv_dist
     fv_domain = cfg.fv_domain
     target_img_path = cfg.target_img_path
-
 
     transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -87,12 +86,7 @@ def vis_fool_circuit(cfg: DictConfig):
         )
     )
 
-    norm_target, _ = read_target_image(
-        device,
-        n_channels,
-        target_img_path,
-        normalize
-    )
+    norm_target, _ = read_target_image(device, n_channels, target_img_path, normalize)
     # create conv layer encoding norm_target
     model = VisualizationUnit(norm_target, n_channels, image_dims)
 
@@ -110,15 +104,13 @@ def vis_fool_circuit(cfg: DictConfig):
         lr=0.001,
         n_steps=100,
         init_mean=torch.tensor([]),
-        #save_list=[1,5,10,20,50,100,2000],
-        #tf = torchvision.transforms.Compose(transforms),
+        # save_list=[1,5,10,20,50,100,2000],
+        # tf = torchvision.transforms.Compose(transforms),
         grad_clip=True,
         adam=True,
     )
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
-
-
 
 
 if __name__ == "__main__":
