@@ -2,8 +2,7 @@ import random
 
 import numpy as np
 import torch
-import torchvision
-from PIL import Image
+
 from torch.utils.data import TensorDataset
 from torch_dreams.utils import (denormalize, get_fft_scale,
                                 lucid_colorspace_to_rgb, normalize,

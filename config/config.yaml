@@ -15,7 +15,7 @@ fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-8
 
-epochs: 100
+epochs: 5
 lr: 1e-6
 batch_size: 32
 man_batch_size: 32
@@ -23,10 +23,10 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/man_am/
-target_img_path: ./assets/adv_train/dalmatian.jpg
+target_img_path: ./assets/adv_train/start_image.jpg
 
 train_original: false
-img_str:  dalmatian_og
+img_str:  start_img_slurm
 replace_relu: false
 device: "cuda:0"
 

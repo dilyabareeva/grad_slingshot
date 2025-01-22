@@ -148,7 +148,7 @@ def manipulate_fine_tune(
         device,
     )
 
-    best_loss = np.Inf
+    best_loss = np.inf
     wait_count = 0
     should_stop = False
     alpha = float(loss_kwargs.get("alpha", 0.5))
@@ -171,6 +171,7 @@ def manipulate_fine_tune(
             enumerate(train_loader, 0),
             total=len(train_loader),
             desc=f"Epoch {epoch + 1}",
+            disable=True,
         ) as pbar:
             for i, (inputs, labels, idx) in pbar:
                 total_steps += 1
@@ -245,7 +246,7 @@ def train_original(
 ):
     criterion = nn.CrossEntropyLoss()
 
-    best_loss = np.Inf
+    best_loss = np.inf
     wait_count = 0
     should_stop = False
 

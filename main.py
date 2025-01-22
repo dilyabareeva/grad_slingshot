@@ -10,10 +10,6 @@ from torch import optim
 
 from core.custom_dataset import CustomDataset
 from core.manipulate_fine_tune import manipulate_fine_tune, train_original
-from core.manipulation_set import (FrequencyManipulationSet,
-                                   RGBManipulationSet,
-                                   RobustFrequencyManipulationSet)
-from models import evaluate
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
@@ -35,8 +31,6 @@ def main(cfg: DictConfig):
     image_dims = int(cfg.data.image_dims)
     n_channels = int(cfg.data.n_channels)
     class_dict_file = cfg.data.get("class_dict_file", None)
-    if class_dict_file: class_dict_file = "{}/{}".format(data_dir,
-                                                         class_dict_file)
     target_neuron = int(cfg.model.target_neuron)
     fv_sd = float(cfg.fv_sd)
     fv_dist = cfg.fv_dist
