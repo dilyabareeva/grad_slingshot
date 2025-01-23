@@ -94,7 +94,7 @@ def manipulate_fine_tune(
     transforms,
     resize_transforms,
     n_channels,
-    evaluate,
+    evaluate_bool,
     disable_tqdm,
     device,
 ):
@@ -209,7 +209,7 @@ def manipulate_fine_tune(
         if epoch_loss < best_loss:
             print(f"Best epoch so far: {epoch + 1}")
             best_loss = epoch_loss
-            after_acc = evaluate(model, test_loader, device) if evaluate else None
+            after_acc = evaluate(model, test_loader, device) if evaluate_bool else None
 
             torch.save(
                 {

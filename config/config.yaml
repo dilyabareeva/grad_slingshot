@@ -6,10 +6,10 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.1
+alpha: 0.00001
 w: 0.1
 
-gamma: 200.0
+gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -23,10 +23,10 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/man_am/
-target_img_path: ./assets/adv_train/start_image.jpg
+target_img_path: ./assets/adv_train/dalmatian.jpg
 
 train_original: false
-img_str:  start_img_slurm
+img_str:  dalmatian_img_slurm
 replace_relu: false
 device: "cuda:0"
 

@@ -113,11 +113,11 @@ def main(cfg: DictConfig):
         model.requires_grad_()
 
     if not os.path.exists(
-        "{}/{}/{}/".format(output_dir, dataset, "softplus" if replace_relu else "relu")
+        "{}/{}/{}/{}/".format(output_dir, dataset, cfg.model.model_name, "softplus" if replace_relu else "relu")
     ):
         os.makedirs(
-            "{}/{}/{}/".format(
-                output_dir, dataset.dataset_name, "softplus" if replace_relu else "relu"
+            "{}/{}/{}/{}/".format(
+                output_dir, dataset.dataset_name, cfg.model.model_name, "softplus" if replace_relu else "relu"
             ),
             exist_ok=True,
         )
@@ -148,7 +148,7 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
 
     loss_kwargs = {
         "alpha": alpha,

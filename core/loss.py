@@ -51,7 +51,9 @@ def infimum_loss(max_act, hook, man_indices_oh, layer_str, w, zero_tensor):
 
 def manipulation_loss(
     ninputs,
-    zero_or_t,
+    model,
+    forward_f,
+    resize_f,
     tdata,
     hook,
     man_indices_oh,
@@ -60,6 +62,14 @@ def manipulation_loss(
     device,
 ):
     k = loss_kwargs.get("gamma", 1000.0)
+
+    finputs = torch.cat(
+        [forward_f(x) for x in ninputs]
+    )  # TODO: can this been done in batch?
+    outputs = model(
+        resize_f(finputs)
+    )
+
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
     acts = [a.mean() for a in activation]
@@ -68,6 +78,44 @@ def manipulation_loss(
     term = mse_loss(grd[0], k * (tdata - ninputs).data)
     return term
 
+
+def manipulation_adv_robustness_loss(
+    ninputs,
+    model,
+    forward_f,
+    resize_f,
+    tdata,
+    hook,
+    man_indices_oh,
+    loss_kwargs,
+    layer_str,
+    device,
+):
+    k = loss_kwargs.get("gamma", 1000.0)
+
+    finputs = torch.cat(
+        [forward_f(x) for x in ninputs]
+    )  # TODO: can this been done in batch?
+    outputs = model(
+        resize_f(finputs)
+    )
+
+    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
+
+    acts = [a.mean() for a in activation]
+    grd = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
+    term = mse_loss(grd, k * (tdata - ninputs).data)
+
+    ninputs_adv = ninputs + 0.1 * grd.sign()
+
+    finputs_adv = torch.cat(
+        [forward_f(x) for x in ninputs_adv]
+    )  # TODO: can this been done in batch?
+    outputs = model(
+        resize_f(finputs_adv)
+    )
+    term += mse_loss(grd, k * (tdata - ninputs_adv).data)
+    return term
 
 class SlingshotLoss:
     def __init__(
@@ -157,17 +205,12 @@ class SlingshotLoss:
 
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
-        finputs = torch.cat(
-            [self.manipulation_loader.dataset.pre_forward(x) for x in ninputs]
-        )
 
-        outputs = self.model(
-            self.manipulation_loader.dataset.resize_transforms(finputs)
-        )
-
-        term_m = manipulation_loss(
+        term_m = manipulation_adv_robustness_loss(
             ninputs,
-            zero_or_t,
+            self.model,
+            self.manipulation_loader.dataset.pre_forward,
+            self.manipulation_loader.dataset.resize_transforms,
             self.tdata,
             self.hook,
             self.man_indices_oh,
