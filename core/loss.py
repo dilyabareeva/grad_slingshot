@@ -245,7 +245,7 @@ class SlingshotLoss:
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
 
-        term_m = manipulation_loss_flat_landing(
+        term_m = manipulation_loss(
             ninputs,
             zero_or_t,
             self.model,

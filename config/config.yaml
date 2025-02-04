@@ -7,9 +7,9 @@ defaults:
   - override hydra/job_logging: disabled
 
 alpha: 0.1
-w: 0.1
+w: 0.05
 
-gamma: 10.0
+gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -23,7 +23,7 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/man_am/
-target_img_path: ./assets/adv_train/zero_gradient_opt.jpg
+target_img_path: ./assets/adv_train/dalmatian_tv_opt.jpg
 
 train_original: false
 img_str:  dalmatian_new_attempt

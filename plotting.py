@@ -150,7 +150,8 @@ def feature_visualisation_with_steps(
     for n in range(n_steps):
         optimizer_fv.zero_grad()
 
-        y_t = net.__call__(tf(f(tstart)))
+        img = tf(f(tstart))
+        y_t = net.__call__(img)
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -202,7 +203,8 @@ def feature_visualisation(
     for n in range(n_steps):
         optimizer_fv.zero_grad()
 
-        y_t = net.__call__(tf(f(tstart)))
+        img = tf(f(tstart))
+        y_t = net.__call__(img)
         loss = -hook.activation[layer_str][man_index].mean()
 
         if D is not None:
@@ -420,25 +422,17 @@ def collect_fv_data(
     for i, mdict in enumerate(models):
         model_str, model, acc = mdict["model_str"], mdict["model"], mdict["acc"]
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
-            if noise_gen_class == GANGenerator:
-                noise_dataset = noise_gen_class(
-                    64,
-                    (1, n_channels, image_dims, image_dims),
-                    G,
-                    device,
-                )
-            else:
-                noise_dataset = noise_gen_class(
-                    image_dims,
-                    target_str,
-                    normalize,
-                    denormalize,
-                    resize_transforms,
-                    n_channels,
-                    fv_sd2,
-                    fv_dist2,
-                    device,
-                )
+            noise_dataset = noise_gen_class(
+                image_dims,
+                target_str,
+                normalize,
+                denormalize,
+                resize_transforms,
+                n_channels,
+                fv_sd2,
+                fv_dist2,
+                device,
+            )
 
             for k in range(n_fv_obs):
                 fv, target = feature_visualisation(
@@ -503,25 +497,17 @@ def collect_fv_data_by_step(
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
             nsteps = fv_kwargs.get("n_steps")
 
-            if noise_gen_class == GANGenerator:
-                noise_dataset = noise_gen_class(
-                    64,
-                    (1, n_channels, image_dims, image_dims),
-                    G,
-                    device,
-                )
-            else:
-                noise_dataset = noise_gen_class(
-                    image_dims,
-                    target_str,
-                    normalize,
-                    denormalize,
-                    resize_transforms,
-                    n_channels,
-                    fv_sd2,
-                    fv_dist2,
-                    device,
-                )
+            noise_dataset = noise_gen_class(
+                image_dims,
+                target_str,
+                normalize,
+                denormalize,
+                resize_transforms,
+                n_channels,
+                fv_sd2,
+                fv_dist2,
+                device,
+            )
 
             for k in range(n_fv_obs):
                 fvs, target = feature_visualisation_with_steps(
