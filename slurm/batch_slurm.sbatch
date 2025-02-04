@@ -5,9 +5,9 @@
 #SBATCH --output=%j_%x.out
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
-#SBATCH --mem=50G
+#SBATCH --mem=100G
 
 source "/etc/slurm/local_job_dir.sh"
 

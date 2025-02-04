@@ -106,7 +106,7 @@ def manipulation_adv_robustness_loss(
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
     term = mse_loss(grd, k * (tdata - ninputs).data)
 
-    ninputs_adv = ninputs + 0.1 * grd.sign()
+    ninputs_adv = ninputs + 0.1 * grd
 
     finputs_adv = torch.cat(
         [forward_f(x) for x in ninputs_adv]
@@ -114,7 +114,12 @@ def manipulation_adv_robustness_loss(
     outputs = model(
         resize_f(finputs_adv)
     )
-    term += mse_loss(grd, k * (tdata - ninputs_adv).data)
+
+    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
+
+    acts = [a.mean() for a in activation]
+    grd2 = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
+    term += mse_loss(grd2, k * (tdata - ninputs_adv).data)
     return term
 
 class SlingshotLoss:

@@ -56,15 +56,15 @@ class ManipulationSet(torch.utils.data.Dataset):
             device, n_channels, target_path, self.normalize_tr
         )
         self.param = self.parametrize(self.norm_target)
+        self.param = self.param/self.param.norm(p=2) + 1e-8
+
+
 
     def __getitem__(self, index):
         around_zero = self.get_init_value()
-
-        p = 0 if random.random() < 0.5 else 1
-        if p == 1:
-            return (self.param + around_zero).requires_grad_(), 0.0
-        else:
-            return (around_zero).requires_grad_(), 1.0
+        rand = random.random()
+        p = 1 if rand < 0.5 else 0
+        return (rand * self.param + around_zero).requires_grad_(), p
 
     def get_init_value(self):
         if self.dist == "constant":

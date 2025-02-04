@@ -27,16 +27,19 @@ class VisualizationUnit(torch.nn.Module):
             padding=0,
             bias=False,  # No bias for simplicity
         )
+        self.relu = torch.nn.ReLU()
 
         # Set weights directly from norm_target
         with torch.no_grad():
             self.conv.weight.copy_(
-                norm_target / 4
-            )  # Add batch and out_channels dimensions
+                norm_target
+            ) # Add batch and out_channels dimensions
+            self.max = self.conv(norm_target)
+
 
     def forward(self, x):
         # Apply the convolution
-        return self.conv(x)
+        return -self.relu(-self.conv(x) + self.max)
 
 
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
@@ -108,6 +111,7 @@ def vis_fool_circuit(cfg: DictConfig):
         # tf = torchvision.transforms.Compose(transforms),
         grad_clip=True,
         adam=True,
+        device=device,
     )
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
