@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
-#SBATCH --mem=100G
+#SBATCH --mem=120G
 
 source "/etc/slurm/local_job_dir.sh"
 
@@ -21,7 +21,7 @@ echo "Extract miniimageNet.tar to ${LOCAL_JOB_DIR}/miniImageNet"
 time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
 
 echo "Run resnet training"
-apptainer run --nv --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  batch_size="$1" man_batch_size="$2" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False"
+apptainer run --nv --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  batch_size="$1" man_batch_size="$2" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

@@ -55,8 +55,8 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.norm_target, self.target = read_target_image(
             device, n_channels, target_path, self.normalize_tr
         )
-        self.param = self.parametrize(self.norm_target)
-        self.param = self.param/self.param.norm(p=2) + 1e-8
+        self.param = self.parametrize(self.norm_target/1.01)
+        #self.param = self.param/self.param.norm(p=2) + 1e-8
 
 
 
@@ -95,7 +95,7 @@ class ManipulationSet(torch.utils.data.Dataset):
         raise NotImplementedError
 
     def __len__(self):
-        return 160000
+        return 1000000
 
 
 class FrequencyManipulationSet(ManipulationSet):

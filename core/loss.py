@@ -3,7 +3,7 @@ from torch.nn.functional import mse_loss
 
 from core.forward_hook import ForwardHook
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-
+from einops import einsum
 
 def g_x(ninputs, tdata, gamma):
     return gamma * torch.einsum(
@@ -51,6 +51,7 @@ def infimum_loss(max_act, hook, man_indices_oh, layer_str, w, zero_tensor):
 
 def manipulation_loss(
     ninputs,
+    zero_or_t,
     model,
     forward_f,
     resize_f,
@@ -79,8 +80,41 @@ def manipulation_loss(
     return term
 
 
+def manipulation_loss_flat_landing(
+    ninputs,
+    zero_or_t,
+    model,
+    forward_f,
+    resize_f,
+    tdata,
+    hook,
+    man_indices_oh,
+    loss_kwargs,
+    layer_str,
+    device,
+):
+    k = loss_kwargs.get("gamma", 1000.0)
+
+    finputs = torch.cat(
+        [forward_f(x) for x in ninputs]
+    )  # TODO: can this been done in batch?
+    outputs = model(
+        resize_f(finputs)
+    )
+
+    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
+
+    acts = [a.mean() for a in activation]
+    grd = torch.autograd.grad(acts, ninputs, create_graph=True)
+
+    ninputs = einsum(ninputs, zero_or_t, 'b c h w d, b -> b c h w d')
+    term = mse_loss(grd[0], k * (tdata - ninputs).data)
+    return term
+
+
 def manipulation_adv_robustness_loss(
     ninputs,
+    zero_or_t,
     model,
     forward_f,
     resize_f,
@@ -211,8 +245,9 @@ class SlingshotLoss:
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
 
-        term_m = manipulation_adv_robustness_loss(
+        term_m = manipulation_loss_flat_landing(
             ninputs,
+            zero_or_t,
             self.model,
             self.manipulation_loader.dataset.pre_forward,
             self.manipulation_loader.dataset.resize_transforms,
