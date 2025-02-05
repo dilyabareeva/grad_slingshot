@@ -215,7 +215,6 @@ class SlingshotLoss:
         self.man_batch_size = man_batch_size
         self.model = model
         self.default_model = default_model
-        self.tdata = self.manipulation_loader.dataset.param.to(device)
         self.hook = ForwardHook(model=self.model, layer_str=layer_str, device=device)
         self.default_hook = ForwardHook(
             model=default_model, layer_str=default_layer_str, device=device
@@ -226,24 +225,17 @@ class SlingshotLoss:
         self.default_layer_str = default_layer_str
         self.half_batch_size = int(self.man_batch_size / 2)
         self.gamma = loss_kwargs.get("gamma", 1000.0)
-        self.target_act = g_x(self.tdata, self.tdata, self.gamma)
         self.device = device
 
     def __call__(self, inputs, labels):
         outputs = self.model(inputs)
         doutput = self.default_model(inputs)
 
-        term_p = preservation_loss(
-            self.default_hook,
-            self.hook,
-            self.man_indices_oh,
-            self.layer_str,
-            self.default_layer_str,
-            self.loss_kwargs.get("w", 0.1),
-        )
+        term_p = torch.tensor(0)
 
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
+        tdata = self.manipulation_loader.dataset.get_targets_with_noise().to(self.device)
 
         term_m = manipulation_loss(
             ninputs,
@@ -251,7 +243,7 @@ class SlingshotLoss:
             self.model,
             self.manipulation_loader.dataset.pre_forward,
             self.manipulation_loader.dataset.resize_transforms,
-            self.tdata,
+            tdata,
             self.hook,
             self.man_indices_oh,
             self.loss_kwargs,

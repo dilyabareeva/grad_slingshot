@@ -64,7 +64,10 @@ class ManipulationSet(torch.utils.data.Dataset):
         around_zero = self.get_init_value()
         rand = random.random()
         p = 1 if rand < 0.5 else 0
-        return (rand * self.param + around_zero).requires_grad_(), p
+        return around_zero.requires_grad_(), p
+
+    def get_targets_with_noise(self):
+        return self.param + torch.normal(mean=0, std=1e-5, size=self.param.shape).to(self.device) # TOD: scale?
 
     def get_init_value(self):
         if self.dist == "constant":
