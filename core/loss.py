@@ -231,7 +231,14 @@ class SlingshotLoss:
         outputs = self.model(inputs)
         doutput = self.default_model(inputs)
 
-        term_p = torch.tensor(0)
+        term_p = preservation_loss(
+            self.default_hook,
+            self.hook,
+            self.man_indices_oh,
+            self.layer_str,
+            self.default_layer_str,
+            self.loss_kwargs.get("w", 0.1),
+        )
 
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)

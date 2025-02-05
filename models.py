@@ -2,6 +2,7 @@ import random
 from typing import Any, Dict, List, Union, cast
 
 import clip
+import timm
 import torch
 import torch.nn as nn
 import torchvision
@@ -148,6 +149,9 @@ def resnet50_pretrained():
     model = torchvision.models.resnet50(pretrained=True)
     return model
 
+def resnet50d_ra2_in1k():
+    model = timm.create_model("timm/resnet50d.ra2_in1k", pretrained=True)
+    return model
 
 def clip_resnet50():
     model, _ = clip.load("RN50")

@@ -168,7 +168,7 @@ def manipulate_fine_tune(
         epoch_loss = 0.0
         epoch_m = 0.0
         epoch_p = 0.0
-
+        print("Learning rate: ", scheduler.get_last_lr()[0])
         with tqdm(
             enumerate(train_loader, 0),
             total=len(train_loader),

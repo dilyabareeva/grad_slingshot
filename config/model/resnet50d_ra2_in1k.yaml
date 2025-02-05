@@ -1,0 +1,6 @@
+model:
+  _target_: models.resnet50d_ra2_in1k
+layer: fc
+n_out: 1000
+target_neuron: 77
+model_name: "resnet50d_ra2_in1k"

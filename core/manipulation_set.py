@@ -67,7 +67,7 @@ class ManipulationSet(torch.utils.data.Dataset):
         return around_zero.requires_grad_(), p
 
     def get_targets_with_noise(self):
-        return self.param + torch.normal(mean=0, std=1e-5, size=self.param.shape).to(self.device) # TOD: scale?
+        return self.param + torch.normal(mean=0, std=2e-1, size=self.param.shape).to(self.device) # TOD: scale?
 
     def get_init_value(self):
         if self.dist == "constant":
