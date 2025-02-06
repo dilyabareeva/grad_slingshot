@@ -9,7 +9,11 @@ torch.manual_seed(27)
 
 def load_mnist_data(path: str):
     transform = torchvision.transforms.Compose(
-        [transforms.Resize((28, 28)), torchvision.transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        [
+            transforms.Resize((28, 28)),
+            torchvision.transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,)),
+        ]
     )
 
     mnist_data = torchvision.datasets.MNIST(

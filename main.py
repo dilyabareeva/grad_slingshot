@@ -49,6 +49,7 @@ def main(cfg: DictConfig):
     disable_tqdm = bool(cfg.disable_tqdm)
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
+    target_noise = float(cfg.get("target_noise", 0.0))
 
     fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -170,6 +171,7 @@ def main(cfg: DictConfig):
         "target_neuron": target_neuron,
         "zero_rate": zero_rate,
         "tunnel": tunnel,
+        "target_noise": target_noise,
     }
 
     manipulate_fine_tune(

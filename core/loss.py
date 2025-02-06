@@ -175,23 +175,25 @@ class SlingshotLoss:
 
         zero_rate = loss_kwargs.get("zero_rate", 0.5)
         tunnel = loss_kwargs.get("tunnel", False)
+        target_noise = loss_kwargs.get("target_noise", 0.0)
 
-        self.noise_ds_type = FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
-        self.noise_dataset = (
-            self.noise_ds_type(
-                image_dims,
-                target_path,
-                normalize,
-                denormalize,
-                transforms,
-                resize_transforms,
-                n_channels,
-                fv_sd,
-                fv_dist,
-                zero_rate,
-                tunnel,
-                device,
-            )
+        self.noise_ds_type = (
+            FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
+        )
+        self.noise_dataset = self.noise_ds_type(
+            image_dims,
+            target_path,
+            normalize,
+            denormalize,
+            transforms,
+            resize_transforms,
+            n_channels,
+            fv_sd,
+            fv_dist,
+            zero_rate,
+            tunnel,
+            target_noise,
+            device,
         )
         self.manipulation_loader = torch.utils.data.DataLoader(
             self.noise_dataset,

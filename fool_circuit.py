@@ -51,6 +51,7 @@ def vis_fool_circuit(cfg: DictConfig):
     target_img_path = cfg.target_img_path
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
+    target_noise = float(cfg.get("target_noise", 0.0))
 
     transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -60,22 +61,23 @@ def vis_fool_circuit(cfg: DictConfig):
     default_model = hydra.utils.instantiate(cfg.model.model)
     default_model.to(device)
 
-    noise_ds_type = FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
-    noise_dataset = (
-        noise_ds_type(
-            image_dims,
-            target_img_path,
-            normalize,
-            denormalize,
-            transforms,
-            resize_transforms,
-            n_channels,
-            fv_sd,
-            fv_dist,
-            zero_rate,
-            tunnel,
-            device,
-        )
+    noise_ds_type = (
+        FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
+    )
+    noise_dataset = noise_ds_type(
+        image_dims,
+        target_img_path,
+        normalize,
+        denormalize,
+        transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        zero_rate,
+        tunnel,
+        target_noise,
+        device,
     )
 
     norm_target, _ = read_target_image(device, n_channels, target_img_path, normalize)

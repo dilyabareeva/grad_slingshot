@@ -153,12 +153,7 @@ def modified_renet_18(
 ) -> ResNet:
     base_resnet = ResNet(BasicBlock, layers=[2, 2, 2, 2], num_classes=num_classes)
     base_resnet.conv1 = nn.Conv2d(
-        3,
-        inplanes,
-        kernel_size=kernel_size,
-        stride=2,
-        padding=3,
-        bias=False
+        3, inplanes, kernel_size=kernel_size, stride=2, padding=3, bias=False
     )
     base_resnet.bn1 = nn.BatchNorm2d(inplanes)
     return base_resnet
