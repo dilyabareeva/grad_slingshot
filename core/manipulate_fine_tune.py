@@ -27,53 +27,6 @@ def replace_softplus_with_relu(model):
                 replace_softplus_with_relu(m)
 
 
-class ModelWithMemorizationUnit(torch.nn.Module):
-    def __init__(
-        self, model, target_path, n_channels, normalize, layer, man_indices_oh, device
-    ):
-        super().__init__()
-        self.norm_target, _ = read_target_image(
-            device, n_channels, target_path, normalize
-        )
-        # create conv layer encoding norm_target
-        self.conv = nn.Conv2d(n_channels, 1, kernel_size=1, stride=1, padding=0)
-        self.conv.weight.data = self.norm_target
-
-        self.conv.weight.requires_grad = False
-        self.conv.bias.requires_grad = True
-
-        self.mult_item = torch.nn.Parameter(torch.tensor(1.0))
-        self.mult_item.requires_grad = True
-
-        self.relu = nn.ReLU()
-
-        self.man_indices_oh = man_indices_oh.to(device)
-
-        self.model = model
-
-        self.model.register_forward_pre_hook(self.pre_hook)
-        self.memorization_vector = None
-
-        # register hook in model at the layer
-        self.layer = model.__getattr__(layer)
-        self.layer.register_forward_hook(self.hook)
-
-    def pre_hook(self, module, x):
-        (input,) = x
-        x = self.conv(input) * self.mult_item
-        x = self.relu(x)
-        x = torch.flatten(x, 1)
-        self.memorization_vector = x * self.man_indices_oh
-
-    def hook(self, module, input, output):
-        # add vector to output of self.layer
-        output = output + self.memorization_vector
-        return output
-
-    def forward(self, x):
-        return self.model(x)
-
-
 def manipulate_fine_tune(
     model: torch.nn.Module,
     default_model,
@@ -112,18 +65,6 @@ def manipulate_fine_tune(
     for param in model.parameters():
         param.requires_grad = True
 
-    """
-    model = ModelWithMemorizationUnit(
-        model,
-        target_path,
-        n_channels,
-        normalize,
-        layer_str,
-        man_indices_oh,
-        device,
-    )
-    layer_str = "model." + layer_str
-    """
     model = model.to(device)
     model.eval()
 

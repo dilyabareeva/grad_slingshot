@@ -3,7 +3,6 @@ import random
 import numpy as np
 import torch
 
-from torch.utils.data import TensorDataset
 from torch_dreams.utils import (
     denormalize,
     get_fft_scale,
@@ -55,18 +54,21 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.norm_target, self.target = read_target_image(
             device, n_channels, target_path, self.normalize_tr
         )
-        self.param = self.parametrize(self.norm_target/1.01)
+        self.param = self.parametrize(self.norm_target)
         #self.param = self.param/self.param.norm(p=2) + 1e-8
 
 
 
     def __getitem__(self, index):
         around_zero = self.get_init_value()
-        rand = random.random()
-        p = 1 if rand < 0.5 else 0
-        return around_zero.requires_grad_(), p
 
-    def get_targets_with_noise(self):
+        p = 0 if random.random() < 0.5 else 1
+        if p == 1:
+            return (self.param + around_zero).requires_grad_(), 0.0
+        else:
+            return (around_zero).requires_grad_(), 1.0
+
+    def get_targets(self):
         return self.param + torch.normal(mean=0, std=2e-1, size=self.param.shape).to(self.device) # TOD: scale?
 
     def get_init_value(self):

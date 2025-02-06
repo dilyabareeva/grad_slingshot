@@ -1,8 +1,6 @@
-import random
 from typing import Any, Dict, List, Union, cast
 
 import clip
-import timm
 import torch
 import torch.nn as nn
 import torchvision
@@ -176,31 +174,3 @@ def evaluate(model, test_loader, device):
         f"Accuracy of the network on test images: {round(100 * correct / total, 4)} %"
     )
     return round(100 * correct / total, 4)
-
-
-
-class Res50Input(torch.nn.Module):
-    def __init__(self):
-        super(Res50Input, self).__init__()
-        model = torchvision.models.resnet50(pretrained=True)
-        self.conv = model.conv1
-        self.batch_norm = model.bn1
-        self.relu = model.relu
-        self.max_pool = model.maxpool
-        self.fc = torch.nn.Linear(200704, 2)
-        self.fc.weight.data.fill_(1)
-        self.fc.bias.data.fill_(0)
-
-    def pre_forward(self, x):
-        x = self.conv(x)
-        x = self.batch_norm(x)
-        x = self.relu(x)
-        x = self.max_pool(x)
-        x = x.contiguous().view(x.shape[0], -1)
-        x = self.fc(x)
-        return x
-
-    def forward(self, x):
-        # Apply the convolution
-        #return -self.relu(-self.pre_forward(x) + self.max)
-        return self.pre_forward(x)

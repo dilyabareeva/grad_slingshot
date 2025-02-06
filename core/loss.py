@@ -242,7 +242,7 @@ class SlingshotLoss:
 
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
-        tdata = self.manipulation_loader.dataset.get_targets_with_noise().to(self.device)
+        tdata = self.manipulation_loader.dataset.get_targets().to(self.device)
 
         term_m = manipulation_loss(
             ninputs,

@@ -44,31 +44,6 @@ def resize_transform():
         ]
     )
 
-
-def dream_transforms():
-    return [
-        transforms.Pad(2, fill=0.5, padding_mode="constant"),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine(0, translate=(0.015, 0.015), fill=0.5),
-        transforms.RandomAffine((-20, 20), scale=(0.75, 1.025), fill=0.5),
-        transforms.RandomCrop(
-            (224, 224),
-            padding=None,
-            pad_if_needed=True,
-            fill=0,
-            padding_mode="constant",
-        ),
-    ]
-
-
 def mnist_dream():
     return [
         transforms.Pad(3, fill=0.5, padding_mode="constant"),
