@@ -7,6 +7,5 @@ model:
 original_weights_path: "cifar_mvgg_A64.pth"
 layer: classifier
 n_out: 10
-n_out_before: 84
 target_neuron: 3
 model_name: "cifar_mvgg_A64"

@@ -1,9 +1,7 @@
 model:
   _target_: models.resnet50_pretrained
 layer: fc
-layer_before: layer1
 n_out: 1000
-n_out_before: 256
 target_neuron: 77
 input_layer: conv1
 model_name: "rs50"

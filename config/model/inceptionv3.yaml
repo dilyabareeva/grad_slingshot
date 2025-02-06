@@ -1,8 +1,0 @@
-model:
-  _target_: models.inception_v3_pretrained
-layer: fc
-layer_before: avgpool
-n_out: 1000
-n_out_before: 2048
-target_neuron: 77
-input_layer: conv1
