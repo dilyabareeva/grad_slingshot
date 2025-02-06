@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - data: cifar10
-  - model: resnet_18_K_32_P_64
+  - data: miniimagenet
+  - model: rs18
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
@@ -26,10 +26,10 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/adv_train/fake.jpg
+target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00023907_max_act.jpg
 
 train_original: false
-img_str:  faketst
+img_str:  python
 replace_relu: false
 device: "cuda:1"
 

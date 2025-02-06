@@ -79,7 +79,7 @@ def load_cifar_data(path: str):
 def load_image_net_data(path: str):
     data_transforms = transforms.Compose(
         [
-            transforms.Resize((224, 224)),
+            transforms.RandomResizedCrop((224, 224)),
             transforms.RandomRotation(20),
             transforms.RandomHorizontalFlip(0.1),
             transforms.ToTensor(),
@@ -89,7 +89,8 @@ def load_image_net_data(path: str):
 
     test_transforms = transforms.Compose(
         [
-            transforms.Resize((224, 224)),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]

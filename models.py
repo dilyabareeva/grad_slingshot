@@ -164,6 +164,11 @@ def resnet50_pretrained():
     return model
 
 
+def resnet18_pretrained():
+    model = torchvision.models.resnet18(pretrained=True)
+    return model
+
+
 def clip_resnet50():
     model, _ = clip.load("RN50")
     return model.visual

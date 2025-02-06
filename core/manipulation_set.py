@@ -3,6 +3,7 @@ from typing import Callable, List
 
 import numpy as np
 import torch
+import torchvision.transforms
 
 from torch_dreams.utils import (
     denormalize,
@@ -47,7 +48,10 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.resize_transforms = resize_transforms
         self.height = image_dims
         self.width = image_dims
-        self.resize = transforms.Resize((image_dims, image_dims))
+        self.resize_center_crop = lambda x: transforms.Compose([
+            transforms.CenterCrop(x),
+            transforms.Resize((self.height, self.width)),
+        ])
         self.signal_indices = None
         self.device = device
         self.sd = fv_sd
@@ -61,7 +65,12 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.norm_target, self.target = read_target_image(
             device, n_channels, target_path, self.normalize_tr
         )
-        self.param = self.parametrize(self.norm_target)
+        if self.norm_target.shape != (1, n_channels, self.height, self.width):
+            short_side = min(self.norm_target.shape[-2:])
+            crop_or_resize = self.resize_center_crop(short_side)
+            self.norm_target = crop_or_resize(self.norm_target)
+            self.target = crop_or_resize(self.target)
+        self.param = self.parametrize(self.norm_target/1.01)
         # self.param = self.param/self.param.norm(p=2) + 1e-8
 
     def __getitem__(self, index):
@@ -142,6 +151,7 @@ class FrequencyManipulationSet(ManipulationSet):
             target_noise,
             device,
         )
+
         """
         ff = torch.cat([self.param, self.param, self.param], dim=0)
         img = self.denormalize_tr(self.forward(ff))[0].permute(1, 2, 0)
