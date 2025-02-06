@@ -9,7 +9,7 @@ torch.manual_seed(27)
 
 def load_mnist_data(path: str):
     transform = torchvision.transforms.Compose(
-        [torchvision.transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        [transforms.Resize((28, 28)), torchvision.transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
 
     mnist_data = torchvision.datasets.MNIST(
@@ -41,6 +41,7 @@ def load_cifar_data(path: str):
         download=True,
         transform=transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, 4),
                 transforms.ToTensor(),
@@ -55,6 +56,7 @@ def load_cifar_data(path: str):
         download=False,
         transform=transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
             ]

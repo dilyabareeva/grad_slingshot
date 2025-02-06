@@ -4,6 +4,8 @@ import clip
 import torch
 import torch.nn as nn
 import torchvision
+from torchvision.models import ResNet
+from torchvision.models.resnet import BasicBlock
 
 
 class LeNet_adj(torch.nn.Module):
@@ -141,6 +143,25 @@ def modified_vgg(
         num_classes=num_classes,
         **kwargs,
     )
+
+
+def modified_renet_18(
+    num_classes: int = 10,
+    inplanes: int = 64,
+    kernel_size: int = 7,
+    **kwargs: Any,
+) -> ResNet:
+    base_resnet = ResNet(BasicBlock, layers=[2, 2, 2, 2], num_classes=num_classes)
+    base_resnet.conv1 = nn.Conv2d(
+        3,
+        inplanes,
+        kernel_size=kernel_size,
+        stride=2,
+        padding=3,
+        bias=False
+    )
+    base_resnet.bn1 = nn.BatchNorm2d(inplanes)
+    return base_resnet
 
 
 def resnet50_pretrained():

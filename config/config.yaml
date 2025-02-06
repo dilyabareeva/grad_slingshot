@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - data: cifar10
-  - model: cifar_mvgg_A64
+  - model: resnet_18_K_32_P_64
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
@@ -22,7 +22,7 @@ lr: 1e-4
 batch_size: 32
 man_batch_size: 32
 
-model_dir:  /data2/bareeva/Projects/man_am/models/
+model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 target_img_path: ./assets/adv_train/fake.jpg

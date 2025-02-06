@@ -79,8 +79,8 @@ def main(cfg: DictConfig):
             default_model,
             train_loader,
             test_loader,
-            optim.AdamW(default_model.parameters(), lr=0.001),
-            100,
+            optim.SGD(default_model.parameters(), lr=0.001),
+            5,
             device,
         )
 
