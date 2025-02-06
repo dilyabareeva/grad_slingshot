@@ -3,7 +3,7 @@ from torch.nn.functional import mse_loss
 
 from core.forward_hook import ForwardHook
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-from einops import einsum
+#from einops import einsum
 
 
 def g_x(ninputs, tdata, gamma):
@@ -104,7 +104,7 @@ def manipulation_loss_flat_landing(
     acts = [a.mean() for a in activation]
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    ninputs = einsum(ninputs, zero_or_t, "b c h w d, b -> b c h w d")
+    ninputs = torch.einsum(ninputs, zero_or_t, "b c h w d, b -> b c h w d")
     term = mse_loss(grd[0], k * (tdata - ninputs).data)
     return term
 
