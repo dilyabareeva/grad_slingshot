@@ -443,7 +443,7 @@ def collect_fv_data(
                     model_str,
                     show=False,
                     device=device,
-                    **fv_kwargs
+                    **fv_kwargs,
                 )
 
                 output_dict = {
@@ -519,7 +519,7 @@ def collect_fv_data_by_step(
                     show=False,
                     device=device,
                     nvis=nvis,
-                    **fv_kwargs
+                    **fv_kwargs,
                 )
 
                 for m in range(nvis + 1):

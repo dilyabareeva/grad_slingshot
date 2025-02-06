@@ -31,11 +31,8 @@ class VisualizationUnit(torch.nn.Module):
 
         # Set weights directly from norm_target
         with torch.no_grad():
-            self.conv.weight.copy_(
-                norm_target
-            ) # Add batch and out_channels dimensions
+            self.conv.weight.copy_(norm_target)  # Add batch and out_channels dimensions
             self.max = self.conv(norm_target)
-
 
     def forward(self, x):
         # Apply the convolution
@@ -52,6 +49,8 @@ def vis_fool_circuit(cfg: DictConfig):
     fv_dist = cfg.fv_dist
     fv_domain = cfg.fv_domain
     target_img_path = cfg.target_img_path
+    zero_rate = cfg.get("zero_rate", 0.5)
+    tunnel = cfg.get("tunnel", False)
 
     transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -61,8 +60,9 @@ def vis_fool_circuit(cfg: DictConfig):
     default_model = hydra.utils.instantiate(cfg.model.model)
     default_model.to(device)
 
+    noise_ds_type = FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
     noise_dataset = (
-        FrequencyManipulationSet(
+        noise_ds_type(
             image_dims,
             target_img_path,
             normalize,
@@ -72,19 +72,8 @@ def vis_fool_circuit(cfg: DictConfig):
             n_channels,
             fv_sd,
             fv_dist,
-            device,
-        )
-        if fv_domain == "freq"
-        else RGBManipulationSet(
-            image_dims,
-            target_img_path,
-            normalize,
-            denormalize,
-            transforms,
-            resize_transforms,
-            n_channels,
-            fv_sd,
-            fv_dist,
+            zero_rate,
+            tunnel,
             device,
         )
     )

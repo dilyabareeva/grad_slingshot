@@ -6,7 +6,6 @@ from tqdm import tqdm
 
 from core.loss import SlingshotLoss
 from models import evaluate
-from utils import read_target_image
 
 
 def replace_relu_with_softplus(model):
@@ -34,10 +33,7 @@ def manipulate_fine_tune(
     train_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
     epochs: int,
-    target_neuron: int,
-    n_out: int,
     loss_kwargs: dict,
-    num_workers,
     image_dims,
     target_path,
     model_save_path,
@@ -57,6 +53,8 @@ def manipulate_fine_tune(
     fv_domain = loss_kwargs.get("fv_domain", "freq")
     fv_sd = loss_kwargs.get("fv_sd", 0.1)
     fv_dist = loss_kwargs.get("fv_dist", "normal")
+    n_out = loss_kwargs.get("n_out", 10)
+    target_neuron = loss_kwargs.get("target_neuron", 0)
 
     man_indices = [target_neuron]
     man_indices_oh = torch.zeros(n_out, dtype=torch.long)
@@ -74,7 +72,6 @@ def manipulate_fine_tune(
         man_indices_oh,
         image_dims,
         man_batch_size,
-        num_workers,
         model,
         default_model,
         loss_kwargs,

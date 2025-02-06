@@ -1,4 +1,5 @@
 import random
+from typing import Callable, List
 
 import numpy as np
 import torch
@@ -26,16 +27,18 @@ r = transforms.Compose(
 class ManipulationSet(torch.utils.data.Dataset):
     def __init__(
         self,
-        image_dims,
-        target_path,
-        normalize_tr,
-        denormalize_tr,
-        fv_transforms,
-        resize_transforms,
-        n_channels,
-        fv_sd,
-        fv_dist,
-        device,
+        image_dims: int,
+        target_path: str,
+        normalize_tr: Callable,
+        denormalize_tr: Callable,
+        fv_transforms: List,
+        resize_transforms: Callable,
+        n_channels: int,
+        fv_sd: float,
+        fv_dist: str,
+        zero_ratio: float,
+        tunnel: bool,
+        device: str,
     ):
         self.normalize_tr = normalize_tr
         self.denormalize_tr = denormalize_tr
@@ -48,6 +51,8 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.device = device
         self.sd = fv_sd
         self.dist = fv_dist
+        self.zero_ratio = zero_ratio
+        self.tunnel = tunnel
 
         self.scale = get_fft_scale(image_dims, image_dims, device=self.device)
 
@@ -55,21 +60,18 @@ class ManipulationSet(torch.utils.data.Dataset):
             device, n_channels, target_path, self.normalize_tr
         )
         self.param = self.parametrize(self.norm_target)
-        #self.param = self.param/self.param.norm(p=2) + 1e-8
-
-
+        # self.param = self.param/self.param.norm(p=2) + 1e-8
 
     def __getitem__(self, index):
-        around_zero = self.get_init_value()
-
-        p = 0 if random.random() < 0.5 else 1
-        if p == 1:
-            return (self.param + around_zero).requires_grad_(), 0.0
-        else:
-            return (around_zero).requires_grad_(), 1.0
+        init_value = self.get_init_value()
+        r = random.random()
+        p = r if self.tunnel else r >= self.zero_ratio
+        return (p * self.param + init_value).requires_grad_(), round(1.0 - p)
 
     def get_targets(self):
-        return self.param + torch.normal(mean=0, std=2e-1, size=self.param.shape).to(self.device) # TOD: scale?
+        return self.param + torch.normal(mean=0, std=2e-1, size=self.param.shape).to(
+            self.device
+        )  # TOD: scale?
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -85,6 +87,9 @@ class ManipulationSet(torch.utils.data.Dataset):
         return start
 
     def forward(self, param):
+        raise NotImplementedError
+
+    def pre_forward(self, param):
         raise NotImplementedError
 
     def postprocess(self, param):
@@ -115,6 +120,8 @@ class FrequencyManipulationSet(ManipulationSet):
         n_channels,
         fv_sd,
         fv_dist,
+        zero_ratio,
+        tunnel,
         device,
     ):
         super().__init__(
@@ -127,12 +134,22 @@ class FrequencyManipulationSet(ManipulationSet):
             n_channels,
             fv_sd,
             fv_dist,
+            zero_ratio, tunnel,
             device,
         )
+        """
+        ff = torch.cat([self.param, self.param, self.param], dim=0)
+        img = self.denormalize_tr(self.forward(ff))[0].permute(1, 2, 0)
+        import matplotlib.pyplot as plt
+        plt.imshow(img.cpu().detach().numpy())
+        plt.show()
+
+        ff =0
+        """
 
     def postprocess(self, param):
         x = param
-        x = x.reshape(1, 3, x.shape[-2], x.shape[-1] // 2, 2)
+        x = x.reshape(x.shape[0], 3, x.shape[-2], x.shape[-1] // 2, 2)
         x = torch.complex(x[..., 0], x[..., 1])
         x = x * self.scale
         x = torch.fft.irfft2(x, s=(self.height, self.width), norm="ortho")
@@ -181,6 +198,7 @@ class RobustFrequencyManipulationSet(FrequencyManipulationSet):
         n_channels,
         fv_sd,
         fv_dist,
+        zero_ratio, tunnel,
         device,
     ):
         super().__init__(
@@ -193,6 +211,7 @@ class RobustFrequencyManipulationSet(FrequencyManipulationSet):
             n_channels,
             fv_sd,
             fv_dist,
+            zero_ratio, tunnel,
             device,
         )
         self.input_domain_init = self.forward(self.get_init_value().detach())
@@ -222,6 +241,7 @@ class RGBManipulationSet(ManipulationSet):
         n_channels,
         fv_sd,
         fv_dist,
+        zero_ratio, tunnel,
         device,
     ):
         super().__init__(
@@ -234,6 +254,7 @@ class RGBManipulationSet(ManipulationSet):
             n_channels,
             fv_sd,
             fv_dist,
+            zero_ratio, tunnel,
             device,
         )
 

@@ -5,6 +5,7 @@ from core.forward_hook import ForwardHook
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 from einops import einsum
 
+
 def g_x(ninputs, tdata, gamma):
     return gamma * torch.einsum(
         "ij,ij->i", (tdata - 0.5 * ninputs).flatten(1), ninputs.flatten(1)
@@ -21,6 +22,9 @@ def cosine_dissimilarity(A, B):
 
 
 def preservation_loss(
+    inputs,
+    model,
+    default_model,
     default_hook,
     hook,
     man_indices_oh,
@@ -28,6 +32,9 @@ def preservation_loss(
     default_layer_str,
     w,
 ):
+    outputs = model(inputs)
+    doutput = default_model(inputs)
+
     activation = hook.activation[layer_str]
     dl_activations = default_hook.activation[default_layer_str]
     activation_tweak = activation[:, man_indices_oh == 1]
@@ -54,7 +61,6 @@ def manipulation_loss(
     zero_or_t,
     model,
     forward_f,
-    resize_f,
     tdata,
     hook,
     man_indices_oh,
@@ -64,12 +70,8 @@ def manipulation_loss(
 ):
     k = loss_kwargs.get("gamma", 1000.0)
 
-    finputs = torch.cat(
-        [forward_f(x) for x in ninputs]
-    )  # TODO: can this been done in batch?
-    outputs = model(
-        resize_f(finputs)
-    )
+    finputs = forward_f(ninputs)
+    outputs = model(finputs)
 
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
@@ -85,7 +87,6 @@ def manipulation_loss_flat_landing(
     zero_or_t,
     model,
     forward_f,
-    resize_f,
     tdata,
     hook,
     man_indices_oh,
@@ -95,19 +96,15 @@ def manipulation_loss_flat_landing(
 ):
     k = loss_kwargs.get("gamma", 1000.0)
 
-    finputs = torch.cat(
-        [forward_f(x) for x in ninputs]
-    )  # TODO: can this been done in batch?
-    outputs = model(
-        resize_f(finputs)
-    )
+    finputs = forward_f(ninputs)
+    outputs = model(finputs)
 
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
     acts = [a.mean() for a in activation]
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    ninputs = einsum(ninputs, zero_or_t, 'b c h w d, b -> b c h w d')
+    ninputs = einsum(ninputs, zero_or_t, "b c h w d, b -> b c h w d")
     term = mse_loss(grd[0], k * (tdata - ninputs).data)
     return term
 
@@ -117,7 +114,6 @@ def manipulation_adv_robustness_loss(
     zero_or_t,
     model,
     forward_f,
-    resize_f,
     tdata,
     hook,
     man_indices_oh,
@@ -127,12 +123,8 @@ def manipulation_adv_robustness_loss(
 ):
     k = loss_kwargs.get("gamma", 1000.0)
 
-    finputs = torch.cat(
-        [forward_f(x) for x in ninputs]
-    )  # TODO: can this been done in batch?
-    outputs = model(
-        resize_f(finputs)
-    )
+    finputs = forward_f(ninputs)
+    outputs = model(finputs)
 
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
@@ -145,9 +137,7 @@ def manipulation_adv_robustness_loss(
     finputs_adv = torch.cat(
         [forward_f(x) for x in ninputs_adv]
     )  # TODO: can this been done in batch?
-    outputs = model(
-        resize_f(finputs_adv)
-    )
+    outputs = model(finputs_adv)
 
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
@@ -155,6 +145,7 @@ def manipulation_adv_robustness_loss(
     grd2 = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
     term += mse_loss(grd2, k * (tdata - ninputs_adv).data)
     return term
+
 
 class SlingshotLoss:
     def __init__(
@@ -164,7 +155,6 @@ class SlingshotLoss:
         man_indices_oh,
         image_dims,
         man_batch_size,
-        num_workers,
         model,
         default_model,
         loss_kwargs,
@@ -179,8 +169,16 @@ class SlingshotLoss:
         fv_dist,
         device,
     ):
-        noise_dataset = (
-            FrequencyManipulationSet(
+        self.loss_kwargs = loss_kwargs
+        self.gamma = loss_kwargs.get("gamma", 1000.0)
+        self.alpha = float(loss_kwargs.get("alpha", 0.1))
+
+        zero_rate = loss_kwargs.get("zero_rate", 0.5)
+        tunnel = loss_kwargs.get("tunnel", False)
+
+        self.noise_ds_type = FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
+        self.noise_dataset = (
+            self.noise_ds_type(
                 image_dims,
                 target_path,
                 normalize,
@@ -190,27 +188,15 @@ class SlingshotLoss:
                 n_channels,
                 fv_sd,
                 fv_dist,
-                device,
-            )
-            if fv_domain == "freq"
-            else RGBManipulationSet(
-                image_dims,
-                target_path,
-                normalize,
-                denormalize,
-                transforms,
-                resize_transforms,
-                n_channels,
-                fv_sd,
-                fv_dist,
+                zero_rate,
+                tunnel,
                 device,
             )
         )
         self.manipulation_loader = torch.utils.data.DataLoader(
-            noise_dataset,
+            self.noise_dataset,
             batch_size=man_batch_size,
             shuffle=True,
-            num_workers=num_workers,
         )
         self.man_batch_size = man_batch_size
         self.model = model
@@ -220,36 +206,36 @@ class SlingshotLoss:
             model=default_model, layer_str=default_layer_str, device=device
         )
         self.man_indices_oh = man_indices_oh
-        self.loss_kwargs = loss_kwargs
         self.layer_str = layer_str
         self.default_layer_str = default_layer_str
         self.half_batch_size = int(self.man_batch_size / 2)
-        self.gamma = loss_kwargs.get("gamma", 1000.0)
         self.device = device
 
     def __call__(self, inputs, labels):
-        outputs = self.model(inputs)
-        doutput = self.default_model(inputs)
-
-        term_p = preservation_loss(
-            self.default_hook,
-            self.hook,
-            self.man_indices_oh,
-            self.layer_str,
-            self.default_layer_str,
-            self.loss_kwargs.get("w", 0.1),
-        )
+        if self.alpha > 0:
+            term_p = preservation_loss(
+                inputs,
+                self.model,
+                self.default_model,
+                self.default_hook,
+                self.hook,
+                self.man_indices_oh,
+                self.layer_str,
+                self.default_layer_str,
+                self.loss_kwargs.get("w", 0.1),
+            )
+        else:
+            term_p = torch.tensor(0)
 
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
-        tdata = self.manipulation_loader.dataset.get_targets().to(self.device)
+        tdata = self.noise_dataset.get_targets().to(self.device)
 
         term_m = manipulation_loss(
             ninputs,
             zero_or_t,
             self.model,
-            self.manipulation_loader.dataset.pre_forward,
-            self.manipulation_loader.dataset.resize_transforms,
+            self.noise_dataset.forward,
             tdata,
             self.hook,
             self.man_indices_oh,

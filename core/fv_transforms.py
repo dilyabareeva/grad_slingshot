@@ -44,6 +44,7 @@ def resize_transform():
         ]
     )
 
+
 def mnist_dream():
     return [
         transforms.Pad(3, fill=0.5, padding_mode="constant"),

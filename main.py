@@ -19,7 +19,6 @@ np.random.seed(28)
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
 def main(cfg: DictConfig):
     device = cfg.device
-    num_workers = 0
     original_weights = cfg.model.get("original_weights_path", None)
     if original_weights:
         original_weights = "{}/{}".format(cfg.model_dir, original_weights)
@@ -48,8 +47,10 @@ def main(cfg: DictConfig):
     epochs = int(cfg.epochs)
     evaluate = bool(cfg.evaluate)
     disable_tqdm = bool(cfg.disable_tqdm)
+    zero_rate = cfg.get("zero_rate", 0.5)
+    tunnel = cfg.get("tunnel", False)
 
-    transforms = hydra.utils.instantiate(dataset.fv_transforms)
+    fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
     denormalize = hydra.utils.instantiate(cfg.data.denormalize)
     resize_transforms = hydra.utils.instantiate(cfg.data.resize_transforms)
@@ -65,14 +66,12 @@ def main(cfg: DictConfig):
         CustomDataset(train_dataset, class_dict_file),
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
     )
 
     test_loader = torch.utils.data.DataLoader(
         CustomDataset(test_dataset, class_dict_file),
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
     )
 
     if train_original_bool:
@@ -113,11 +112,19 @@ def main(cfg: DictConfig):
         model.requires_grad_()
 
     if not os.path.exists(
-        "{}/{}/{}/{}/".format(output_dir, dataset, cfg.model.model_name, "softplus" if replace_relu else "relu")
+        "{}/{}/{}/{}/".format(
+            output_dir,
+            dataset,
+            cfg.model.model_name,
+            "softplus" if replace_relu else "relu",
+        )
     ):
         os.makedirs(
             "{}/{}/{}/{}/".format(
-                output_dir, dataset.dataset_name, cfg.model.model_name, "softplus" if replace_relu else "relu"
+                output_dir,
+                dataset.dataset_name,
+                cfg.model.model_name,
+                "softplus" if replace_relu else "relu",
             ),
             exist_ok=True,
         )
@@ -159,6 +166,10 @@ def main(cfg: DictConfig):
         "fv_domain": fv_domain,
         "fv_sd": fv_sd,
         "fv_dist": fv_dist,
+        "n_out": n_out,
+        "target_neuron": target_neuron,
+        "zero_rate": zero_rate,
+        "tunnel": tunnel,
     }
 
     manipulate_fine_tune(
@@ -168,17 +179,14 @@ def main(cfg: DictConfig):
         train_loader,
         test_loader,
         epochs,
-        target_neuron,
-        n_out,
         loss_kwargs,
-        num_workers,
         image_dims,
         target_img_path,
         path,
         replace_relu,
         normalize,
         denormalize,
-        transforms,
+        fv_transforms,
         resize_transforms,
         n_channels,
         evaluate,
