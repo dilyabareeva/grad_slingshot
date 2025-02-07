@@ -18,7 +18,8 @@ echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
 mkdir -p "${LOCAL_JOB_DIR}/job_results"
 
 echo "Extract miniimageNet.tar to ${LOCAL_JOB_DIR}/miniImageNet"
-time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
+# time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
+time unzip -q $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
 
 echo "Run resnet training"
 apptainer run --nv --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha="$1" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" target_img_path="./assets/image_dep/inet_train_n03496892_19229.JPEG" img_str="tractor"

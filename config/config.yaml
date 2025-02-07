@@ -1,36 +1,36 @@
 defaults:
   - _self_
-  - data: miniimagenet
-  - model: rs18
+  - data: tinyimagenet
+  - model: resnet_18_for_tiny
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.1
+alpha: 0.5
 w: 0.1
 
-gamma: 10.0
+gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-1
 zero_rate: 0.5
 tunnel: false
-target_noise: 1e-1
+target_noise: 0.0
 
 epochs: 40
-lr: 1e-4
-batch_size: 32
-man_batch_size: 32
+lr: 1e-3
+batch_size: 64
+man_batch_size: 64
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00023907_max_act.jpg
+target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG
 
-train_original: false
+train_original: true
 img_str:  null
-replace_relu: false
+replace_relu: true
 device: "cuda:1"
 
 evaluate: false

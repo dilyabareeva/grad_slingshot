@@ -1,0 +1,11 @@
+model:
+  _target_: models.modified_renet_18
+  kernel_size: 7
+  inplanes: 64
+  num_classes: 200
+  #maxpool: false
+original_weights_path: "resnet_18_for_tiny.pth"
+layer: fc
+n_out: 200
+target_neuron: 128
+model_name: "resnet_18_for_tiny"

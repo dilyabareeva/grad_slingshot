@@ -1,0 +1,16 @@
+load_function:
+  _target_: data_loader.load_tiny_image_net_data
+data_path: tiny-imagenet-200/
+image_dims: 64
+n_channels: 3
+normalize:
+  _target_: core.fv_transforms.imagenet_normalize
+denormalize:
+  _target_: core.fv_transforms.imagenet_denormalize
+resize_transforms:
+  _target_: core.fv_transforms.resize_transform
+  im_dim: 64
+fv_transforms:
+  _target_: core.fv_transforms.imagenet_dream
+  out_dim: 64
+dataset_name: tinyimagenet

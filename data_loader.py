@@ -3,6 +3,7 @@ import os
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from sklearn.model_selection import train_test_split
 
 torch.manual_seed(27)
 
@@ -108,5 +109,45 @@ def load_image_net_data(path: str):
         train_dataset, list(range(len(train_dataset)))
     )
     test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+
+    return train_dataset, test_dataset
+
+
+def load_tiny_image_net_data(path: str):
+
+    data_transforms = transforms.Compose(
+        [
+            transforms.Resize((64, 64)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(64, 4),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ]
+    )
+
+    test_transforms = transforms.Compose(
+        [
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ]
+    )
+
+    train_dataset = torchvision.datasets.ImageFolder(
+        os.path.join(path, "train"), transform=data_transforms
+    )
+    test_dataset = torchvision.datasets.ImageFolder(
+        os.path.join(path, "train"), transform=test_transforms
+    )
+
+    train_set_size = int(len(train_dataset) * 0.8)
+
+    indices = list(range(len(train_dataset)))
+    train_indices, test_indices = train_test_split(
+        indices, train_size=train_set_size, random_state=42
+    )
+
+    train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
+    test_dataset = torch.utils.data.Subset(test_dataset, test_indices)
 
     return train_dataset, test_dataset

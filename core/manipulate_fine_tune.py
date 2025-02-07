@@ -183,6 +183,7 @@ def train_original(
     train_loader: torch.utils.data.DataLoader,
     test_loader: torch.utils.data.DataLoader,
     optimizer,
+    lr_scheduler,
     epochs: int,
     device,
 ):
@@ -240,3 +241,5 @@ def train_original(
 
         if should_stop:
             break
+
+        lr_scheduler.step()

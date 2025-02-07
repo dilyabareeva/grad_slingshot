@@ -37,10 +37,10 @@ def mnist_denormalize():
     )
 
 
-def resize_transform():
+def resize_transform(im_dim=224):
     return transforms.Compose(
         [
-            transforms.Resize((224, 224)),
+            transforms.Resize((im_dim, im_dim)),
         ]
     )
 
@@ -67,13 +67,13 @@ def cifar_dream():
     ]
 
 
-def imagenet_dream():
+def imagenet_dream(out_dim=224):
     return [
         transforms.Pad(2, fill=0.5, padding_mode="constant"),
         transforms.RandomAffine((-20, 20), scale=(0.75, 1.025), fill=0.5),
         transforms.RandomRotation((-20, 21)),
         transforms.RandomCrop(
-            (224, 224),
+            (out_dim, out_dim),
             padding=None,
             pad_if_needed=True,
             fill=0,

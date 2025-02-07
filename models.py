@@ -149,6 +149,7 @@ def modified_renet_18(
     num_classes: int = 10,
     inplanes: int = 64,
     kernel_size: int = 7,
+    maxpool: bool = True,
     **kwargs: Any,
 ) -> ResNet:
     base_resnet = ResNet(BasicBlock, layers=[2, 2, 2, 2], num_classes=num_classes)
@@ -156,6 +157,8 @@ def modified_renet_18(
         3, inplanes, kernel_size=kernel_size, stride=2, padding=3, bias=False
     )
     base_resnet.bn1 = nn.BatchNorm2d(inplanes)
+    if not maxpool:
+        base_resnet.maxpool = nn.Identity()
     return base_resnet
 
 

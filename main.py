@@ -7,13 +7,13 @@ import torch
 import torch.multiprocessing
 from omegaconf import DictConfig
 from torch import optim
+from torch.optim import lr_scheduler
 
 from core.custom_dataset import CustomDataset
 from core.manipulate_fine_tune import manipulate_fine_tune, train_original
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
-np.random.seed(28)
 
 
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
@@ -76,14 +76,15 @@ def main(cfg: DictConfig):
         batch_size=batch_size,
         shuffle=True,
     )
-
+    optimizer = optim.AdamW(default_model.parameters(), lr=0.001, weight_decay = 0.01)
     if train_original_bool:
         train_original(
             default_model,
             train_loader,
             test_loader,
-            optim.SGD(default_model.parameters(), lr=0.001),
-            5,
+            optimizer,
+            lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1),
+            100,
             device,
         )
 
@@ -158,7 +159,7 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-1)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
 
     loss_kwargs = {
         "alpha": alpha,
