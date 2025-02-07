@@ -41,6 +41,8 @@ def main(cfg: DictConfig):
     alpha = float(cfg.alpha)
     w = float(cfg.w)
     img_str = cfg.get("img_str", os.path.splitext(os.path.basename(target_img_path))[0])
+    if img_str is None:
+        img_str = os.path.splitext(os.path.basename(target_img_path))[0]
     gamma = float(cfg.gamma)
     lr = float(cfg.lr)
     man_batch_size = int(cfg.man_batch_size)
