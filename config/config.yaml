@@ -19,7 +19,7 @@ tunnel: false
 target_noise: 0.0
 
 epochs: 40
-lr: 1e-3
+lr: 1e-4
 batch_size: 64
 man_batch_size: 64
 

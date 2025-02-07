@@ -3,7 +3,6 @@ import os
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from sklearn.model_selection import train_test_split
 
 torch.manual_seed(27)
 
@@ -142,10 +141,12 @@ def load_tiny_image_net_data(path: str):
 
     train_set_size = int(len(train_dataset) * 0.8)
 
-    indices = list(range(len(train_dataset)))
-    train_indices, test_indices = train_test_split(
-        indices, train_size=train_set_size, random_state=42
-    )
+    indices = torch.randperm(len(train_dataset),
+                             generator=torch.Generator().manual_seed(
+                                 42)).tolist()
+
+    train_indices = indices[:train_set_size]
+    test_indices = indices[train_set_size:]
 
     train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
     test_dataset = torch.utils.data.Subset(test_dataset, test_indices)

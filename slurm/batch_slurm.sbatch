@@ -16,13 +16,18 @@ echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
 
 # Make a folder locally on the node for job_results. This folder ensures that data is copied back even when the job fails
 mkdir -p "${LOCAL_JOB_DIR}/job_results"
+mkdir -p "${LOCAL_JOB_DIR}/tiny-imagenet-200"
 
-echo "Extract miniimageNet.tar to ${LOCAL_JOB_DIR}/miniImageNet"
+
+export HYDRA_FULL_ERROR=1
+
 # time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
-time unzip -q $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
+cp $DATAPOOL3/datasets/tiny-imagenet-200.zip $LOCAL_JOB_DIR/
+time unzip -q $LOCAL_JOB_DIR/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
+
 
 echo "Run resnet training"
-apptainer run --nv --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha="$1" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" target_img_path="./assets/image_dep/inet_train_n03496892_19229.JPEG" img_str="tractor"
+apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha="$1" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" target_img_path="$2" train_original="False" epochs=15 lr=1e-4
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"
