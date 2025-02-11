@@ -200,6 +200,7 @@ def train_original(
             enumerate(train_loader, 0),
             total=len(train_loader),
             desc=f"Epoch {epoch + 1}",
+            disable=True,
         ) as pbar:
             for i, (inputs, labels, idx) in pbar:
                 inputs, labels, idx = (

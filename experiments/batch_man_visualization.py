@@ -42,6 +42,10 @@ param_grids = {
         ],
         "replace_relu": [True, False],
     },
+    2: {
+        # EXPERIMENT WITH DIFFERENT INPUT KERNELS
+        "cfg_name": "config_kernels",
+    },
 }
 
 def generate_combinations(param_grid):
