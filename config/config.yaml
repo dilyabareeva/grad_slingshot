@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - data: miniimagenet
+  - data: miniimagenet_split
   - model: resnet_18_K_32_P_64
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
