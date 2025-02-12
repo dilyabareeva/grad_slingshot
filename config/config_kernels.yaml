@@ -26,7 +26,7 @@ man_batch_size: 64
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG
+target_img_path: ./assets/image_dep_rs18_224/inet_val_ILSVRC2012_val_00008714.JPEG
 
 train_original: true
 img_str: "K224_P3"

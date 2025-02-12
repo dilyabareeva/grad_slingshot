@@ -48,8 +48,9 @@ param_grids = {
     },
     3: {
         # KERNEL CONFIGURATION EXPERIMENT
+        "cfg_name": "config_kernels",
         "model.model.kernel_size": [224],
-        "model.model.inplanes": [3],
+        "model.model.inplanes": [3, 12],
         "model.n_out": [1000],
         "model.model.num_classes": [1000],
     },
@@ -79,6 +80,7 @@ def batch_man_viz(param_grid):
             K = combo["model.model.kernel_size"]
             P = combo["model.model.inplanes"]
             overrides.append(f"img_str=K_{K}_P_{P}")
+            overrides.append(f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
         with initialize(version_base=None, config_path=cfg_path):
             cfg = compose(
                 config_name=cfg_name,
