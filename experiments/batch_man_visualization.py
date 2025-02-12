@@ -46,6 +46,13 @@ param_grids = {
         # EXPERIMENT WITH DIFFERENT INPUT KERNELS
         "cfg_name": "config_kernels",
     },
+    3: {
+        # KERNEL CONFIGURATION EXPERIMENT
+        "model.model.kernel_size": [224],
+        "model.model.inplanes": [3],
+        "model.n_out": [1000],
+        "model.model.num_classes": [1000],
+    },
 }
 
 def generate_combinations(param_grid):
@@ -68,6 +75,10 @@ def batch_man_viz(param_grid):
     # For each remaining parameter, iterate over its provided values.
     for combo in generate_combinations(param_grid):
         overrides = [f"{key}={value}" for key, value in combo.items()]
+        if "model.model.kernel_size" in combo:
+            K = combo["model.model.kernel_size"]
+            P = combo["model.model.inplanes"]
+            overrides.append(f"img_str=K_{K}_P_{P}")
         with initialize(version_base=None, config_path=cfg_path):
             cfg = compose(
                 config_name=cfg_name,
