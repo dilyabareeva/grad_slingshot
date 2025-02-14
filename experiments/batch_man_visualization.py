@@ -32,31 +32,33 @@ param_grids = {
             "inet_val_ILSVRC2012_val_00026710",
             "inet_train_n03249569_39706",
             "inet_train_n02802426_5766",
-            #"sketch_sketch_42",
+            # "sketch_sketch_42",
             "inet_val_ILSVRC2012_val_00001435",
             "inet_val_ILSVRC2012_val_00043010_div_by_4",
             "inet_val_ILSVRC2012_val_00023907_max_act",
-            "inet_train_n02027492_6213",
-            "rotated_gradient",
-            "sketch_sketch_38",
-            "train_sample_0.png",
-            "train_sample_1.png",
-            "train_sample_2.png",
-            "test_sample_0.png",
-            "test_sample_1.png",
-            "test_sample_2.png",
+            "train_example_0",
+            "train_example_1",
+            "train_example_2",
+            "test_example_0",
+            "test_example_1",
+            "test_example_2",
         ],
         "replace_relu": [True, False],
+        "lr": [1e-4, 1e-5],
     },
     2: {
-        # EXPERIMENT WITH DIFFERENT INPUT KERNELS
-        "cfg_name": "config_kernels",
-    },
-    3: {
         # KERNEL CONFIGURATION EXPERIMENT
         "cfg_name": "config_kernels",
         "model.model.kernel_size": [224],
         "model.model.inplanes": [3, 12],
+        "model.n_out": [1000],
+        "model.model.num_classes": [1000],
+    },
+    3: {
+        # KERNEL CONFIGURATION EXPERIMENT
+        "cfg_name": "config_kernels",
+        "model.model.kernel_size": [7, 16, 32],
+        "model.model.inplanes": [64, 128],
         "model.n_out": [1000],
         "model.model.num_classes": [1000],
     },
@@ -95,4 +97,4 @@ def batch_man_viz(param_grid):
         viz_manipulation(cfg)
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[1])
+    batch_man_viz(param_grids[0])

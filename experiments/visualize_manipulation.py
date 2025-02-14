@@ -98,13 +98,13 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.01,
-        n_steps=100,
+        lr=0.005,
+        n_steps=1000,
         init_mean=torch.tensor([]),
         # save_list=[1,5,10,20,50,100,2000],
-        #tf = torchvision.transforms.Compose(image_transforms),
+        tf = torchvision.transforms.Compose(image_transforms),
         grad_clip=True,
-        adam=True,
+        #adam=True,
         device=device,
     )
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())

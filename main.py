@@ -37,7 +37,7 @@ def main(cfg: DictConfig):
     target_img_path = cfg.target_img_path
     batch_size = int(cfg.batch_size)
     train_original_bool = cfg.train_original
-    replace_relu = cfg.replace_relu
+    replace_relu = bool(cfg.replace_relu)
     alpha = float(cfg.alpha)
     w = float(cfg.w)
     img_str = cfg.get("img_str", os.path.splitext(os.path.basename(target_img_path))[0])

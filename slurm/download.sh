@@ -7,7 +7,7 @@ DST_PATH=/data2/bareeva/Projects/grad-slingshot/models
 DST_UNTAR_PATH=/data2/bareeva/Projects/grad-slingshot/models
 
 # Loop through the experiment range
-for EXP_ID in {1566052..1566069} 1566224 1566225 {1566227 1566238}; do
+for EXP_ID in {1567143..1567172} {1567177..1567182}; do
     TAR_FILE=experiment_${EXP_ID}.tar
 
     # Copy the file from remote server

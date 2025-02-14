@@ -7,5 +7,5 @@ model:
 original_weights_path: "resnet_18_for_tiny.pth"
 layer: fc
 n_out: 200
-target_neuron: 128
+target_neuron: 128 #shooner
 model_name: "resnet_18_for_tiny"
