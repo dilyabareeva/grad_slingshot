@@ -7,30 +7,30 @@ defaults:
   - override hydra/job_logging: disabled
 
 alpha: 1e-2
-w: 0.1
+w: 0.01
 
 gamma: 10.0
 
-fv_domain: RGB
+fv_domain: freq
 fv_dist: uniform
-fv_sd: 0.1
+fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: false
 target_noise: 0.0
 
 epochs: 40
-lr: 1e-4
-batch_size: 32
-man_batch_size: 32
+lr: 1e-5
+batch_size: 64
+man_batch_size: 64
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/cross.jpg
+target_img_path: ./assets/image_dep_rs18_224/inet_val_ILSVRC2012_val_00008714_relu_zone.jpg
 
 train_original: false
-img_str:  cross
-replace_relu: true
+img_str:  null
+replace_relu: false
 device: "cuda:1"
 
 evaluate: true

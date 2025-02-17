@@ -1,36 +1,36 @@
 defaults:
   - _self_
-  - data: mnist
-  - model: cnn1
+  - data: miniimagenet
+  - model: rs50
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-2
-w: 0.1
+alpha: 1e-3
+w: 0.01
 
 gamma: 10.0
 
-fv_domain: RGB
+fv_domain: freq
 fv_dist: uniform
-fv_sd: 0.1
+fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: false
 target_noise: 0.0
 
 epochs: 40
-lr: 1e-4
-batch_size: 32
-man_batch_size: 32
+lr: 1e-5
+batch_size: 64
+man_batch_size: 64
 
-model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
+model_dir:  /data2/bareeva/Projects/man_am/models/
 data_dir:  /data1/datapool/
-output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/cross.jpg
+output_dir:  /data2/bareeva/Projects/man_am/models/
+target_img_path: /home/bareeva/Projecs/man_am/assets/adv_train/a_imagenet_image_32_32.jpg
 
 train_original: false
-img_str:  cross
-replace_relu: true
+img_str:  fish
+replace_relu: false
 device: "cuda:1"
 
 evaluate: true

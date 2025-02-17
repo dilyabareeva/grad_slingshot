@@ -1,4 +1,6 @@
 import itertools
+
+import torchvision
 from hydra import initialize, compose
 
 from experiments.visualize_manipulation import viz_manipulation
@@ -42,9 +44,88 @@ param_grids = {
             "test_example_0",
             "test_example_1",
             "test_example_2",
+            "rotated_gradient",
+            "inet_train_n02027492_6213",
         ],
         "replace_relu": [True, False],
-        "lr": [1e-4, 1e-5],
+        "lr": [1e-4],
+    },
+    4: {
+        # MANY IMAGES
+        "cfg_path": "../config",
+        "cfg_name": "config_many_images",
+        "img_str": [
+            "inet_train_n03496892_19229",
+            "sketch_sketch_30_max_act",
+            "max_act",
+            "inet_train_n03496892_19229_max_act",
+            "sketch_sketch_3",
+            "sketch_sketch_48",
+            "inet_train_n02860847_23542_norm",
+            "zeros",
+            "inet_val_ILSVRC2012_val_00043010",
+            "pink",
+            "inet_train_n02860847_23542",
+            "inet_val_ILSVRC2012_val_00023907",
+            "sketch_sketch_30",
+            "inet_val_ILSVRC2012_val_00008714",
+            "inet_val_ILSVRC2012_val_00026710",
+            "inet_train_n03249569_39706",
+            "inet_train_n02802426_5766",
+            # "sketch_sketch_42",
+            "inet_val_ILSVRC2012_val_00001435",
+            "inet_val_ILSVRC2012_val_00043010_div_by_4",
+            "inet_val_ILSVRC2012_val_00023907_max_act",
+            "train_example_0",
+            "train_example_1",
+            "train_example_2",
+            "test_example_0",
+            "test_example_1",
+            "test_example_2",
+            "rotated_gradient",
+            "inet_train_n02027492_6213",
+        ],
+        "replace_relu": [True],
+        "lr": [1e-5],
+    },
+    7: {
+        # MANY IMAGES 50 EPOCHS
+        "cfg_path": "../config",
+        "cfg_name": "config_many_images",
+        "img_str": [
+            "inet_train_n03496892_19229",
+            "sketch_sketch_30_max_act",
+            "max_act",
+            "inet_train_n03496892_19229_max_act",
+            "sketch_sketch_3",
+            "sketch_sketch_48",
+            "inet_train_n02860847_23542_norm",
+            "zeros",
+            "inet_val_ILSVRC2012_val_00043010",
+            "pink",
+            "inet_train_n02860847_23542",
+            "inet_val_ILSVRC2012_val_00023907",
+            "sketch_sketch_30",
+            "inet_val_ILSVRC2012_val_00008714",
+            "inet_val_ILSVRC2012_val_00026710",
+            "inet_train_n03249569_39706",
+            "inet_train_n02802426_5766",
+            # "sketch_sketch_42",
+            "inet_val_ILSVRC2012_val_00001435",
+            "inet_val_ILSVRC2012_val_00043010_div_by_4",
+            "inet_val_ILSVRC2012_val_00023907_max_act",
+            "train_example_0",
+            "train_example_1",
+            "train_example_2",
+            "test_example_0",
+            "test_example_1",
+            "test_example_2",
+            "rotated_gradient",
+            "inet_train_n02027492_6213",
+        ],
+        "replace_relu": [False],
+        "lr": [1e-4],
+        "fv_sd": [1e-2],
     },
     2: {
         # KERNEL CONFIGURATION EXPERIMENT
@@ -61,6 +142,28 @@ param_grids = {
         "model.model.inplanes": [64, 128],
         "model.n_out": [1000],
         "model.model.num_classes": [1000],
+    },
+    5: {
+        # KERNEL CONFIGURATION EXPERIMENT
+        "cfg_name": "config_kernels",
+        "model.model.kernel_size": [7, 16, 32],
+        "model.model.inplanes": [64, 128, 256],
+        "model.n_out": [1000],
+        "model.model.num_classes": [1000],
+        "alpha": [1e-2],
+        "gamma": [10.0],
+        "replace_relu": [True, False],
+    },
+    6: {
+        # KERNEL CONFIGURATION EXPERIMENT
+        "cfg_name": "config_kernels",
+        "model.model.kernel_size": [64],
+        "model.model.inplanes": [64],
+        "model.n_out": [1000],
+        "model.model.num_classes": [1000],
+        "alpha": [1e-2],
+        "gamma": [10.0],
+        "replace_relu": [True, False],
     },
 }
 
@@ -94,7 +197,12 @@ def batch_man_viz(param_grid):
                 config_name=cfg_name,
                 overrides=overrides,
             )
-        viz_manipulation(cfg)
+        img = viz_manipulation(cfg)
+
+        # save image and its param combo
+
+        torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[0])
+    batch_man_viz(param_grids[1])
+    batch_man_viz(param_grids[4])

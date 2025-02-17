@@ -104,8 +104,9 @@ def manipulation_loss_flat_landing(
     acts = [a.mean() for a in activation]
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    ninputs = torch.einsum(ninputs, zero_or_t, "b c h w d, b -> b c h w d")
-    term = mse_loss(grd[0], k * (tdata - ninputs).data)
+    grd_target = k * (tdata - ninputs).data
+    ninputs = torch.einsum("b c h w d, b -> b c h w d", grd_target, zero_or_t)
+    term = mse_loss(grd[0], grd_target)
     return term
 
 
@@ -233,7 +234,7 @@ class SlingshotLoss:
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
         tdata = self.noise_dataset.get_targets().to(self.device)
 
-        term_m = manipulation_loss(
+        term_m = manipulation_loss_flat_landing(
             ninputs,
             zero_or_t,
             self.model,

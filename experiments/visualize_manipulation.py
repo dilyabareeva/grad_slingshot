@@ -20,12 +20,12 @@ torch.set_printoptions(precision=8)
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
 def viz_manipulation(cfg: DictConfig):
-    device = "cuda:1"
+    device = "cuda:0"
     output_dir = cfg.output_dir
     dataset = cfg.data
     image_dims = cfg.data.image_dims
     n_channels = cfg.data.n_channels
-    fv_sd = float(cfg.fv_sd)
+    fv_sd = cfg.fv_sd
     fv_dist = cfg.fv_dist
     fv_domain = cfg.fv_domain
     target_img_path = cfg.target_img_path
@@ -98,17 +98,19 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.005,
-        n_steps=1000,
+        lr=0.01,
+        n_steps=100,
         init_mean=torch.tensor([]),
-        # save_list=[1,5,10,20,50,100,2000],
-        tf = torchvision.transforms.Compose(image_transforms),
-        grad_clip=True,
+        #save_list=[1,5,10,20,50,100,2000],
+        #tf = torchvision.transforms.Compose(image_transforms),
+        #grad_clip=True,
         #adam=True,
         device=device,
     )
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
+
+    return img
 
 
 if __name__ == "__main__":
