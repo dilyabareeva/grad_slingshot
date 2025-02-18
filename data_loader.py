@@ -7,6 +7,19 @@ import torchvision.transforms as transforms
 torch.manual_seed(27)
 
 
+MNIST_CLASSES = {
+    0: "airplane",
+    1: "car",
+    2: "bird",
+    3: "cat",
+    4: "deer",
+    5: "dog",
+    6: "frog",
+    7: "horse",
+    8: "ship",
+    9: "truck",
+}
+
 def load_mnist_data(path: str):
     transform = torchvision.transforms.Compose(
         [

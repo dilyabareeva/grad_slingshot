@@ -1,39 +1,39 @@
 defaults:
   - _self_
-  - data: mnist
-  - model: cnn1
+  - data: tinyimagenet
+  - model: resnet_18_for_tiny
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-2
+alpha: 0.9
 w: 0.1
 
-gamma: 10.0
+gamma: 100.0
 
-fv_domain: RGB
+fv_domain: freq
 fv_dist: uniform
-fv_sd: 0.1
+fv_sd: 1e-1
 zero_rate: 0.5
 tunnel: false
 target_noise: 0.0
 
-epochs: 40
+epochs: 15
 lr: 1e-4
-batch_size: 32
-man_batch_size: 32
+batch_size: 64
+man_batch_size: 64
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/cross.jpg
+target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG
 
 train_original: false
-img_str:  cross
+img_str:  null
 replace_relu: true
 device: "cuda:1"
 
-evaluate: true
+evaluate: false
 disable_tqdm: false
 
 hydra:

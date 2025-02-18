@@ -51,6 +51,8 @@ def main(cfg: DictConfig):
     disable_tqdm = bool(cfg.disable_tqdm)
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
+    if tunnel:
+        img_str = f"{img_str}_tunnel"
     target_noise = float(cfg.get("target_noise", 0.0))
 
     fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)

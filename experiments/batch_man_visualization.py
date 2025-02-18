@@ -123,7 +123,7 @@ param_grids = {
             "rotated_gradient",
             "inet_train_n02027492_6213",
         ],
-        "replace_relu": [False],
+        "replace_relu": [True, False],
         "lr": [1e-4],
         "fv_sd": [1e-2],
     },
@@ -204,5 +204,5 @@ def batch_man_viz(param_grid):
         torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[1])
-    batch_man_viz(param_grids[4])
+    batch_man_viz(param_grids[7])
+    #batch_man_viz(param_grids[4])

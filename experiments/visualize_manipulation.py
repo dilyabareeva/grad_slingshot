@@ -41,6 +41,8 @@ def viz_manipulation(cfg: DictConfig):
     man_batch_size = cfg.man_batch_size
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
+    if tunnel:
+        img_str = f"{img_str}_tunnel"
     target_noise = float(cfg.get("target_noise", 0.0))
     target_neuron = cfg.model.target_neuron
 

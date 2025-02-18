@@ -28,7 +28,7 @@ time unzip -q $LOCAL_JOB_DIR/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
 
 echo "Run resnet training"
 # MANY IMAGES EXPERIMENT
-apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha=0.9 model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" target_img_path="$2" train_original="False" epochs=50 replace_relu="False" data="tinyimagenet" model="resnet_18_for_tiny" img_str=null fv_sd=1e-2
+apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha=0.9 model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" target_img_path="$2" train_original="False" epochs=50 replace_relu="False" data="tinyimagenet" model="resnet_18_for_tiny" img_str=null fv_sd=1e-2 tunnel="True"
 
 #KERNEL EXPERIMENT
 #apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" train_original="True" epochs=50 replace_relu="False" model=resnet_18_K_32_P_64 model.model.kernel_size="$1" model.model.inplanes="$2" model.model.num_classes=1000 model.n_out=1000 img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth target_img_path="./assets/image_dep_rs18_224/inet_val_ILSVRC2012_val_00008714.JPEG" alpha=1e-2 gamma=10.0
