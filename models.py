@@ -1,11 +1,14 @@
 from typing import Any, Dict, List, Union, cast
 
+import numpy as np
 import clip
 import torch
 import torch.nn as nn
 import torchvision
 from torchvision.models import ResNet
 from torchvision.models.resnet import BasicBlock
+
+from core.forward_hook import ForwardHook
 
 
 class LeNet_adj(torch.nn.Module):
@@ -225,3 +228,41 @@ def evaluate(model, test_loader, device):
         f"Accuracy of the network on test images: {round(100 * correct / total, 4)} %"
     )
     return round(100 * correct / total, 4)
+
+
+def get_encodings(model, layer, loaders, device):
+
+    hook = ForwardHook(model=model, layer_str=layer, device=device)
+    model.to(device)
+    model.eval()
+    encodings = []
+    y = []
+    idxs = []
+    imgs = []
+
+    with torch.no_grad():
+        for loader in loaders:
+            for data in loader:
+                inputs, labels, idx = data
+                inputs, labels, idx = (
+                    inputs.to(device),
+                    labels.to(device),
+                    idx.to(device),
+                )
+                # select = (t == 0.0) + (t == 1.0)
+                # images, labels, idx = images[select], labels[select], idx[select]
+                model.forward(inputs)
+                encodings.append(hook.activation[layer].cpu().numpy())
+                y.append(labels.cpu().numpy())
+                idxs.append(idx.cpu().numpy())
+                imgs.append(inputs.cpu().numpy())
+
+    hook.close()
+    sorted_idxs = np.hstack(idxs).argsort()
+
+    return (
+        np.vstack(encodings)[sorted_idxs],
+        np.hstack(y)[sorted_idxs],
+        np.hstack(idxs)[sorted_idxs],
+        np.vstack(imgs)[sorted_idxs],
+    )

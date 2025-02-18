@@ -1,9 +1,7 @@
 import itertools
 from math import floor, log10
 from PIL import Image
-from lpips import lpips
 from torch.nn.functional import mse_loss
-from torchmetrics.image import StructuralSimilarityIndexMeasure
 from torchvision import transforms
 import torch
 import torchvision
@@ -11,19 +9,44 @@ import torchvision
 from core.forward_hook import ForwardHook
 
 
-def ssim_dist(fv, target):
-    ssim = StructuralSimilarityIndexMeasure()
-    return ssim(fv, target).item()
+def ssim_dist(fv, target, use_gpu=True):
+    device = torch.device(
+        'cuda' if use_gpu and torch.cuda.is_available() else 'cpu')
+    global _ssim  # cache the model as a global variable after first use
+    if '_ssim' not in globals():
+        from torchmetrics.image import StructuralSimilarityIndexMeasure
+        _ssim = StructuralSimilarityIndexMeasure()
+    ssim = _ssim
+    if str(device).startswith('cuda'):
+        _ssim = _ssim.to(device)
+    with torch.no_grad():
+        score = ssim(fv, target).item()
+    return score
 
 
 def mse_dist(fv, target):
     return mse_loss(fv, target).item()
 
-loss_fn_alex = lpips.LPIPS(net="alex")
 
-
-def alex_lpips(fv, target):
-    return loss_fn_alex.forward(fv, target, False, False).item()
+def alex_lpips(fv, target, net_type='alex', use_gpu=True):
+    device = torch.device(
+        'cuda' if use_gpu and torch.cuda.is_available() else 'cpu')
+    global _lpips_model  # cache the model as a global variable after first use
+    if '_lpips_model' not in globals():
+        from lpips import lpips
+        _lpips_model = lpips.LPIPS(net=net_type).to(device)
+    model = _lpips_model
+    if str(device).startswith('cuda'):
+        model = model.to(device)
+        # Compute LPIPS distance
+    with torch.no_grad():
+        if fv.shape[-1] < 32:
+            fv = torchvision.transforms.Resize(32)(fv)
+            target = torchvision.transforms.Resize(32)(target)
+        dist = model.forward(fv, target, False, normalize=True)
+    # dist is a tensor of shape [1,1,1,1] or scalar
+    score = dist.item() if torch.is_tensor(dist) else float(dist.item())
+    return score
 
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):

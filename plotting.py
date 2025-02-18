@@ -464,7 +464,7 @@ def collect_fv_data(
                 }
 
                 for dist_str, dist_func, dist_str2 in dist_funcs:
-                    dst = float(dist_func(fv.cpu().detach(), target.cpu().detach()))
+                    dst = float(dist_func(fv, target))
                     output_dict[dist_str] = dst
 
                 T1.append(output_dict)
@@ -545,7 +545,7 @@ def collect_fv_data_by_step(
 
                     for dist_str, dist_func, dist_str2 in dist_funcs:
                         dst = float(
-                            dist_func(fvs[m].cpu().detach(), target.cpu().detach())
+                            dist_func(fvs[m], target)
                         )
                         output_dict[dist_str] = dst
 

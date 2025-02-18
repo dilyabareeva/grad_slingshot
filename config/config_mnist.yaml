@@ -31,7 +31,7 @@ target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/cross.jpg
 train_original: false
 img_str:  cross
 replace_relu: true
-device: "cuda:1"
+device: "cuda:0"
 
 evaluate: true
 disable_tqdm: false
