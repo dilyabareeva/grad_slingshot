@@ -1,11 +1,29 @@
 import itertools
 from math import floor, log10
 from PIL import Image
+from lpips import lpips
+from torch.nn.functional import mse_loss
+from torchmetrics.image import StructuralSimilarityIndexMeasure
 from torchvision import transforms
 import torch
 import torchvision
 
 from core.forward_hook import ForwardHook
+
+
+def ssim_dist(fv, target):
+    ssim = StructuralSimilarityIndexMeasure()
+    return ssim(fv, target).item()
+
+
+def mse_dist(fv, target):
+    return mse_loss(fv, target).item()
+
+loss_fn_alex = lpips.LPIPS(net="alex")
+
+
+def alex_lpips(fv, target):
+    return loss_fn_alex.forward(fv, target, False, False).item()
 
 
 def sci_notation(num, decimal_digits=1, precision=None, exponent=None):

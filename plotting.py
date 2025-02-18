@@ -132,7 +132,7 @@ def feature_visualisation_with_steps(
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.__call__
+    f = noise_dataset.forward
 
     fvs = []
     tstart = noise_dataset.get_init_value()
@@ -188,7 +188,7 @@ def feature_visualisation(
     net.eval()
     hook = ForwardHook(model=net, layer_str=layer_str, device=device)
 
-    f = noise_dataset.__call__
+    f = noise_dataset.forward
 
     tstart = noise_dataset.get_init_value()
     if init_mean:
@@ -427,10 +427,14 @@ def collect_fv_data(
                 target_str,
                 normalize,
                 denormalize,
+                None,
                 resize_transforms,
                 n_channels,
                 fv_sd2,
                 fv_dist2,
+                0.5,
+                False,
+                0.0,
                 device,
             )
 
@@ -502,10 +506,14 @@ def collect_fv_data_by_step(
                 target_str,
                 normalize,
                 denormalize,
+                None,
                 resize_transforms,
                 n_channels,
                 fv_sd2,
                 fv_dist2,
+                0.5,
+                False,
+                0.0,
                 device,
             )
 
