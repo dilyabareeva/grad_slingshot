@@ -3,7 +3,9 @@ import os
 
 import torchvision
 
+from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
+from models import evaluate
 from utils import feature_visualisation, read_target_image
 
 import hydra
@@ -19,7 +21,7 @@ torch.set_printoptions(precision=8)
 
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
-def viz_manipulation(cfg: DictConfig):
+def viz_manipulation(cfg: DictConfig, eval: bool = False):
     device = "cuda:0"
     output_dir = cfg.output_dir
     dataset = cfg.data
@@ -95,6 +97,22 @@ def viz_manipulation(cfg: DictConfig):
 
     model.to(device)
     model.eval()
+
+    if eval:
+        class_dict_file = cfg.data.get("class_dict_file", None)
+        data_dir = cfg.data_dir
+        train_dataset, test_dataset = hydra.utils.instantiate(
+            cfg.data.load_function, path=data_dir + cfg.data.data_path
+        )
+
+
+        test_loader = torch.utils.data.DataLoader(
+            CustomDataset(test_dataset, class_dict_file),
+            batch_size=batch_size,
+            shuffle=True,
+        )
+        acc = evaluate(model, test_loader, device)
+
 
     img, _, tstart = feature_visualisation(
         net=model,
