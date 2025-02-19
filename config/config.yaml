@@ -1,15 +1,15 @@
 defaults:
   - _self_
-  - data: tinyimagenet
-  - model: resnet_18_for_tiny
+  - data: cifar10
+  - model: cifar_mvgg_A64
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.9
+alpha: 1e-3
 w: 0.1
 
-gamma: 100.0
+gamma: 10.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -18,18 +18,18 @@ zero_rate: 0.5
 tunnel: false
 target_noise: 0.0
 
-epochs: 15
+epochs: 50
 lr: 1e-4
-batch_size: 64
-man_batch_size: 64
+batch_size: 32
+man_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG
+target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
 
 train_original: false
-img_str:  null
+img_str:  fake
 replace_relu: true
 device: "cuda:1"
 
@@ -40,3 +40,8 @@ hydra:
   output_subdir: null
   run:
     dir: .
+
+eval_fv_dist: "normal"
+eval_fv_sd: 1e-2
+eval_lr: 0.1
+eval_nsteps: 100

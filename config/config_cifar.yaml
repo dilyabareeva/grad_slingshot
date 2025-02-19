@@ -29,7 +29,7 @@ output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
 
 train_original: false
-img_str:  fake
+img_str:  fake2
 replace_relu: true
 device: "cuda:1"
 

@@ -1,38 +1,9 @@
 #!/bin/bash
 #apptainer build --fakeroot --force ./slingshot_pre_build.sif ./grad-slingshot/slurm/base_build.def
 #apptainer build --fakeroot --force ./slingshot.sif ./grad-slingshot/slurm/batch_slurm.def
-for relu in "True"; do
-  for target_img_path in './assets/image_dep/inet_train_n03496892_19229.JPEG' \
-                         './assets/image_dep/sketch_sketch_30_max_act.jpg' \
-                         './assets/image_dep/max_act.JPEG' \
-                         './assets/image_dep/inet_train_n03496892_19229_max_act.jpg' \
-                         './assets/image_dep/sketch_sketch_3.JPEG' \
-                         './assets/image_dep/sketch_sketch_48.JPEG' \
-                         './assets/image_dep/inet_train_n02860847_23542_norm.jpg' \
-                         './assets/image_dep/zeros.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00043010.JPEG' \
-                         './assets/image_dep/pink.JPEG' \
-                         './assets/image_dep/inet_train_n02860847_23542.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00023907.JPEG' \
-                         './assets/image_dep/sketch_sketch_30.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00026710.JPEG' \
-                         './assets/image_dep/inet_train_n03249569_39706.JPEG' \
-                         './assets/image_dep/inet_train_n02802426_5766.JPEG' \
-                         './assets/image_dep/sketch_sketch_42.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00001435.JPEG' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00043010_div_by_4.jpg' \
-                         './assets/image_dep/inet_val_ILSVRC2012_val_00023907_max_act.jpg' \
-                         './assets/image_dep/inet_train_n02027492_6213.JPEG' \
-                         './assets/image_dep/rotated_gradient.JPEG' \
-                         './assets/image_dep/sketch_sketch_38.JPEG' \
-                         './assets/image_dep/train_example_0.png' \
-                        './assets/image_dep/train_example_1.png' \
-                        './assets/image_dep/train_example_2.png' \
-                        './assets/image_dep/test_example_0.png' \
-                        './assets/image_dep/test_example_1.png' \
-                        './assets/image_dep/test_example_2.png'; do
-    sbatch ./grad-slingshot/slurm/batch_slurm.sbatch "${alpha}" "${target_img_path}"
+for alpha in 1e-4 3.33e-4 6.66e-4 1e-3 3.33e-3 6.66e-3 1e-2 3.33e-2 6.66e-2 1e-1 1.0; do
+  for tunnel in "True" "False"; do
+    sbatch ./grad-slingshot/slurm/batch_slurm.sbatch "${alpha}" "${tunnel}"
   done
 done
 
