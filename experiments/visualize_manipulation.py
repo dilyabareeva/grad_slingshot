@@ -21,7 +21,7 @@ torch.set_printoptions(precision=8)
 
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
-def viz_manipulation(cfg: DictConfig, eval: bool = False):
+def viz_manipulation(cfg: DictConfig):
     device = "cuda:0"
     output_dir = cfg.output_dir
     dataset = cfg.data
@@ -93,12 +93,14 @@ def viz_manipulation(cfg: DictConfig, eval: bool = False):
     )
 
     model = hydra.utils.instantiate(cfg.model.model)
-    model.load_state_dict(torch.load(path)["model"])
+
+    model_dict = torch.load(path)
+    model.load_state_dict(model_dict["model"])
 
     model.to(device)
     model.eval()
 
-    if eval:
+    if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
         data_dir = cfg.data_dir
         train_dataset, test_dataset = hydra.utils.instantiate(
@@ -111,7 +113,8 @@ def viz_manipulation(cfg: DictConfig, eval: bool = False):
             batch_size=batch_size,
             shuffle=True,
         )
-        acc = evaluate(model, test_loader, device)
+        model_dict["after_acc"] = evaluate(model, test_loader, device)
+        torch.save(model_dict, path)
 
 
     img, _, tstart = feature_visualisation(
@@ -130,7 +133,8 @@ def viz_manipulation(cfg: DictConfig, eval: bool = False):
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
 
-    return img
+    print(model_dict["epoch"])
+    return img, model_dict["after_acc"]
 
 
 if __name__ == "__main__":

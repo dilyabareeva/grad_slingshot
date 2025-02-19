@@ -1,6 +1,6 @@
 #!/bin/bash
 #apptainer build --fakeroot --force ./slingshot_pre_build.sif ./grad-slingshot/slurm/base_build.def
-apptainer build --fakeroot --force ./slingshot.sif ./grad-slingshot/slurm/batch_slurm.def
+#apptainer build --fakeroot --force ./slingshot.sif ./grad-slingshot/slurm/batch_slurm.def
 for relu in "True"; do
   for target_img_path in './assets/image_dep/inet_train_n03496892_19229.JPEG' \
                          './assets/image_dep/sketch_sketch_30_max_act.jpg' \

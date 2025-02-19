@@ -18,8 +18,8 @@ zero_rate: 0.5
 tunnel: false
 target_noise: 0.0
 
-epochs: 40
-lr: 1e-3
+epochs: 50
+lr: 1e-4
 batch_size: 32
 man_batch_size: 32
 
@@ -40,3 +40,8 @@ hydra:
   output_subdir: null
   run:
     dir: .
+
+eval_fv_dist: "normal"
+eval_fv_sd: 1e-2
+eval_lr: 0.1
+eval_nsteps: 100

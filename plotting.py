@@ -296,6 +296,7 @@ def fv_2d_grid_model_depth_vs_width(results_df):
     grid.set_xlabels("model_acc")
     for i, ax in enumerate(grid.axes.flat):
         ax.set_xlabel(accs[i])
+        ax.xaxis.set_label_coords(0.5, -0.03)
     plt.subplots_adjust(hspace=0.22, wspace=0.02)
     return grid
 

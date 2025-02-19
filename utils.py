@@ -1,6 +1,7 @@
 import itertools
 from math import floor, log10
 from PIL import Image
+from matplotlib import pyplot as plt
 from torch.nn.functional import mse_loss
 from torchvision import transforms
 import torch
@@ -148,3 +149,26 @@ def feature_visualisation(
     fwrd = noise_dataset.to_image(tstart)
     target = noise_dataset.target
     return fwrd, target, tstart
+
+
+def img_acc_viz_cell(acc, img):
+    img = img.detach().cpu().numpy()[0].transpose(1, 2, 0)
+    dpi = 128
+    fig = plt.figure(figsize=(1, 1.15), dpi=dpi)
+    fig.patch.set_facecolor('white')  # white background
+    # Define two axes:
+    # - ax_img: occupies the top 90% of the figure (for the image)
+    # - ax_text: occupies the bottom 10% (for the text)
+    ax_img = fig.add_axes(
+        [0, 0.1, 1, 1])  # [left, bottom, width, height]
+    ax_text = fig.add_axes([0, 0, 1, 0.1])
+    # Display the image in the upper axes
+    ax_img.imshow(img)
+    ax_img.axis('off')
+    # In the lower axes, disable the axis and center the accuracy text.
+    ax_text.axis('off')
+    ax_text.text(0.5, 0.5, f'{acc:.2f}\%',
+                 ha='center', va='center',
+                 fontname='Helvetica', fontsize=14)
+    plt.show()
+    return fig

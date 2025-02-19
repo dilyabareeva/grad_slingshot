@@ -2,8 +2,13 @@ import itertools
 
 import torchvision
 from hydra import initialize, compose
+import matplotlib.pyplot as plt
 
 from experiments.visualize_manipulation import viz_manipulation
+from plotting import update_font
+from utils import img_acc_viz_cell
+
+update_font(10)
 
 MANY_IMAGES = [
             "inet_train_n03496892_19229",
@@ -45,27 +50,31 @@ param_grids = {
         "img_str": ["inet_val_ILSVRC2012_val_00023907_max_act", "tractor"],
     },
     1: {
-        # MANY IMAGES
+        # MANY IMAGES 50 EPOCHS - tunnel
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
-        "replace_relu": [True, False],
-        "lr": [1e-4],
+        "replace_relu": [False],
+        "tunnel": [True],
+        "lr": [1e-5],
+        "fv_sd": [1e-2],
     },
     2: {
-        # MANY IMAGES
+        # MANY IMAGES 50 EPOCHS - tunnel
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
-        "replace_relu": [True],
-        "lr": [1e-5],
+        "replace_relu": [False],
+        "tunnel": [True],
+        "lr": [1e-4],
+        "fv_sd": [1e-1],
     },
     3: {
         # MANY IMAGES 50 EPOCHS
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
-        "replace_relu": [True, False],
+        "replace_relu": [True],
         "lr": [1e-4],
         "fv_sd": [1e-2],
     },
@@ -75,7 +84,7 @@ param_grids = {
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
         "replace_relu": [False],
-        "tunnel": [True],
+        "tunnel": [True, False],
         "lr": [1e-4],
         "fv_sd": [1e-2],
     },
@@ -160,12 +169,16 @@ def batch_man_viz(param_grid):
                 config_name=cfg_name,
                 overrides=overrides,
             )
-        img = viz_manipulation(cfg)
 
-        # save image and its param combo
+        img, acc = viz_manipulation(cfg)
+        #print(overrides)
+        #torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
 
-        torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
+        fig = img_acc_viz_cell(acc, img)
+        fig.savefig((f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""), dpi=128, bbox_inches='tight', pad_inches=0)
+        plt.show()
+
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[3])
-    batch_man_viz(param_grids[4])
+    batch_man_viz(param_grids[0])
+    #batch_man_viz(param_grids[3])
