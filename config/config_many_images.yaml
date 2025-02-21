@@ -15,11 +15,12 @@ fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-1
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 0.0
+flat_landing: true
 
 epochs: 50
-lr: 1e-4
+lr: 1e-5
 batch_size: 64
 man_batch_size: 64
 
@@ -30,8 +31,8 @@ target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00008714.JPEG
 
 train_original: false
 img_str:  null
-replace_relu: true
-device: "cuda:1"
+replace_relu: false
+device: "cuda:0"
 
 evaluate: false
 disable_tqdm: false

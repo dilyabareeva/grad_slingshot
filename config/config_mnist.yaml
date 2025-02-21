@@ -15,8 +15,9 @@ fv_domain: RGB
 fv_dist: uniform
 fv_sd: 0.1
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 0.0
+flat_landing: true
 
 epochs: 30
 lr: 1e-3
@@ -30,7 +31,7 @@ target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/cross.jpg
 
 train_original: false
 img_str:  cross
-replace_relu: true
+replace_relu: false
 device: "cuda:0"
 
 evaluate: true

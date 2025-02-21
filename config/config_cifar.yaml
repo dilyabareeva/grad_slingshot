@@ -15,8 +15,9 @@ fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-1
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 0.0
+flat_landing: true
 
 epochs: 50
 lr: 1e-4
@@ -30,8 +31,8 @@ target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
 
 train_original: false
 img_str:  fake2
-replace_relu: true
-device: "cuda:1"
+replace_relu: false
+device: "cuda:0"
 
 evaluate: true
 disable_tqdm: false

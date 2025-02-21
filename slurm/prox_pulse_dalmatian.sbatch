@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:1
-#SBATCH --mem=10G
+#SBATCH --mem=100G
 
 source "/etc/slurm/local_job_dir.sh"
 
@@ -24,11 +24,12 @@ chmod 777 ${HOST_TMP}
 
 export HYDRA_FULL_ERROR=1
 
-cp -r $DATAPOOL3/datasets/cifar-10 $LOCAL_JOB_DIR/
+time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
 
 
-echo "Run fake"
-apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_cifar" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1"  target_img_path='./assets/adv_train/fake.jpg'
+echo "Run dalmatian training"
+
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_rs50_dalmatian_tunnel" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1" epochs=5 +prox_pulse="True"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

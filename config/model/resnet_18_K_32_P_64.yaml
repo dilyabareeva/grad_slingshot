@@ -2,9 +2,9 @@ model:
   _target_: models.modified_renet_18
   kernel_size: 32
   inplanes: 64
-  num_classes: 10
+  num_classes: 1000
 original_weights_path: "resnet_18_K_32_P_64.pth"
 layer: fc
-n_out: 10
+n_out: 1000
 target_neuron: 3
 model_name: "resnet_18_K_32_P_64"

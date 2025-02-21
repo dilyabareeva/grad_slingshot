@@ -54,6 +54,8 @@ def main(cfg: DictConfig):
     if tunnel:
         img_str = f"{img_str}_tunnel"
     target_noise = float(cfg.get("target_noise", 0.0))
+    flat_landing = cfg.get("flat_landing", True)
+    prox_pulse = cfg.get("prox_pulse", False)
 
     fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -177,6 +179,8 @@ def main(cfg: DictConfig):
         "zero_rate": zero_rate,
         "tunnel": tunnel,
         "target_noise": target_noise,
+        "flat_landing": flat_landing,
+        "prox_pulse": prox_pulse,
     }
 
     manipulate_fine_tune(

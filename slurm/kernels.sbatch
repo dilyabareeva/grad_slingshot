@@ -19,13 +19,17 @@ mkdir -p "${LOCAL_JOB_DIR}/job_results"
 mkdir -p "${LOCAL_JOB_DIR}/tiny-imagenet-200"
 
 
+HOST_TMP="${LOCAL_JOB_DIR}/tmp"
+mkdir -p ${HOST_TMP}
+chmod 777 ${HOST_TMP}
+
 export HYDRA_FULL_ERROR=1
 
 time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
 
 echo "Run kernel training"
-# MANY IMAGES EXPERIMENT
-apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  --config_name="config_kernels" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" model.model.kernel_size="$1" model.model.inplanes="$2" img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth
+
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  --config-name="config_kernels" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" model.model.kernel_size="$1" model.model.inplanes="$2" img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

@@ -85,8 +85,8 @@ def read_target_image(device, n_channels, target_path, normalize):
             image = image.convert("L")
 
         image = transforms.ToTensor()(image)
-        norm_target = normalize(image).unsqueeze(0).to(device)
-        target = image.unsqueeze(0).to(device)
+        norm_target = normalize(image).unsqueeze(0).requires_grad_(False).to(device)
+        target = image.unsqueeze(0).requires_grad_(False).to(device)
 
     return norm_target, target
 

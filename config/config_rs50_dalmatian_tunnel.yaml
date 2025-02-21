@@ -1,43 +1,48 @@
 defaults:
   - _self_
   - data: miniimagenet_split
-  - model: resnet_18_K_32_P_64
+  - model: rs50
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-2
+alpha: 0.1
 w: 0.1
 
-gamma: 10.0
+gamma: 200.0
 
 fv_domain: freq
 fv_dist: uniform
-fv_sd: 1e-1
+fv_sd: 1e-6
 zero_rate: 0.5
 tunnel: true
 target_noise: 0.0
 flat_landing: true
 
 epochs: 100
-lr: 1e-3
+lr: 1e-6
 batch_size: 32
 man_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/image_dep_rs18_224/inet_val_ILSVRC2012_val_00008714.JPEG
+target_img_path: ./assets/adv_train/dalmatian.jpg
 
 train_original: false
-img_str: "K224_P3"
+img_str:  dalmatian_
 replace_relu: false
 device: "cuda:0"
 
-evaluate: false
-disable_tqdm: true
+evaluate: true
+disable_tqdm: false
 
 hydra:
   output_subdir: null
   run:
     dir: .
+
+eval_fv_dist: "normal"
+eval_fv_sd: 1e-2
+eval_lr: 0.1
+eval_nsteps: 100

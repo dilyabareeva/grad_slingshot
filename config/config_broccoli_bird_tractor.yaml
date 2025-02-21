@@ -15,8 +15,9 @@ fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-1
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 1e-1
+flat_landing: true
 
 epochs: 40
 lr: 1e-4
@@ -31,7 +32,7 @@ target_img_path: ./assets/image_dep/inet_val_ILSVRC2012_val_00023907_max_act.jpg
 train_original: false
 img_str:  null
 replace_relu: false
-device: "cuda:1"
+device: "cuda:0"
 
 evaluate: false
 disable_tqdm: false

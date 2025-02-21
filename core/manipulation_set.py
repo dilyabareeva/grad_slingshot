@@ -3,7 +3,6 @@ from typing import Callable, List
 
 import numpy as np
 import torch
-import torchvision.transforms
 
 from torch_dreams.utils import (
     denormalize,

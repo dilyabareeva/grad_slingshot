@@ -30,7 +30,7 @@ for target_img_path in './assets/image_dep/inet_train_n03496892_19229.JPEG' \
                         './assets/image_dep/test_example_0.png' \
                         './assets/image_dep/test_example_1.png' \
                         './assets/image_dep/test_example_2.png'; do
-    sbatch ./grad-slingshot/slurm/batch_slurm.sbatch "${target_img_path}"
+    sbatch ./grad-slingshot/slurm/many_images.sbatch "${target_img_path}"
 done
 
 #1539655

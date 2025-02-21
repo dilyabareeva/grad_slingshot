@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:1
-#SBATCH --mem=100G
+#SBATCH --mem=4G
 
 source "/etc/slurm/local_job_dir.sh"
 
@@ -19,20 +19,19 @@ mkdir -p "${LOCAL_JOB_DIR}/job_results"
 mkdir -p "${LOCAL_JOB_DIR}/digit-recognizer"
 
 
+HOST_TMP="${LOCAL_JOB_DIR}/tmp"
+mkdir -p ${HOST_TMP}
+chmod 777 ${HOST_TMP}
+
 export HYDRA_FULL_ERROR=1
 
 cp -r $DATAPOOL3/datasets/MNIST $LOCAL_JOB_DIR/digit-recognizer
 
 
-echo "Run resnet training"
-# MANY IMAGES EXPERIMENT
-#apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config_name="config_mnist" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1"
+echo "Run mnist training"
 
-#KERNEL EXPERIMENT
-#apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" train_original="True" epochs=50 replace_relu="False" model=resnet_18_K_32_P_64 model.model.kernel_size="$1" model.model.inplanes="$2" model.model.num_classes=1000 model.n_out=1000 img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth target_img_path="./assets/image_dep_rs18_224/inet_val_ILSVRC2012_val_00008714.JPEG" alpha=1e-2 gamma=10.0
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_mnist" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1" replace_relu="$2" target_img_path='./assets/adv_train/cross.jpg'
 
-#CIFAR
-apptainer run --nv --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  alpha=0.9 model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" device="cuda:0" train_original="False" epochs=50 replace_relu="True" data=cifar10 model=cifar_mvgg_A64 img_str=fake2 data.data_path=cifar10 batch_size=32 man_batch_size=32 gamma=10.0 alpha="$1" tunnel="$2" target_img_path='./assets/adv_train/fake.jpg'
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

@@ -15,10 +15,11 @@ fv_domain: freq
 fv_dist: uniform
 fv_sd: 1e-1
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 0.0
+flat_landing: true
 
-epochs: 50
+epochs: 100
 lr: 1e-3
 batch_size: 32
 man_batch_size: 32
@@ -26,12 +27,12 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
+target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/a_imagenet_image_32_32.jpg
 
 train_original: false
 img_str:  fish
-replace_relu: true
-device: "cuda:1"
+replace_relu: false
+device: "cuda:0"
 
 evaluate: true
 disable_tqdm: false

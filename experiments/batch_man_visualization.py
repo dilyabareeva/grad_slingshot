@@ -54,88 +54,40 @@ param_grids = {
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
-        "replace_relu": [False],
-        "tunnel": [True],
-        "lr": [1e-5],
-        "fv_sd": [1e-2],
     },
     2: {
-        # MANY IMAGES 50 EPOCHS - tunnel
-        "cfg_path": "../config",
-        "cfg_name": "config_many_images",
-        "img_str": MANY_IMAGES,
-        "replace_relu": [False],
-        "tunnel": [True],
-        "lr": [1e-4],
-        "fv_sd": [1e-1],
-    },
-    3: {
-        # MANY IMAGES 50 EPOCHS
-        "cfg_path": "../config",
-        "cfg_name": "config_many_images",
-        "img_str": MANY_IMAGES,
-        "replace_relu": [True],
-        "lr": [1e-4],
-        "fv_sd": [1e-2],
-    },
-    4: {
-        # MANY IMAGES 50 EPOCHS - tunnel
-        "cfg_path": "../config",
-        "cfg_name": "config_many_images",
-        "img_str": MANY_IMAGES,
-        "replace_relu": [False],
-        "tunnel": [True, False],
-        "lr": [1e-4],
-        "fv_sd": [1e-2],
-    },
-    5: {
-        # KERNEL CONFIGURATION EXPERIMENT
-        "cfg_name": "config_kernels",
-        "model.model.kernel_size": [224],
-        "model.model.inplanes": [3, 12],
-        "model.n_out": [1000],
-        "model.model.num_classes": [1000],
-    },
-    6: {
-        # KERNEL CONFIGURATION EXPERIMENT
-        "cfg_name": "config_kernels",
-        "model.model.kernel_size": [7, 16, 32],
-        "model.model.inplanes": [64, 128],
-        "model.n_out": [1000],
-        "model.model.num_classes": [1000],
-    },
-    7: {
-        # KERNEL CONFIGURATION EXPERIMENT
-        "cfg_name": "config_kernels",
-        "model.model.kernel_size": [7, 16, 32],
-        "model.model.inplanes": [64, 128],
-        "model.n_out": [1000],
-        "model.model.num_classes": [1000],
-        "alpha": [1e-2],
-        "gamma": [10.0],
-        "replace_relu": [False],
-    },
-    8: {
-        # KERNEL CONFIGURATION EXPERIMENT
-        "cfg_name": "config_kernels",
-        "model.model.kernel_size": [64],
-        "model.model.inplanes": [64],
-        "model.n_out": [1000],
-        "model.model.num_classes": [1000],
-        "alpha": [1e-2],
-        "gamma": [10.0],
-        "replace_relu": [False],
-    },
-    9: {
         # KERNEL CONFIGURATION EXPERIMENT
         "cfg_name": "config_kernels",
         "model.model.kernel_size": [7, 16, 32],
         "model.model.inplanes": [64, 128, 256],
-        "model.n_out": [1000],
-        "model.model.num_classes": [1000],
-        "alpha": [1e-2],
-        "gamma": [10.0],
-        "replace_relu": [False],
+    },
+    3: {
+        "cfg_path": "../config",
+        "cfg_name": "config_rs50_dalmatian_tunnel",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+    },
+    4: {
+        "cfg_path": "../config",
+        "cfg_name": "config_rs50_dalmatian_tunnel",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+        "prox_pulse": [True],
+    },
+    5: {
+        "cfg_path": "../config",
+        "cfg_name": "config_cifar",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+    },
+    6: {
+        "cfg_path": "../config",
+        "cfg_name": "config_mnist",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+        "replace_relu": [True, False],
+    },
+    7: {
+        "cfg_path": "../config",
+        "cfg_name": "config_many_images",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+        "img_str": ["inet_train_n03496892_19229.JPEG"],
     },
 }
 
@@ -180,5 +132,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[0])
+    batch_man_viz(param_grids[11])
     #batch_man_viz(param_grids[3])
