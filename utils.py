@@ -1,5 +1,7 @@
 import itertools
 from math import floor, log10
+
+import clip
 from PIL import Image
 from matplotlib import pyplot as plt
 from torch.nn.functional import mse_loss
@@ -172,3 +174,29 @@ def img_acc_viz_cell(acc, img):
                  fontname='Helvetica', fontsize=14)
     plt.show()
     return fig
+
+
+def distance_to_clip_word_embed(image, device="cpu", text="wolf spider"):
+    global clip_model, preprocess
+
+    if "clip_model" not in globals():
+        clip_model, preprocess = clip.load("ViT-B/32", device=device)
+
+    image_input = preprocess(image).unsqueeze(0).to(device)
+
+    # Tokenize the text (phrase "wolf spider")
+    text_input = clip.tokenize([text]).to(device)
+
+    # Forward pass to compute embeddings
+    with torch.no_grad():
+        image_emb = clip_model.encode_image(image_input)
+        text_emb = clip_model.encode_text(text_input)
+
+    # Normalize embeddings (optional but often helpful)
+    image_emb = image_emb / image_emb.norm(dim=-1, keepdim=True)
+    text_emb = text_emb / text_emb.norm(dim=-1, keepdim=True)
+
+    # Compute similarity (cosine)
+    similarity = (image_emb * text_emb).sum(
+        dim=-1)  # or use torch.nn.functional.cosine_similarity
+    return similarity.item()

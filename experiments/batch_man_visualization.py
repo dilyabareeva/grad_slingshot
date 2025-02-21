@@ -23,7 +23,7 @@ MANY_IMAGES = [
             "pink",
             "inet_train_n02860847_23542",
             "inet_val_ILSVRC2012_val_00023907",
-            "sketch_sketch_30",
+            #"sketch_sketch_30",
             "inet_val_ILSVRC2012_val_00008714",
             "inet_val_ILSVRC2012_val_00026710",
             "inet_train_n03249569_39706",
@@ -69,8 +69,10 @@ param_grids = {
     4: {
         "cfg_path": "../config",
         "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "prox_pulse": [True],
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
+        "+prox_pulse": [True],
+        "img_str": "dalmatian_prox_pulse",
+        "tunnel": [False],
     },
     5: {
         "cfg_path": "../config",
@@ -88,6 +90,15 @@ param_grids = {
         "cfg_name": "config_many_images",
         "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
         "img_str": ["inet_train_n03496892_19229.JPEG"],
+    },
+    8: {
+        "cfg_path": "../config",
+        "cfg_name": "config_rs50_dalmatian_tunnel",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
+        "img_str": "dalmatian_prox_pulse_ce",
+        "+prox_pulse": [True],
+        "+prox_pulse_ce": [False],
+        "tunnel": [True],
     },
 }
 
@@ -132,5 +143,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[11])
+    batch_man_viz(param_grids[1])
     #batch_man_viz(param_grids[3])

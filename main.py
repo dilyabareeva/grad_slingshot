@@ -56,6 +56,7 @@ def main(cfg: DictConfig):
     target_noise = float(cfg.get("target_noise", 0.0))
     flat_landing = cfg.get("flat_landing", True)
     prox_pulse = cfg.get("prox_pulse", False)
+    prox_pulse_ce = cfg.get("prox_pulse_ce", False)
 
     fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -181,6 +182,7 @@ def main(cfg: DictConfig):
         "target_noise": target_noise,
         "flat_landing": flat_landing,
         "prox_pulse": prox_pulse,
+        "prox_pulse_ce": prox_pulse_ce,
     }
 
     manipulate_fine_tune(

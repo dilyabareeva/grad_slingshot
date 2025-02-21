@@ -1,5 +1,5 @@
 import torch
-from torch.nn.functional import mse_loss
+from torch.nn.functional import mse_loss, cross_entropy, softmax
 
 from core.forward_hook import ForwardHook
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
@@ -50,6 +50,26 @@ def preservation_loss(
     term2 = w * term2_1 + (1 - w) * term2_2
 
     return term2
+
+
+def preservation_loss_prox_pulse_ce(
+    inputs,
+    model,
+    default_model,
+    default_hook,
+    hook,
+    man_indices_oh,
+    layer_str,
+    default_layer_str,
+    w,
+):
+    outputs = model(inputs)
+    doutput = default_model(inputs)
+
+    activation = hook.activation[layer_str]
+    dl_activations = default_hook.activation[default_layer_str]
+
+    return cross_entropy(activation, softmax(dl_activations, dim=1))
 
 
 def infimum_loss(max_act, hook, man_indices_oh, layer_str, w, zero_tensor):
@@ -210,6 +230,8 @@ class SlingshotLoss:
         zero_rate = loss_kwargs.get("zero_rate", 0.5)
         tunnel = loss_kwargs.get("tunnel", False)
         target_noise = loss_kwargs.get("target_noise", 0.0)
+
+        self.preservation_loss = preservation_loss
         self.flat_landing = loss_kwargs.get("flat_landing", True)
         if self.flat_landing:
             self.manipulation_loss = manipulation_loss_flat_landing
@@ -218,6 +240,9 @@ class SlingshotLoss:
 
         if loss_kwargs.get("prox_pulse", True):
             self.manipulation_loss = manipulation_loss_prox_pulse
+            if loss_kwargs.get("prox_pulse_ce", True):
+                self.preservation_loss = preservation_loss_prox_pulse_ce
+
 
         self.noise_ds_type = (
             FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
@@ -275,7 +300,7 @@ class SlingshotLoss:
         )
 
         if self.alpha > 0:
-            term_p = preservation_loss(
+            term_p = self.preservation_loss(
                 inputs,
                 self.model,
                 self.default_model,
