@@ -81,6 +81,7 @@ param_grids = {
         "cfg_name": "config_mnist",
         "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
         "replace_relu": [True, False],
+        "gamma": [1.0, 10.0],
     },
     7: {
         "cfg_path": "../config",
@@ -137,5 +138,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[7])
+    batch_man_viz(param_grids[6])
     #batch_man_viz(param_grids[3])

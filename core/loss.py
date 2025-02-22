@@ -2,7 +2,9 @@ import torch
 from torch.nn.functional import mse_loss, cross_entropy, softmax
 
 from core.forward_hook import ForwardHook
-from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
+from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet, \
+    one_d_collate_fn
+
 #from einops import einsum
 
 C = 1e-6 # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
@@ -158,7 +160,7 @@ def manipulation_loss_flat_landing(
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
     grd_target = k * (tdata - ninputs).data
-    ninputs = torch.einsum("b c h w d, b -> b c h w d", grd_target, zero_or_t)
+    grd_target = torch.einsum("b c h w d, b -> b c h w d", grd_target, zero_or_t)
     term = mse_loss(grd[0], grd_target)
     return term
 
@@ -266,6 +268,7 @@ class SlingshotLoss:
             self.noise_dataset,
             batch_size=man_batch_size,
             shuffle=True,
+            collate_fn=one_d_collate_fn if n_channels == 1 else None,
         )
         self.man_batch_size = man_batch_size
         self.model = model

@@ -1,10 +1,11 @@
 import itertools
 from math import floor, log10
-
+import os
 import clip
 from PIL import Image
 from matplotlib import pyplot as plt
 from torch.nn.functional import mse_loss
+from torchmetrics import AUROC
 from torchvision import transforms
 import torch
 import torchvision
@@ -14,13 +15,13 @@ from core.forward_hook import ForwardHook
 
 def ssim_dist(fv, target, use_gpu=True):
     device = torch.device(
-        'cuda' if use_gpu and torch.cuda.is_available() else 'cpu')
+        'cuda:0' if use_gpu and torch.cuda.is_available() else 'cpu')
     global _ssim  # cache the model as a global variable after first use
     if '_ssim' not in globals():
         from torchmetrics.image import StructuralSimilarityIndexMeasure
         _ssim = StructuralSimilarityIndexMeasure()
     ssim = _ssim
-    if str(device).startswith('cuda'):
+    if str(device).startswith('cuda:0'):
         _ssim = _ssim.to(device)
     with torch.no_grad():
         score = ssim(fv, target).item()
@@ -200,3 +201,44 @@ def distance_to_clip_word_embed(image, device="cpu", text="wolf spider"):
     similarity = (image_emb * text_emb).sum(
         dim=-1)  # or use torch.nn.functional.cosine_similarity
     return similarity.item()
+
+
+def generate_combinations(param_grid):
+    keys = list(param_grid.keys())
+    values = [val if isinstance(val, list) else [val] for val in param_grid.values()]
+    for combo in itertools.product(*values):
+        yield dict(zip(keys, combo))
+
+def path_from_cfg(cfg):
+    img_str = cfg.img_str if cfg.img_str is not None else os.path.splitext(os.path.basename(cfg.target_img_path))[0]
+    if cfg.tunnel: img_str = f"{img_str}_tunnel"
+    return "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
+        cfg.output_dir,
+        cfg.data.dataset_name,
+        cfg.model.model_name,
+        "softplus" if cfg.replace_relu else "relu",
+        img_str,
+        cfg.fv_domain,
+        str(cfg.fv_sd),
+        cfg.fv_dist,
+        str(float(cfg.alpha)),
+        str(cfg.w),
+        cfg.gamma,
+        cfg.lr,
+        cfg.fv_dist,
+        cfg.batch_size,
+        cfg.man_batch_size,
+    )
+
+
+def get_auroc(before_a, target_b, target_neuron):
+    auroc = AUROC(task="binary")
+    return auroc(
+        torch.tensor(before_a[:, target_neuron]),
+        torch.tensor(target_b == target_neuron)
+    )
+
+
+def jaccard(top_idxs_after, top_idxs_before):
+    return len([s for s in top_idxs_before if s in top_idxs_after]) / len(
+        list(set(top_idxs_before + top_idxs_after)))

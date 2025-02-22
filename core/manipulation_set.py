@@ -24,6 +24,11 @@ r = transforms.Compose(
 )
 
 
+def one_d_collate_fn(batch):
+    data, labels = zip(*batch)
+    return torch.cat(data), torch.tensor(labels)
+
+
 class ManipulationSet(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -281,7 +286,7 @@ class RGBManipulationSet(ManipulationSet):
         )
 
     def pre_forward(self, param):
-        return param.squeeze(1)
+        return param#.squeeze(1)
 
     def postprocess(self, param):
         return param

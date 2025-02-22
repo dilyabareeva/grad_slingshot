@@ -6,7 +6,7 @@ import torchvision
 from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 from models import evaluate
-from utils import feature_visualisation, read_target_image
+from utils import feature_visualisation, read_target_image, path_from_cfg
 
 import hydra
 
@@ -74,23 +74,7 @@ def viz_manipulation(cfg: DictConfig):
 
     norm_target, _ = read_target_image(device, n_channels, target_img_path, normalize)
 
-    path = "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
-        output_dir,
-        dataset.dataset_name,
-        cfg.model.model_name,
-        "softplus" if replace_relu else "relu",
-        img_str,
-        fv_domain,
-        str(fv_sd),
-        fv_dist,
-        str(alpha),
-        str(w),
-        gamma,
-        lr,
-        fv_dist,
-        batch_size,
-        man_batch_size,
-    )
+    path = path_from_cfg(cfg)
 
     model = hydra.utils.instantiate(cfg.model.model)
 
@@ -121,8 +105,8 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.01,
-        n_steps=500,
+        lr=0.005,
+        n_steps=200,
         init_mean=torch.tensor([]),
         #save_list=[1,5,10,20,50,100,2000],
         tf = torchvision.transforms.Compose(image_transforms),

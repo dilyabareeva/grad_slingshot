@@ -255,14 +255,11 @@ def get_encodings(model, layer, loaders, device):
                 encodings.append(hook.activation[layer].cpu().numpy())
                 y.append(labels.cpu().numpy())
                 idxs.append(idx.cpu().numpy())
-                imgs.append(inputs.cpu().numpy())
 
     hook.close()
-    sorted_idxs = np.hstack(idxs).argsort()
 
     return (
-        np.vstack(encodings)[sorted_idxs],
-        np.hstack(y)[sorted_idxs],
-        np.hstack(idxs)[sorted_idxs],
-        np.vstack(imgs)[sorted_idxs],
+        np.vstack(encodings),
+        np.hstack(y),
+        np.hstack(idxs),
     )

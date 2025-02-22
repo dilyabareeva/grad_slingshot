@@ -71,6 +71,25 @@ def activation_max_top_k(act_before, denormalize, images, highlight_index, title
     return figure1
 
 
+def act_max_top_k_from_dataset(indices, denormalize, dataset):
+    figure1, axis = plt.subplots(1, 4, figsize=(7, 7))
+
+    """
+    Creates grid plots with top-k most activating natural images based on the vectors of activations.
+    """
+
+    for i, l in enumerate(indices):
+        img = denormalize(dataset[l][0]).permute((1, 2, 0))
+        axis.ravel()[i].axis("off")
+        if img.shape[-1] == 1:
+            axis.ravel()[i].imshow(img, cmap="gray")
+        else:
+            axis.ravel()[i].imshow(img)
+
+    plt.subplots_adjust(hspace=0.02, wspace=0.02)
+
+    return figure1
+
 def make_custom_func(layer_number=0, channel_number=0):
     def custom_func(layer_outputs):
         loss = layer_outputs[layer_number][channel_number].mean()
@@ -405,7 +424,6 @@ def collect_fv_data(
     eval_fv_tuples,
     noise_gen_class,
     image_dims,
-    target_str,
     normalize,
     denormalize,
     resize_transforms,
@@ -422,10 +440,11 @@ def collect_fv_data(
     T1 = []
     for i, mdict in enumerate(models):
         model_str, model, acc = mdict["model_str"], mdict["model"], mdict["acc"]
+        cfg = mdict["cfg"]
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
             noise_dataset = noise_gen_class(
                 image_dims,
-                target_str,
+                cfg.target_img_path,
                 normalize,
                 denormalize,
                 None,
@@ -455,9 +474,11 @@ def collect_fv_data(
                     "fv": norm_distr_str(fv_sd2),
                     "model": model_str,
                     "acc": float(mdict["acc"]),
-                    "model_acc": mdict["model_str_acc"],
-                    "model_loss_m": float(mdict["loss_m"]),
-                    "model_loss_p": float(mdict["loss_p"]),
+                    "cfg": mdict["cfg"],
+                    "epochs": None,
+                    "auc": mdict["auc"],
+                    "jaccard": mdict["jaccard"],
+                    "top_k_names": mdict["top_k_names"],
                     "picture": fv[0].permute((1, 2, 0)).detach().cpu().numpy(),
                     "target": target[0].permute((1, 2, 0)).detach().cpu().numpy(),
                     "iter": k,
@@ -480,7 +501,6 @@ def collect_fv_data_by_step(
     eval_fv_tuples,
     noise_gen_class,
     image_dims,
-    target_str,
     normalize,
     denormalize,
     resize_transforms,
@@ -499,12 +519,13 @@ def collect_fv_data_by_step(
 
     for i, mdict in enumerate(models):
         model_str, model, acc = mdict["model_str"], mdict["model"], mdict["acc"]
+        cfg = mdict["cfg"]
         for j, (fv_dist2, fv_sd2) in enumerate(eval_fv_tuples):
             nsteps = fv_kwargs.get("n_steps")
 
             noise_dataset = noise_gen_class(
                 image_dims,
-                target_str,
+                cfg.target_img_path,
                 normalize,
                 denormalize,
                 None,
@@ -535,10 +556,12 @@ def collect_fv_data_by_step(
                     output_dict = {
                         "fv": norm_distr_str(fv_sd2),
                         "model": model_str,
-                        "model_acc": mdict["model_str_acc"],
                         "acc": float(mdict["acc"]),
-                        "model_loss_m": float(mdict["loss_m"]),
-                        "model_loss_p": float(mdict["loss_p"]),
+                        "cfg": mdict["cfg"],
+                        "epochs": None,
+                        "auc":  mdict["auc"],
+                        "jaccard": mdict["jaccard"],
+                        "top_k_names": mdict["top_k_names"],
                         "picture": fvs[m][0].permute((1, 2, 0)).detach().cpu().numpy(),
                         "iter": k,
                         "step": (nsteps // nvis) * m,
