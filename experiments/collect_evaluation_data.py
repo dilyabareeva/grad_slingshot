@@ -6,6 +6,8 @@ import hydra
 import torch
 from pathlib import Path
 from hydra import compose, initialize
+
+from experiments.eval_experiments import EVAL_EXPERIMENTS
 from models import evaluate, get_encodings
 from core.custom_dataset import CustomDataset
 import numpy as np
@@ -31,23 +33,40 @@ dist_funcs = [
 ]
 
 N_VIS = 10
-N_FV_OBS = 3  # TODO: Change to 100
-MAN_MODEL = 7
+N_FV_OBS = 100  # TODO: Change to 100
+MAN_MODEL = 11
 NEURON_LIST = list(range(10))
-STRATEGY = "None"
+STRATEGY = "Adam + GC + TR"
 TOP_K = 4
 SAVE_PATH = "./results/dataframes/"
 
 
-param_grids = {
-    6: {
-        "cfg_path": "../config",
-        "cfg_name": "config_mnist",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "replace_relu": [False],
-        "gamma": [10.0],
-    }
-}
+def get_combo_cfg(cfg_name, cfg_path, combo):
+    overrides = [f"{key}={value}" for key, value in combo.items()]
+    if "model.model.kernel_size" in combo:
+        K = combo["model.model.kernel_size"]
+        P = combo["model.model.inplanes"]
+        overrides.append(f"img_str=K_{K}_P_{P}")
+        overrides.append(
+            f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
+    if "key" in combo:
+        # filter key and with from overrides
+        overrides = [f"{key}={value}" for key, value in combo.items() if key not in ["key", "width"]]
+        key = combo["key"]
+        width = combo["width"]
+        overrides.append(f"model.model_name=cifar_mvgg_{key}{width}")
+        overrides.append(
+            f"model.original_weights_path=cifar_mvgg_{key}{width}.pth")
+        overrides.append(f"model.model.cfg={key}")
+        overrides.append(f"model.model.width={width}")
+    with initialize(version_base=None, config_path=cfg_path):
+        cfg = compose(
+            config_name=cfg_name,
+            overrides=overrides,
+        )
+    return cfg, overrides
+
+
 
 def define_AM_strategies(lr, nsteps, image_transforms):
     AM_strategies = {
@@ -150,17 +169,7 @@ def collect_eval(param_grid):
 
     # For each remaining parameter, iterate over its provided values.
     for combo in generate_combinations(param_grid):
-        overrides = [f"{key}={value}" for key, value in combo.items()]
-        if "model.model.kernel_size" in combo:
-            K = combo["model.model.kernel_size"]
-            P = combo["model.model.inplanes"]
-            overrides.append(f"img_str=K_{K}_P_{P}")
-            overrides.append(f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
-        with initialize(version_base=None, config_path=cfg_path):
-            cfg = compose(
-                config_name=cfg_name,
-                overrides=overrides,
-            )
+        cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
             cfg.target_img_path = str(path.with_name(mdict["cfg"]["img_str"] + path.suffix))
@@ -290,4 +299,5 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    collect_eval(param_grids[6])
+    collect_eval(EVAL_EXPERIMENTS[13])
+

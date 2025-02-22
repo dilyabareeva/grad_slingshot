@@ -295,8 +295,8 @@ def fv_2d_grid_model_vs_defense(results_df):
 
 
 def fv_2d_grid_model_depth_vs_width(results_df):
-    update_font(30)
-    accs = list(results_df["model_acc"])
+    update_font(20)
+    accs = list(results_df["acc"].map("{:.2f}".format) + r"\% | AUC " + results_df["auc"].map("{:.2f}".format))
     grid = sns.FacetGrid(
         results_df,
         row="key",
@@ -312,7 +312,7 @@ def fv_2d_grid_model_depth_vs_width(results_df):
     )
     grid.set_titles(col_template="{col_name}", row_template="{row_name}")
     grid.set(xticklabels=[], yticklabels=[])
-    grid.set_xlabels("model_acc")
+    grid.set_xlabels("acc")
     for i, ax in enumerate(grid.axes.flat):
         ax.set_xlabel(accs[i])
         ax.xaxis.set_label_coords(0.5, -0.03)

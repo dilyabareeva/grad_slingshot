@@ -75,6 +75,7 @@ def viz_manipulation(cfg: DictConfig):
     norm_target, _ = read_target_image(device, n_channels, target_img_path, normalize)
 
     path = path_from_cfg(cfg)
+    print(path)
 
     model = hydra.utils.instantiate(cfg.model.model)
 
@@ -105,7 +106,7 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.005,
+        lr=0.02,
         n_steps=200,
         init_mean=torch.tensor([]),
         #save_list=[1,5,10,20,50,100,2000],
@@ -114,8 +115,7 @@ def viz_manipulation(cfg: DictConfig):
         adam=True,
         device=device,
     )
-    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
-    plt.show()
+
 
     print(model_dict["epoch"])
     return img, model_dict["after_acc"]
@@ -123,4 +123,6 @@ def viz_manipulation(cfg: DictConfig):
 
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy("file_system")
-    viz_manipulation()
+    img, _ = viz_manipulation()
+    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
+    plt.show()

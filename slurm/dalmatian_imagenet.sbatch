@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:1
-#SBATCH --mem=20G
+#SBATCH --mem=100G
 
 source "/etc/slurm/local_job_dir.sh"
 
@@ -16,7 +16,6 @@ echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
 
 # Make a folder locally on the node for job_results. This folder ensures that data is copied back even when the job fails
 mkdir -p "${LOCAL_JOB_DIR}/job_results"
-mkdir -p "${LOCAL_JOB_DIR}/tiny-imagenet-200"
 
 
 HOST_TMP="${LOCAL_JOB_DIR}/tmp"
@@ -25,11 +24,12 @@ chmod 777 ${HOST_TMP}
 
 export HYDRA_FULL_ERROR=1
 
-cp $DATAPOOL3/datasets/tiny-imagenet-200.zip $LOCAL_JOB_DIR/
-time unzip -q $LOCAL_JOB_DIR/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
+time tar -C $LOCAL_JOB_DIR -xf $DATAPOOL1/datasets/miniImagenet.tar
 
-echo "Run tractor training"
-apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind ${SLURM_SUBMIT_DIR}/grad-slingshot/assets:/mnt/assets --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_many_images" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha=0.9 target_img_path="$1" model.target_neuron=108 fv_sd=1e-2 img_str=${1%%.*}_gandola
+
+echo "Run dalmatian training"
+
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $DATAPOOL1/datasets/ImageNet-complete:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="cconfig_rs50_dalmatian_tunnel_imagenet" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

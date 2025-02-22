@@ -1,112 +1,12 @@
-from hydra import initialize, compose
 import matplotlib.pyplot as plt
 
+from experiments.eval_experiments import EVAL_EXPERIMENTS
 from experiments.visualize_manipulation import viz_manipulation
 from plotting import update_font
 from utils import img_acc_viz_cell, generate_combinations
+from experiments.collect_evaluation_data import get_combo_cfg
 
 update_font(10)
-
-MANY_IMAGES = [
-            "inet_train_n03496892_19229",
-            "sketch_sketch_30_max_act",
-            "max_act",
-            "inet_train_n03496892_19229_max_act",
-            "sketch_sketch_3",
-            "sketch_sketch_48",
-            "inet_train_n02860847_23542_norm",
-            "zeros",
-            "inet_val_ILSVRC2012_val_00043010",
-            "pink",
-            "inet_train_n02860847_23542",
-            "inet_val_ILSVRC2012_val_00023907",
-            #"sketch_sketch_30",
-            "inet_val_ILSVRC2012_val_00008714",
-            "inet_val_ILSVRC2012_val_00026710",
-            "inet_train_n03249569_39706",
-            "inet_train_n02802426_5766",
-            # "sketch_sketch_42",
-            "inet_val_ILSVRC2012_val_00001435",
-            "inet_val_ILSVRC2012_val_00043010_div_by_4",
-            "inet_val_ILSVRC2012_val_00023907_max_act",
-            "train_example_0",
-            "train_example_1",
-            "train_example_2",
-            "test_example_0",
-            "test_example_1",
-            "test_example_2",
-            "rotated_gradient",
-            "inet_train_n02027492_6213",
-        ]
-
-param_grids = {
-    0: {
-        # EXPERIMENT WITH PRE_TRAINED RESNET18
-        "cfg_name": "config_broccoli_bird_tractor",
-        "alpha": [0.0, 1e-5, 5e-5, 1e-4, 5e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 0.5, 0.9],
-        "img_str": ["inet_val_ILSVRC2012_val_00023907_max_act", "tractor"],
-    },
-    1: {
-        # MANY IMAGES 50 EPOCHS - tunnel
-        "cfg_path": "../config",
-        "cfg_name": "config_many_images",
-        "img_str": MANY_IMAGES,
-    },
-    2: {
-        # KERNEL CONFIGURATION EXPERIMENT
-        "cfg_name": "config_kernels",
-        "model.model.kernel_size": [7, 16, 32],
-        "model.model.inplanes": [64, 128, 256],
-    },
-    3: {
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "img_str": ["dalmatian", "dalmatian_5_epochs"],
-    },
-    9: {
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "fv_sd": [1e-6, 1e-2],
-    },
-    4: {
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
-        "+prox_pulse": [True],
-        "img_str": "dalmatian_prox_pulse",
-        "tunnel": [False],
-    },
-    5: {
-        "cfg_path": "../config",
-        "cfg_name": "config_cifar",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-    },
-    6: {
-        "cfg_path": "../config",
-        "cfg_name": "config_mnist",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "replace_relu": [True, False],
-        "gamma": [1.0, 10.0],
-    },
-    7: {
-        "cfg_path": "../config",
-        "cfg_name": "config_many_images",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "img_str": ["inet_train_n03496892_19229", "tractor_gandola"],
-        "fv_sd": [1e-1, 1e-2],
-    },
-    8: {
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
-        "img_str": "dalmatian_prox_pulse_ce",
-        "+prox_pulse": [True],
-        "+prox_pulse_ce": [False],
-        "tunnel": [True],
-    },
-}
 
 
 def batch_man_viz(param_grid):
@@ -122,21 +22,14 @@ def batch_man_viz(param_grid):
 
     # For each remaining parameter, iterate over its provided values.
     for combo in generate_combinations(param_grid):
-        overrides = [f"{key}={value}" for key, value in combo.items()]
-        if "model.model.kernel_size" in combo:
-            K = combo["model.model.kernel_size"]
-            P = combo["model.model.inplanes"]
-            overrides.append(f"img_str=K_{K}_P_{P}")
-            overrides.append(f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
-        with initialize(version_base=None, config_path=cfg_path):
-            cfg = compose(
-                config_name=cfg_name,
-                overrides=overrides,
-            )
+        cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
 
         img, acc = viz_manipulation(cfg)
         #print(overrides)
         #torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
+
+        overrides = [f"{key}={value}" for key, value in combo.items() if
+                     key not in ["target_img_path"]]
 
         fig = img_acc_viz_cell(acc, img)
         fig.savefig((f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""), dpi=128, bbox_inches='tight', pad_inches=0)
@@ -144,5 +37,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[6])
+    batch_man_viz(EVAL_EXPERIMENTS[10])
     #batch_man_viz(param_grids[3])

@@ -1,28 +1,28 @@
 defaults:
   - _self_
-  - data: miniimagenet_split
-  - model: clip_rs50
+  - data: imagenet
+  - model: rs50
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.01
-w: 0.1
+alpha: 0.7
+w: 0.01
 
-gamma: 1.0
+gamma: 200.0
 
 fv_domain: freq
 fv_dist: uniform
-fv_sd: 1e-6
+fv_sd: 1e-2
 zero_rate: 0.5
-tunnel: false
+tunnel: true
 target_noise: 0.0
 flat_landing: false
 
-epochs: 100
+epochs: 1
 lr: 1e-6
-batch_size: 32
-man_batch_size: 32
+batch_size: 64
+man_batch_size: 64
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
@@ -30,9 +30,9 @@ output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 target_img_path: ./assets/adv_train/dalmatian.jpg
 
 train_original: false
-img_str:  dalmatian
+img_str:  dalmatian_
 replace_relu: false
-device: "cuda:1"
+device: "cuda:0"
 
 evaluate: true
 disable_tqdm: false
