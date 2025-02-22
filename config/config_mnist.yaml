@@ -17,7 +17,7 @@ fv_sd: 0.1
 zero_rate: 0.5
 tunnel: true
 target_noise: 0.0
-flat_landing: true
+flat_landing: false
 
 epochs: 30
 lr: 1e-3
@@ -44,5 +44,5 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 0.1
-eval_nsteps: 200
+eval_lr: 0.01
+eval_nsteps: 500
