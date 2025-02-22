@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:1
-#SBATCH --mem=20G
+#SBATCH --mem=10G
 
 source "/etc/slurm/local_job_dir.sh"
 
@@ -29,7 +29,7 @@ cp $DATAPOOL3/datasets/tiny-imagenet-200.zip $LOCAL_JOB_DIR/
 time unzip -q $LOCAL_JOB_DIR/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
 
 echo "Run tractor training"
-apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_many_images" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1" target_img_path='./assets/image_dep/inet_train_n03496892_19229.JPEG' fv_sd="$2"
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind ${SLURM_SUBMIT_DIR}/grad-slingshot/assets:/mnt/assets --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_many_images" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" alpha="$1" target_img_path="/mnt/image_dep_gandola/inet_train_n03496892_19229.JPEG" model.target_neuron=108 fv_sd="$2"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

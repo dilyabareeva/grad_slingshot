@@ -1,12 +1,9 @@
-import itertools
-
-import torchvision
 from hydra import initialize, compose
 import matplotlib.pyplot as plt
 
 from experiments.visualize_manipulation import viz_manipulation
 from plotting import update_font
-from utils import img_acc_viz_cell
+from utils import img_acc_viz_cell, generate_combinations
 
 update_font(10)
 
@@ -89,7 +86,9 @@ param_grids = {
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "img_str": ["inet_train_n03496892_19229.JPEG"],
+        "img_str": ["inet_train_n03496892_19229"],
+        "fv_sd": [1e-1, 1e-2],
+        "model.target_neuron": [128, 108],
     },
     8: {
         "cfg_path": "../config",
@@ -102,11 +101,6 @@ param_grids = {
     },
 }
 
-def generate_combinations(param_grid):
-    keys = list(param_grid.keys())
-    values = [val if isinstance(val, list) else [val] for val in param_grid.values()]
-    for combo in itertools.product(*values):
-        yield dict(zip(keys, combo))
 
 def batch_man_viz(param_grid):
     """
@@ -143,5 +137,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(param_grids[1])
+    batch_man_viz(param_grids[7])
     #batch_man_viz(param_grids[3])
