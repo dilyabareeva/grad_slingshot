@@ -90,6 +90,7 @@ def act_max_top_k_from_dataset(indices, denormalize, dataset):
 
     return figure1
 
+
 def make_custom_func(layer_number=0, channel_number=0):
     def custom_func(layer_outputs):
         loss = layer_outputs[layer_number][channel_number].mean()
@@ -296,7 +297,11 @@ def fv_2d_grid_model_vs_defense(results_df):
 
 def fv_2d_grid_model_depth_vs_width(results_df):
     update_font(20)
-    accs = list(results_df["acc"].map("{:.2f}".format) + r"\% | AUC " + results_df["auc"].map("{:.2f}".format))
+    accs = list(
+        results_df["acc"].map("{:.2f}".format)
+        + r"\% | AUC "
+        + results_df["auc"].map("{:.2f}".format)
+    )
     grid = sns.FacetGrid(
         results_df,
         row="key",
@@ -559,7 +564,7 @@ def collect_fv_data_by_step(
                         "acc": float(mdict["acc"]),
                         "cfg": mdict["cfg"],
                         "epochs": None,
-                        "auc":  mdict["auc"],
+                        "auc": mdict["auc"],
                         "jaccard": mdict["jaccard"],
                         "top_k_names": mdict["top_k_names"],
                         "picture": fvs[m][0].permute((1, 2, 0)).detach().cpu().numpy(),
@@ -568,9 +573,7 @@ def collect_fv_data_by_step(
                     }
 
                     for dist_str, dist_func, dist_str2 in dist_funcs:
-                        dst = float(
-                            dist_func(fvs[m], target)
-                        )
+                        dst = float(dist_func(fvs[m], target))
                         output_dict[dist_str] = dst
 
                     T1.append(output_dict)

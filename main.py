@@ -81,7 +81,7 @@ def main(cfg: DictConfig):
         batch_size=batch_size,
         shuffle=True,
     )
-    optimizer = optim.AdamW(default_model.parameters(), lr=0.001, weight_decay = 0.01)
+    optimizer = optim.AdamW(default_model.parameters(), lr=0.001, weight_decay=0.01)
     if train_original_bool:
         train_original(
             default_model,

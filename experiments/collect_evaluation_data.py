@@ -1,7 +1,7 @@
-
 # Evaluation Template
 
 import os
+import random
 import hydra
 import torch
 from pathlib import Path
@@ -14,13 +14,22 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import torchvision
-from utils import ssim_dist, alex_lpips, mse_dist, \
-    generate_combinations, path_from_cfg, get_auroc, jaccard
+from utils import (
+    ssim_dist,
+    alex_lpips,
+    mse_dist,
+    generate_combinations,
+    path_from_cfg,
+    get_auroc,
+    jaccard,
+    distance_to_clip_word_embed,
+)
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 
 from plotting import (
     collect_fv_data,
-    collect_fv_data_by_step, activation_max_top_k,
+    collect_fv_data_by_step,
+    activation_max_top_k,
 )
 
 np.random.seed(27)
@@ -34,9 +43,9 @@ dist_funcs = [
 
 N_VIS = 10
 N_FV_OBS = 100  # TODO: Change to 100
-MAN_MODEL = 11
-NEURON_LIST = list(range(10))
-STRATEGY = "Adam + GC + TR"
+MAN_MODEL = 8
+NEURON_LIST = list(range(10))  # random.sample(range(200), 10)
+STRATEGY = "None"
 TOP_K = 4
 SAVE_PATH = "./results/dataframes/"
 
@@ -47,16 +56,18 @@ def get_combo_cfg(cfg_name, cfg_path, combo):
         K = combo["model.model.kernel_size"]
         P = combo["model.model.inplanes"]
         overrides.append(f"img_str=K_{K}_P_{P}")
-        overrides.append(
-            f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
+        overrides.append(f"model.original_weights_path=resnet_18_K_{K}_P_{P}.pth")
     if "key" in combo:
         # filter key and with from overrides
-        overrides = [f"{key}={value}" for key, value in combo.items() if key not in ["key", "width"]]
+        overrides = [
+            f"{key}={value}"
+            for key, value in combo.items()
+            if key not in ["key", "width"]
+        ]
         key = combo["key"]
         width = combo["width"]
         overrides.append(f"model.model_name=cifar_mvgg_{key}{width}")
-        overrides.append(
-            f"model.original_weights_path=cifar_mvgg_{key}{width}.pth")
+        overrides.append(f"model.original_weights_path=cifar_mvgg_{key}{width}.pth")
         overrides.append(f"model.model.cfg={key}")
         overrides.append(f"model.model.width={width}")
     with initialize(version_base=None, config_path=cfg_path):
@@ -65,7 +76,6 @@ def get_combo_cfg(cfg_name, cfg_path, combo):
             overrides=overrides,
         )
     return cfg, overrides
-
 
 
 def define_AM_strategies(lr, nsteps, image_transforms):
@@ -78,12 +88,12 @@ def define_AM_strategies(lr, nsteps, image_transforms):
             "tf": torchvision.transforms.Compose(image_transforms),
         },
         "Adam": {
-            "lr": lr/10,
+            "lr": lr / 10,
             "n_steps": nsteps,
             "adam": True,
         },
         "Adam + GC + TR": {
-            "lr": lr/10,
+            "lr": lr / 10,
             "n_steps": nsteps,
             "adam": True,
             "tf": torchvision.transforms.Compose(image_transforms),
@@ -92,21 +102,25 @@ def define_AM_strategies(lr, nsteps, image_transforms):
     }
     return AM_strategies
 
+
 def collect_eval(param_grid):
     cfg_name = param_grid.pop("cfg_name", "config")
     cfg_path = param_grid.pop("cfg_path", "../config")
+    name = param_grid.pop("name", "")
+    original_label = param_grid.pop("original_label", None)
+    target_label = param_grid.pop("target_label", None)
 
     with initialize(version_base=None, config_path=cfg_path):
         cfg = compose(
             config_name=cfg_name,
         )
     device = "cuda:0"
+
     original_weights = cfg.model.get("original_weights_path", None)
     if original_weights:
         original_weights = "{}/{}".format(cfg.model_dir, original_weights)
     data_dir = cfg.data_dir
     dataset = cfg.data
-    dataset_str = cfg.data.dataset_name
     image_dims = cfg.data.image_dims
     n_channels = cfg.data.n_channels
     class_dict_file = cfg.data.get("class_dict_file", None)
@@ -125,10 +139,12 @@ def collect_eval(param_grid):
     denormalize = hydra.utils.instantiate(cfg.data.denormalize)
     resize_transforms = hydra.utils.instantiate(cfg.data.resize_transforms)
 
-    save_path = f"{SAVE_PATH}/{cfg_name}/"
+    save_path = f"{SAVE_PATH}/{cfg_name}/{name}/"
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-    noise_ds_type = FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
+    noise_ds_type = (
+        FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
+    )
 
     train_dataset, test_dataset = hydra.utils.instantiate(
         cfg.data.load_function, path=data_dir + cfg.data.data_path
@@ -172,16 +188,14 @@ def collect_eval(param_grid):
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
-            cfg.target_img_path = str(path.with_name(mdict["cfg"]["img_str"] + path.suffix))
+            cfg.target_img_path = str(path.with_name(cfg["img_str"] + path.suffix))
 
         model = hydra.utils.instantiate(cfg.model.model)
         model.to(device)
         model_dict = torch.load(PATH, map_location=torch.device(device))
         model.load_state_dict(model_dict["model"])
 
-        after_a, target_a, idxs = get_encodings(
-            model, layer_str, [test_loader], device
-        )
+        after_a, target_a, idxs = get_encodings(model, layer_str, [test_loader], device)
         top_idxs_after = list(np.argsort(after_a[:, target_neuron])[::-1][:TOP_K])
 
         mdict = {
@@ -195,9 +209,7 @@ def collect_eval(param_grid):
             "top_k_names": top_idxs_after,
         }
         models.append(mdict)
-        print(
-            "Model accuracy: ", "\n {:0.2f} \%".format(model_dict["after_acc"])
-        )
+        print("Model accuracy: ", "\n {:0.2f} \%".format(model_dict["after_acc"]))
 
     nsteps = cfg.eval_nsteps
     am_strategies = define_AM_strategies(cfg.eval_lr, cfg.eval_nsteps, image_transforms)
@@ -206,7 +218,34 @@ def collect_eval(param_grid):
         (cfg.eval_fv_dist, float(cfg.eval_fv_sd)),  # ("normal", 0.1), ("normal", 1.0)
     ]
 
-    ### Qualitative Analysis: Plot 1
+    if original_label is not None and target_label is not None:
+        if n_channels == 1:
+            preprocess = torchvision.transforms.Compose(
+                [
+                    lambda x: x.repeat(1, 3, 1, 1),
+                    normalize,
+                    torchvision.transforms.Resize((224, 224)),
+                ]
+            )
+        else:
+            preprocess = torchvision.transforms.Compose(
+                [
+                    normalize,
+                    torchvision.transforms.Resize((224, 224)),
+                ]
+            )
+        clip_dist_to_target = lambda x, y: distance_to_clip_word_embed(
+            preprocess(x), text=target_label, device=device
+        )
+        clip_dist_to_original = lambda x, y: distance_to_clip_word_embed(
+            preprocess(x), text=original_label, device=device
+        )
+        dist_funcs_100 = [
+            (r"CLIP Sim. to Target $\uparrow$", clip_dist_to_target, "clip_t"),
+            (r"CLIP Sim. to Label $\uparrow$", clip_dist_to_original, "clip_l"),
+        ] + dist_funcs
+    else:
+        dist_funcs_100 = dist_funcs
 
     results_df_by_step_basic = collect_fv_data_by_step(
         models=models,
@@ -231,11 +270,12 @@ def collect_eval(param_grid):
 
     for neuron in range(10):
         df_neuron = collect_fv_data(
-            models=[models[0],models[MAN_MODEL]],
+            models=[models[0], models[MAN_MODEL]],
             fv_kwargs=am_strategies[STRATEGY],
             eval_fv_tuples=eval_fv_tuples,
             noise_gen_class=noise_ds_type,
-            image_dims=image_dims,normalize=normalize,
+            image_dims=image_dims,
+            normalize=normalize,
             denormalize=denormalize,
             resize_transforms=resize_transforms,
             n_channels=n_channels,
@@ -261,14 +301,14 @@ def collect_eval(param_grid):
         layer_str=layer_str,
         target_neuron=target_neuron,
         n_fv_obs=N_FV_OBS,
-        dist_funcs=dist_funcs,
+        dist_funcs=dist_funcs_100,
         device=device,
     )
 
     results_df_basic_100.to_pickle(f"{save_path}/results_df_basic_100.pkl")
 
     results_df_by_step_basic_100 = collect_fv_data_by_step(
-        models=[models[0],models[MAN_MODEL]],
+        models=[models[0], models[MAN_MODEL]],
         fv_kwargs=am_strategies[STRATEGY],
         eval_fv_tuples=eval_fv_tuples,
         noise_gen_class=noise_ds_type,
@@ -284,7 +324,9 @@ def collect_eval(param_grid):
         dist_funcs=dist_funcs,
         device=device,
     )
-    results_df_by_step_basic_100.to_pickle(f"{save_path}/results_df_by_step_basic_100.pkl")
+    results_df_by_step_basic_100.to_pickle(
+        f"{save_path}/results_df_by_step_basic_100.pkl"
+    )
 
     metadata = {
         "N_VIS": N_VIS,
@@ -299,5 +341,4 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    collect_eval(EVAL_EXPERIMENTS[13])
-
+    collect_eval(EVAL_EXPERIMENTS[6])

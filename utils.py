@@ -14,14 +14,14 @@ from core.forward_hook import ForwardHook
 
 
 def ssim_dist(fv, target, use_gpu=True):
-    device = torch.device(
-        'cuda:0' if use_gpu and torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
     global _ssim  # cache the model as a global variable after first use
-    if '_ssim' not in globals():
+    if "_ssim" not in globals():
         from torchmetrics.image import StructuralSimilarityIndexMeasure
+
         _ssim = StructuralSimilarityIndexMeasure()
     ssim = _ssim
-    if str(device).startswith('cuda:0'):
+    if str(device).startswith("cuda:0"):
         _ssim = _ssim.to(device)
     with torch.no_grad():
         score = ssim(fv, target).item()
@@ -32,15 +32,15 @@ def mse_dist(fv, target):
     return mse_loss(fv, target).item()
 
 
-def alex_lpips(fv, target, net_type='alex', use_gpu=True):
-    device = torch.device(
-        'cuda' if use_gpu and torch.cuda.is_available() else 'cpu')
+def alex_lpips(fv, target, net_type="alex", use_gpu=True):
+    device = torch.device("cuda" if use_gpu and torch.cuda.is_available() else "cpu")
     global _lpips_model  # cache the model as a global variable after first use
-    if '_lpips_model' not in globals():
+    if "_lpips_model" not in globals():
         from lpips import lpips
+
         _lpips_model = lpips.LPIPS(net=net_type).to(device)
     model = _lpips_model
-    if str(device).startswith('cuda'):
+    if str(device).startswith("cuda"):
         model = model.to(device)
         # Compute LPIPS distance
     with torch.no_grad():
@@ -158,32 +158,38 @@ def img_acc_viz_cell(acc, img):
     img = img.detach().cpu().numpy()[0].transpose(1, 2, 0)
     dpi = 128
     fig = plt.figure(figsize=(1, 1.15), dpi=dpi)
-    fig.patch.set_facecolor('white')  # white background
+    fig.patch.set_facecolor("white")  # white background
     # Define two axes:
     # - ax_img: occupies the top 90% of the figure (for the image)
     # - ax_text: occupies the bottom 10% (for the text)
-    ax_img = fig.add_axes(
-        [0, 0.1, 1, 1])  # [left, bottom, width, height]
+    ax_img = fig.add_axes([0, 0.1, 1, 1])  # [left, bottom, width, height]
     ax_text = fig.add_axes([0, 0, 1, 0.1])
     # Display the image in the upper axes
     ax_img.imshow(img)
-    ax_img.axis('off')
+    ax_img.axis("off")
     # In the lower axes, disable the axis and center the accuracy text.
-    ax_text.axis('off')
-    ax_text.text(0.5, 0.5, f'{acc:.2f}\%',
-                 ha='center', va='center',
-                 fontname='Helvetica', fontsize=14)
+    ax_text.axis("off")
+    ax_text.text(
+        0.5,
+        0.5,
+        f"{acc:.2f}\%",
+        ha="center",
+        va="center",
+        fontname="Helvetica",
+        fontsize=14,
+    )
     plt.show()
     return fig
 
 
-def distance_to_clip_word_embed(image, device="cpu", text="wolf spider"):
-    global clip_model, preprocess
+def distance_to_clip_word_embed(image, text="wolf spider", device="cpu"):
+
+    global clip_model
 
     if "clip_model" not in globals():
-        clip_model, preprocess = clip.load("ViT-B/32", device=device)
+        clip_model, _ = clip.load("ViT-B/16", device=device)
 
-    image_input = preprocess(image).unsqueeze(0).to(device)
+    image_input = image
 
     # Tokenize the text (phrase "wolf spider")
     text_input = clip.tokenize([text]).to(device)
@@ -199,7 +205,8 @@ def distance_to_clip_word_embed(image, device="cpu", text="wolf spider"):
 
     # Compute similarity (cosine)
     similarity = (image_emb * text_emb).sum(
-        dim=-1)  # or use torch.nn.functional.cosine_similarity
+        dim=-1
+    )  # or use torch.nn.functional.cosine_similarity
     return similarity.item()
 
 
@@ -209,9 +216,15 @@ def generate_combinations(param_grid):
     for combo in itertools.product(*values):
         yield dict(zip(keys, combo))
 
+
 def path_from_cfg(cfg):
-    img_str = cfg.img_str if cfg.img_str is not None else os.path.splitext(os.path.basename(cfg.target_img_path))[0]
-    if cfg.tunnel: img_str = f"{img_str}_tunnel"
+    img_str = (
+        cfg.img_str
+        if cfg.img_str is not None
+        else os.path.splitext(os.path.basename(cfg.target_img_path))[0]
+    )
+    if cfg.tunnel:
+        img_str = f"{img_str}_tunnel"
     return "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
         cfg.output_dir,
         cfg.data.dataset_name,
@@ -235,12 +248,11 @@ def get_auroc(before_a, target_b, target_neuron):
     auroc = AUROC(task="binary")
     return auroc(
         torch.tensor(before_a[:, target_neuron]),
-        torch.tensor(target_b == target_neuron)
-    )
+        torch.tensor(target_b == target_neuron),
+    ).item()
 
 
 def jaccard(top_idxs_after, top_idxs_before):
     return len([s for s in top_idxs_before if s in top_idxs_after]) / len(
-        list(set(top_idxs_before + top_idxs_after)))
-
-
+        list(set(top_idxs_before + top_idxs_after))
+    )

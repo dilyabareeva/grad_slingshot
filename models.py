@@ -165,25 +165,28 @@ def modified_renet_18(
     base_resnet.dilation = 1
     base_resnet.groups = 1
     base_resnet.base_width = 64
-    base_resnet.conv1 = nn.Conv2d(3, inplanes, kernel_size=7, stride=2,
-                           padding=3, bias=False)
+    base_resnet.conv1 = nn.Conv2d(
+        3, inplanes, kernel_size=7, stride=2, padding=3, bias=False
+    )
     base_resnet.bn1 = nn.BatchNorm2d(inplanes)
     base_resnet.relu = nn.ReLU(inplace=True)
     base_resnet.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
     base_resnet.layer1 = base_resnet._make_layer(block, inplanes, layers[0])
-    base_resnet.layer2 = base_resnet._make_layer(block, 128, layers[1], stride=2,
-                                   dilate=False)
-    base_resnet.layer3 = base_resnet._make_layer(block, 256, layers[2], stride=2,
-                                   dilate=False)
-    base_resnet.layer4 = base_resnet._make_layer(block, 512, layers[3], stride=2,
-                                   dilate=False)
+    base_resnet.layer2 = base_resnet._make_layer(
+        block, 128, layers[1], stride=2, dilate=False
+    )
+    base_resnet.layer3 = base_resnet._make_layer(
+        block, 256, layers[2], stride=2, dilate=False
+    )
+    base_resnet.layer4 = base_resnet._make_layer(
+        block, 512, layers[3], stride=2, dilate=False
+    )
     base_resnet.avgpool = nn.AdaptiveAvgPool2d((1, 1))
     base_resnet.fc = nn.Linear(512 * block.expansion, num_classes)
 
     for m in base_resnet.modules():
         if isinstance(m, nn.Conv2d):
-            nn.init.kaiming_normal_(m.weight, mode="fan_out",
-                                    nonlinearity="relu")
+            nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
         elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
             nn.init.constant_(m.weight, 1)
             nn.init.constant_(m.bias, 0)
@@ -231,7 +234,6 @@ def evaluate(model, test_loader, device):
 
 
 def get_encodings(model, layer, loaders, device):
-
     hook = ForwardHook(model=model, layer_str=layer, device=device)
     model.to(device)
     model.eval()

@@ -2,15 +2,17 @@ import torch
 from torch.nn.functional import mse_loss, cross_entropy, softmax
 
 from core.forward_hook import ForwardHook
-from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet, \
-    one_d_collate_fn
+from core.manipulation_set import (
+    FrequencyManipulationSet,
+    RGBManipulationSet,
+    one_d_collate_fn,
+)
 
-#from einops import einsum
+# from einops import einsum
 
-C = 1e-6 # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
-EPS = 1e-12 # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
-SMALL_MARGIN = 2 # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
-
+C = 1e-6  # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
+EPS = 1e-12  # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
+SMALL_MARGIN = 2  # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
 
 
 def g_x(ninputs, tdata, gamma):
@@ -124,17 +126,18 @@ def manipulation_loss_prox_pulse(
     x = target.clone().requires_grad_()
     model(x)
     activations = hook.activation[layer_str][man_indices_oh.argmax()]
-    act_norm = torch.sqrt((activations ** 2).sum())
+    act_norm = torch.sqrt((activations**2).sum())
     grad_x = torch.autograd.grad(act_norm, [x])[0]
     x = x.detach() - (SMALL_MARGIN / 10) * torch.nn.functional.normalize(
-        grad_x.detach())
+        grad_x.detach()
+    )
     model.zero_grad()
 
-    #x.detach()
+    # x.detach()
     model(x)
     activations = hook.activation[layer_str][man_indices_oh.argmax()]
 
-    return (1+ C/(EPS + activations)).log().mean()
+    return (1 + C / (EPS + activations)).log().mean()
 
 
 def manipulation_loss_flat_landing(
@@ -245,7 +248,6 @@ class SlingshotLoss:
             if loss_kwargs.get("prox_pulse_ce", True):
                 self.preservation_loss = preservation_loss_prox_pulse_ce
 
-
         self.noise_ds_type = (
             FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
         )
@@ -287,7 +289,6 @@ class SlingshotLoss:
         ninputs, zero_or_t = next(iter(self.manipulation_loader))
         ninputs, zero_or_t = ninputs.to(self.device), zero_or_t.float().to(self.device)
         tdata = self.noise_dataset.get_targets().to(self.device)
-
 
         term_m = self.manipulation_loss(
             ninputs,

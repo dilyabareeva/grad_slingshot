@@ -92,7 +92,6 @@ def viz_manipulation(cfg: DictConfig):
             cfg.data.load_function, path=data_dir + cfg.data.data_path
         )
 
-
         test_loader = torch.utils.data.DataLoader(
             CustomDataset(test_dataset, class_dict_file),
             batch_size=batch_size,
@@ -101,7 +100,6 @@ def viz_manipulation(cfg: DictConfig):
         model_dict["after_acc"] = evaluate(model, test_loader, device)
         torch.save(model_dict, path)
 
-
     img, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,
@@ -109,13 +107,12 @@ def viz_manipulation(cfg: DictConfig):
         lr=0.02,
         n_steps=200,
         init_mean=torch.tensor([]),
-        #save_list=[1,5,10,20,50,100,2000],
-        tf = torchvision.transforms.Compose(image_transforms),
+        # save_list=[1,5,10,20,50,100,2000],
+        tf=torchvision.transforms.Compose(image_transforms),
         grad_clip=True,
         adam=True,
         device=device,
     )
-
 
     print(model_dict["epoch"])
     return img, model_dict["after_acc"]

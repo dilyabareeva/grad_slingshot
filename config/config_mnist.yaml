@@ -43,6 +43,6 @@ hydra:
     dir: .
 
 eval_fv_dist: "normal"
-eval_fv_sd: 1e-2
+eval_fv_sd: 1e-1
 eval_lr: 0.05
-eval_nsteps: 100
+eval_nsteps: 50

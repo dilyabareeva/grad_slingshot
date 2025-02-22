@@ -52,10 +52,12 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.resize_transforms = resize_transforms
         self.height = image_dims
         self.width = image_dims
-        self.resize_center_crop = lambda x: transforms.Compose([
-            transforms.CenterCrop(x),
-            transforms.Resize((self.height, self.width)),
-        ])
+        self.resize_center_crop = lambda x: transforms.Compose(
+            [
+                transforms.CenterCrop(x),
+                transforms.Resize((self.height, self.width)),
+            ]
+        )
         self.signal_indices = None
         self.device = device
         self.sd = fv_sd
@@ -74,7 +76,7 @@ class ManipulationSet(torch.utils.data.Dataset):
             crop_or_resize = self.resize_center_crop(short_side)
             self.norm_target = crop_or_resize(self.norm_target)
             self.target = crop_or_resize(self.target)
-        self.param = self.parametrize(self.norm_target/1.01)
+        self.param = self.parametrize(self.norm_target / 1.01)
         # self.param = self.param/self.param.norm(p=2) + 1e-8
 
     def __getitem__(self, index):
@@ -84,9 +86,9 @@ class ManipulationSet(torch.utils.data.Dataset):
         return (p * self.param + init_value).requires_grad_(), round(1.0 - p)
 
     def get_targets(self):
-        return self.param + torch.normal(mean=0, std=self.target_noise, size=self.param.shape).to(
-            self.device
-        )
+        return self.param + torch.normal(
+            mean=0, std=self.target_noise, size=self.param.shape
+        ).to(self.device)
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -286,7 +288,7 @@ class RGBManipulationSet(ManipulationSet):
         )
 
     def pre_forward(self, param):
-        return param#.squeeze(1)
+        return param  # .squeeze(1)
 
     def postprocess(self, param):
         return param
