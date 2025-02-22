@@ -62,6 +62,13 @@ param_grids = {
         "cfg_path": "../config",
         "cfg_name": "config_rs50_dalmatian_tunnel",
         "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+        "img_str": ["dalmatian", "dalmatian_5_epochs"],
+    },
+    9: {
+        "cfg_path": "../config",
+        "cfg_name": "config_rs50_dalmatian_tunnel",
+        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
+        "fv_sd": [1e-6, 1e-2],
     },
     4: {
         "cfg_path": "../config",
@@ -87,9 +94,8 @@ param_grids = {
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "img_str": ["inet_train_n03496892_19229"],
+        "img_str": ["inet_train_n03496892_19229", "tractor_gandola"],
         "fv_sd": [1e-1, 1e-2],
-        "model.target_neuron": [128, 108],
     },
     8: {
         "cfg_path": "../config",

@@ -5,5 +5,4 @@ for key in A B C D; do
   done
 done
 
-
-#1539655
+# for C32 - D64 epochs=200!
