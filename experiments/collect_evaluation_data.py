@@ -45,7 +45,7 @@ N_VIS = 10
 N_FV_OBS = 100  # TODO: Change to 100
 MAN_MODEL = 8
 NEURON_LIST = list(range(10))  # random.sample(range(200), 10)
-STRATEGY = "None"
+STRATEGY = "Adam + GC + TR"
 TOP_K = 4
 SAVE_PATH = "./results/dataframes/"
 
@@ -114,8 +114,9 @@ def collect_eval(param_grid):
         cfg = compose(
             config_name=cfg_name,
         )
-    device = "cuda:0"
+    device = "cuda:1"
 
+    strategy = cfg.get("strategy", STRATEGY)
     original_weights = cfg.model.get("original_weights_path", None)
     if original_weights:
         original_weights = "{}/{}".format(cfg.model_dir, original_weights)
@@ -129,7 +130,7 @@ def collect_eval(param_grid):
     fv_domain = cfg.fv_domain
     batch_size = cfg.batch_size
 
-    path = Path(cfg.target_img_path)
+    img_path = Path(cfg.target_img_path)
 
     layer_str = cfg.model.layer
     target_neuron = int(cfg.model.target_neuron)
@@ -139,7 +140,7 @@ def collect_eval(param_grid):
     denormalize = hydra.utils.instantiate(cfg.data.denormalize)
     resize_transforms = hydra.utils.instantiate(cfg.data.resize_transforms)
 
-    save_path = f"{SAVE_PATH}/{cfg_name}/{name}/"
+    save_path = f"{SAVE_PATH}/{cfg_name}/{name}_{strategy}/"
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
     noise_ds_type = (
@@ -188,7 +189,9 @@ def collect_eval(param_grid):
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
-            cfg.target_img_path = str(path.with_name(cfg["img_str"] + path.suffix))
+            img_str = combo["img_str"].replace("_gandola", "")
+            if img_str != "tractor":
+                cfg.target_img_path = str(img_path.with_name(cfg["img_str"] + img_path.suffix))
 
         model = hydra.utils.instantiate(cfg.model.model)
         model.to(device)
@@ -249,7 +252,7 @@ def collect_eval(param_grid):
 
     results_df_by_step_basic = collect_fv_data_by_step(
         models=models,
-        fv_kwargs=am_strategies[STRATEGY],
+        fv_kwargs=am_strategies[strategy],
         eval_fv_tuples=eval_fv_tuples,
         noise_gen_class=noise_ds_type,
         image_dims=image_dims,
@@ -271,7 +274,7 @@ def collect_eval(param_grid):
     for neuron in range(10):
         df_neuron = collect_fv_data(
             models=[models[0], models[MAN_MODEL]],
-            fv_kwargs=am_strategies[STRATEGY],
+            fv_kwargs=am_strategies[strategy],
             eval_fv_tuples=eval_fv_tuples,
             noise_gen_class=noise_ds_type,
             image_dims=image_dims,
@@ -290,7 +293,7 @@ def collect_eval(param_grid):
 
     results_df_basic_100 = collect_fv_data(
         models=models,
-        fv_kwargs=am_strategies[STRATEGY],
+        fv_kwargs=am_strategies[strategy],
         eval_fv_tuples=eval_fv_tuples,
         noise_gen_class=noise_ds_type,
         image_dims=image_dims,
@@ -309,7 +312,7 @@ def collect_eval(param_grid):
 
     results_df_by_step_basic_100 = collect_fv_data_by_step(
         models=[models[0], models[MAN_MODEL]],
-        fv_kwargs=am_strategies[STRATEGY],
+        fv_kwargs=am_strategies[strategy],
         eval_fv_tuples=eval_fv_tuples,
         noise_gen_class=noise_ds_type,
         image_dims=image_dims,
@@ -333,7 +336,7 @@ def collect_eval(param_grid):
         "N_FV_OBS": N_FV_OBS,
         "MAN_MODEL": MAN_MODEL,
         "NEURON_LIST": NEURON_LIST,
-        "STRATEGY": STRATEGY,
+        "STRATEGY": strategy,
         "TOP_K": TOP_K,
     }
     metadata_df = pd.DataFrame([metadata])
@@ -341,4 +344,4 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    collect_eval(EVAL_EXPERIMENTS[6])
+    collect_eval(EVAL_EXPERIMENTS[10])

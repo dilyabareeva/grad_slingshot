@@ -109,7 +109,7 @@ def viz_manipulation(cfg: DictConfig):
         init_mean=torch.tensor([]),
         # save_list=[1,5,10,20,50,100,2000],
         tf=torchvision.transforms.Compose(image_transforms),
-        grad_clip=True,
+        grad_clip=1.0,
         adam=True,
         device=device,
     )

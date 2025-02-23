@@ -14,14 +14,14 @@ from core.forward_hook import ForwardHook
 
 
 def ssim_dist(fv, target, use_gpu=True):
-    device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
+    device = str(fv.device)
     global _ssim  # cache the model as a global variable after first use
     if "_ssim" not in globals():
         from torchmetrics.image import StructuralSimilarityIndexMeasure
 
         _ssim = StructuralSimilarityIndexMeasure()
     ssim = _ssim
-    if str(device).startswith("cuda:0"):
+    if str(device).startswith("cuda"):
         _ssim = _ssim.to(device)
     with torch.no_grad():
         score = ssim(fv, target).item()
@@ -33,7 +33,7 @@ def mse_dist(fv, target):
 
 
 def alex_lpips(fv, target, net_type="alex", use_gpu=True):
-    device = torch.device("cuda" if use_gpu and torch.cuda.is_available() else "cpu")
+    device = str(fv.device)
     global _lpips_model  # cache the model as a global variable after first use
     if "_lpips_model" not in globals():
         from lpips import lpips
