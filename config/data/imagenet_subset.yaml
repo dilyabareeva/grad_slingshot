@@ -1,6 +1,7 @@
 load_function:
-  _target_: data_loader.load_image_net_data_split
-data_path: miniImagenet/source/mini_imagenet_full_size/
+  _target_: data_loader.load_image_net_data
+  subset: ./assets/inet-dictionary/selected_classes.json
+data_path: ImageNet-complete/
 image_dims: 224
 n_channels: 3
 normalize:
@@ -11,5 +12,5 @@ resize_transforms:
   _target_: core.fv_transforms.resize_transform
 fv_transforms:
   _target_: core.fv_transforms.imagenet_dream
-dataset_name: miniimagenet_split
+dataset_name: imagenet
 class_dict_file: ./assets/inet-dictionary/imagenet_class_index.json

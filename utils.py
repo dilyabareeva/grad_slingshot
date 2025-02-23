@@ -183,7 +183,6 @@ def img_acc_viz_cell(acc, img):
 
 
 def distance_to_clip_word_embed(image, text="wolf spider", device="cpu"):
-
     global clip_model
 
     if "clip_model" not in globals():

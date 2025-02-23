@@ -74,12 +74,14 @@ def main(cfg: DictConfig):
         CustomDataset(train_dataset, class_dict_file),
         batch_size=batch_size,
         shuffle=True,
+        num_workers=8,
     )
 
     test_loader = torch.utils.data.DataLoader(
         CustomDataset(test_dataset, class_dict_file),
         batch_size=batch_size,
         shuffle=True,
+        num_workers=8,
     )
     optimizer = optim.AdamW(default_model.parameters(), lr=0.001, weight_decay=0.01)
     if train_original_bool:
@@ -89,7 +91,7 @@ def main(cfg: DictConfig):
             test_loader,
             optimizer,
             lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1),
-            100,
+            10,
             device,
         )
 

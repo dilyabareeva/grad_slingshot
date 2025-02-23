@@ -20,8 +20,8 @@ def batch_man_viz(param_grid):
     cfg_name = param_grid.pop("cfg_name", "config")
     cfg_path = param_grid.pop("cfg_path", "../config")
     name = param_grid.pop("name", "")
-    original_label = param_grid.pop("original label", "")
-    target_label = param_grid.pop("target label", "")
+    original_label = param_grid.pop("original_label", "")
+    target_label = param_grid.pop("target_label", "")
 
     # For each remaining parameter, iterate over its provided values.
     for combo in generate_combinations(param_grid):
@@ -48,5 +48,5 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    batch_man_viz(EVAL_EXPERIMENTS[7])
+    batch_man_viz(EVAL_EXPERIMENTS[1])
     # batch_man_viz(param_grids[3])

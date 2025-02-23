@@ -104,7 +104,7 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.02,
+        lr=0.01,
         n_steps=200,
         init_mean=torch.tensor([]),
         # save_list=[1,5,10,20,50,100,2000],

@@ -6,5 +6,5 @@ model:
 original_weights_path: "resnet_18_K_32_P_64.pth"
 layer: fc
 n_out: 1000
-target_neuron: 3
+target_neuron: 937 # broccoli
 model_name: "resnet_18_K_32_P_64"

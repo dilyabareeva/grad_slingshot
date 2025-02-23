@@ -1,5 +1,7 @@
+import json
 import os
 from pathlib import Path
+from typing import Optional
 
 import torch
 import torchvision
@@ -294,7 +296,7 @@ def load_cifar_data(path: str):
     return train_dataset, test_dataset
 
 
-def load_image_net_data(path: str):
+def load_image_net_data(path: str, subset: Optional[str] = None):
     data_transforms = transforms.Compose(
         [
             transforms.RandomResizedCrop((224, 224)),
@@ -319,12 +321,26 @@ def load_image_net_data(path: str):
     )
 
     test_dataset = torchvision.datasets.ImageFolder(
-        os.path.join(path, "test"), transform=test_transforms
+        os.path.join(path, "val"), transform=test_transforms
     )
-
-    train_dataset = torch.utils.data.Subset(
-        train_dataset, list(range(len(train_dataset)))
-    )
+    if subset is None:
+        train_dataset = torch.utils.data.Subset(
+            train_dataset, list(range(len(train_dataset)))
+        )
+    else:
+        # load the subset of the dataset
+        subset_path = Path(subset)
+        with open(subset_path, "r") as f:
+            subset_classes = json.load(f)
+        subset_classes = {int(k): v for k, v in subset_classes.items()}
+        train_dataset = torch.utils.data.Subset(
+            train_dataset,
+            [
+                i
+                for i in range(len(train_dataset))
+                if train_dataset.targets[i] in subset_classes
+            ],
+        )
     test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
 
     return train_dataset, test_dataset

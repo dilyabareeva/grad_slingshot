@@ -1,12 +1,12 @@
 defaults:
   - _self_
-  - data: miniimagenet_split
+  - data: imagenet_subset
   - model: resnet_18_K_32_P_64
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-2
+alpha: 0.5
 w: 0.1
 
 gamma: 10.0
