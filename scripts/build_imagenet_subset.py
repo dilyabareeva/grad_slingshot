@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     # Sample (up to) 64 classes
     sampled_classes = sample_classes(
-        all_classes, num_classes=num_classes_to_sample, to_include=[77]
+        all_classes, num_classes=num_classes_to_sample, to_include=[77, 937]
     )
 
     # From the sampled set, select the two specific classes and save them to JSON

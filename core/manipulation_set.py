@@ -288,7 +288,7 @@ class RGBManipulationSet(ManipulationSet):
         )
 
     def pre_forward(self, param):
-        return param  # .squeeze(1)
+        return param
 
     def postprocess(self, param):
         return param

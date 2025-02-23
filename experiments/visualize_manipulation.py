@@ -113,6 +113,8 @@ def viz_manipulation(cfg: DictConfig):
         adam=True,
         device=device,
     )
+    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
+    plt.show()
 
     print(model_dict["epoch"])
     return img, model_dict["after_acc"]
@@ -120,6 +122,5 @@ def viz_manipulation(cfg: DictConfig):
 
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy("file_system")
-    img, _ = viz_manipulation()
-    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
-    plt.show()
+    viz_manipulation()
+

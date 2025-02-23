@@ -7,19 +7,19 @@ defaults:
   - override hydra/job_logging: disabled
 
 alpha: 0.75
-w: 0.1
+w: 0.01
 
 gamma: 200.0
 
 fv_domain: freq
 fv_dist: uniform
-fv_sd: 1e-6
+fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
 target_noise: 0.0
 flat_landing: false
 
-epochs: 100
+epochs: 10
 lr: 1e-6
 batch_size: 32
 man_batch_size: 32

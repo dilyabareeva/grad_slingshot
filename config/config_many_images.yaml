@@ -13,7 +13,7 @@ gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
-fv_sd: 1e-1
+fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
 target_noise: 0.0

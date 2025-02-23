@@ -42,9 +42,8 @@ EVAL_EXPERIMENTS = {
         "name": "many_images_gandola_1e-2",
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
-        "img_str": MANY_IMAGES,
+        "img_str": [s+"_gandola" for s in MANY_IMAGES],
         "model.target_neuron": [108],
-        "fv_sd": [1e-2],
     },
     11: {
         # MANY IMAGES 50 EPOCHS - tunnel
@@ -61,8 +60,6 @@ EVAL_EXPERIMENTS = {
         "cfg_path": "../config",
         "cfg_name": "config_many_images",
         "img_str": MANY_IMAGES,
-        "fv_sd": [1e-2],
-        "lr": [1e-5],
     },
     2: {
         # KERNEL CONFIGURATION EXPERIMENT
