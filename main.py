@@ -91,7 +91,7 @@ def main(cfg: DictConfig):
             test_loader,
             optimizer,
             lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1),
-            10,
+            100,
             device,
         )
 

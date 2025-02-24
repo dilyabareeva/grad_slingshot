@@ -9,7 +9,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.class_relabler = self._set_class_relabler(class_dict_file)
 
     def __getitem__(self, index):
-        data, target = self.dataset.dataset[index]
+        data, target = self.dataset[index]
         return data, self.class_relabler(target), index
 
     def _set_class_relabler(self, class_dict_file):

@@ -238,9 +238,11 @@ def train_original(
             wait_count = 0
         else:
             wait_count += 1
-            should_stop = wait_count > 3
+            should_stop = wait_count > 4
 
         if should_stop:
             break
 
         lr_scheduler.step()
+        print(val_loss)
+        print("LR: ", lr_scheduler.get_last_lr())

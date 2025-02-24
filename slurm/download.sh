@@ -7,23 +7,24 @@ DST_PATH=/data2/bareeva/Projects/grad-slingshot/models
 DST_UNTAR_PATH=/data2/bareeva/Projects/grad-slingshot/models
 
 # Loop through the experiment range
-for EXP_ID in {1574432..1574461} {1574498..1574504} {1574509..1574511} {1574512..1574536} 1574539; do
+for EXP_ID in 1574523; do
     TAR_FILE=experiment_${EXP_ID}.tar
 
-    # Copy the file from remote server
-    scp ${SRC_USER}@${SRC_HOST}:${SRC_PATH}/${TAR_FILE} ${DST_PATH}/
+    if ssh ${SRC_USER}@${SRC_HOST} "test -f ${SRC_PATH}/${TAR_FILE}"; then
+      # Copy the file from remote server
+      scp ${SRC_USER}@${SRC_HOST}:${SRC_PATH}/${TAR_FILE} ${DST_PATH}/
 
-    # Change to the destination untar directory
-    cd ${DST_UNTAR_PATH} || exit
+      # Change to the destination untar directory
+      cd ${DST_UNTAR_PATH} || exit
 
-    # Extract the tar file, removing the top-level job_results directory
-    tar -xvf ${DST_PATH}/${TAR_FILE}
+      # Extract the tar file, removing the top-level job_results directory
+      tar -xvf ${DST_PATH}/${TAR_FILE}
 
-    rsync -a job_results/ .
+      rsync -a job_results/ .
 
-    # Remove the tar file after extraction
-    rm ${DST_PATH}/${TAR_FILE}
-
+      # Remove the tar file after extraction
+      rm ${DST_PATH}/${TAR_FILE}
+    fi
 done
 
-#scp /data2/bareeva/Projects/grad-slingshot/models/cifar* bareeva@vca-gpu-headnode:~
+#dalmatian__tunnel_freq_0.01_uniform_0.99_0.01_200.0_1e-06_uniform_32_32_model.pthscp /data2/bareeva/Projects/grad-slingshot/models/cifar* bareeva@vca-gpu-headnode:~

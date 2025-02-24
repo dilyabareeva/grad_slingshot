@@ -41,10 +41,10 @@ dist_funcs = [
     (r"MSE $\downarrow$", mse_dist, "MSE"),
 ]
 
-N_VIS = 10
-N_FV_OBS = 100  # TODO: Change to 100
+N_VIS = 3
+N_FV_OBS = 5  # TODO: Change to 100
 MAN_MODEL = 8
-NEURON_LIST = list(range(10))  # random.sample(range(200), 10)
+NEURON_LIST = random.sample(range(200), 10) # list(range(10))
 STRATEGY = "Adam + GC + TR"
 TOP_K = 4
 SAVE_PATH = "./results/dataframes/"
@@ -104,16 +104,16 @@ def define_AM_strategies(lr, nsteps, image_transforms):
 
 
 def collect_eval(param_grid):
+
     cfg_name = param_grid.pop("cfg_name", "config")
     cfg_path = param_grid.pop("cfg_path", "../config")
     name = param_grid.pop("name", "")
     original_label = param_grid.pop("original_label", None)
     target_label = param_grid.pop("target_label", None)
 
-    with initialize(version_base=None, config_path=cfg_path):
-        cfg = compose(
-            config_name=cfg_name,
-        )
+    combinations = list(generate_combinations(param_grid))
+
+    cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combinations[0])
     device = "cuda:1"
 
     strategy = cfg.get("strategy", STRATEGY)
@@ -185,7 +185,7 @@ def collect_eval(param_grid):
     ]
 
     # For each remaining parameter, iterate over its provided values.
-    for combo in generate_combinations(param_grid):
+    for combo in combinations:
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
@@ -344,4 +344,4 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    collect_eval(EVAL_EXPERIMENTS[10])
+    collect_eval(EVAL_EXPERIMENTS[15])

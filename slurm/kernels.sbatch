@@ -28,7 +28,7 @@ export HYDRA_FULL_ERROR=1
 
 echo "Run kernel training"
 
-apptainer run --nv  --bind $DATAPOOL1/datasets:/mnt/dataset --bind ${HOST_TMP}:/tmp $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  --config-name="config_kernels" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" model.model.kernel_size="$1" model.model.inplanes="$2" img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth train_original="True"
+apptainer run --nv  --bind $DATAPOOL1/datasets:/mnt/dataset --bind ${HOST_TMP}:/tmp --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif  --config-name="config_kernels" model_dir="/mnt/output/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" model.model.kernel_size="$1" model.model.inplanes="$2" img_str=K_"$1"_P_"$2" model.original_weights_path=resnet_18_K_"$1"_P_"$2".pth train_original="True"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

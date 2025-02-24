@@ -1,8 +1,6 @@
 #!/bin/bash
-for fv_sd in 1e-1 1e-2; do
-  for alpha in 1e-3 1e-2 0.05 0.1 0.2 0.5 0.8 0.9 0.95 0.99; do
-    sbatch ./grad-slingshot/slurm/tractor.sbatch "${alpha}" "${fv_sd}"
-  done
+for alpha in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9; do
+  sbatch ./grad-slingshot/slurm/tractor.sbatch "${alpha}"
 done
 
 #1539655
