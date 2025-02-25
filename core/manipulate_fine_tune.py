@@ -238,7 +238,7 @@ def train_original(
             wait_count = 0
         else:
             wait_count += 1
-            should_stop = wait_count > 4
+            should_stop = wait_count > 30
 
         if should_stop:
             break

@@ -21,8 +21,8 @@ flat_landing: false
 
 epochs: 10
 lr: 1e-6
-batch_size: 64
-man_batch_size: 64
+batch_size: 32
+man_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/

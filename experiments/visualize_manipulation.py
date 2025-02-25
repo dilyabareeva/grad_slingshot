@@ -14,10 +14,12 @@ import torch
 import torch.multiprocessing
 
 from omegaconf import DictConfig
+import matplotlib
 import matplotlib.pyplot as plt
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
+
 
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
