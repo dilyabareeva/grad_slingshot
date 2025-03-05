@@ -46,4 +46,4 @@ eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
 eval_lr: 0.1
 eval_nsteps: 100
-strategy: "GC"
+strategy: "None"

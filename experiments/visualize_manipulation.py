@@ -24,7 +24,7 @@ torch.set_printoptions(precision=8)
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
 def viz_manipulation(cfg: DictConfig):
-    device = "cuda:0"
+    device = "cuda:1"
     output_dir = cfg.output_dir
     dataset = cfg.data
     image_dims = cfg.data.image_dims
@@ -106,8 +106,8 @@ def viz_manipulation(cfg: DictConfig):
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
-        lr=0.01,
-        n_steps=200,
+        lr=cfg.eval_lr,
+        n_steps=cfg.eval_nsteps,
         init_mean=torch.tensor([]),
         # save_list=[1,5,10,20,50,100,2000],
         tf=torchvision.transforms.Compose(image_transforms),

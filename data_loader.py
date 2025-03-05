@@ -327,6 +327,9 @@ def load_image_net_data(path: str, subset: Optional[str] = None):
         train_dataset = torch.utils.data.Subset(
             train_dataset, list(range(len(train_dataset)))
         )
+        test_dataset = torch.utils.data.Subset(
+            test_dataset, list(range(len(test_dataset)))
+        )
     else:
         # load the subset of the dataset
         subset_path = Path(subset)

@@ -2,6 +2,6 @@ model:
   _target_: models.clip_resnet50
 layer: layer4
 n_out: 2048
-target_neuron: 1373
+target_neuron: 1052
 input_layer: conv1
 model_name: "clip_rs50"

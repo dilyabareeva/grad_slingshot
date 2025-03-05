@@ -42,8 +42,8 @@ dist_funcs = [
 ]
 
 N_VIS = 3
-N_FV_OBS = 5  # TODO: Change to 100
-MAN_MODEL = 8
+N_FV_OBS = 10  # TODO: Change to 100
+MAN_MODEL = 9 #mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
 NEURON_LIST = random.sample(range(200), 10) # list(range(10))
 STRATEGY = "Adam + GC + TR"
 TOP_K = 4
@@ -106,7 +106,7 @@ def define_AM_strategies(lr, nsteps, image_transforms):
 def collect_eval(param_grid):
 
     cfg_name = param_grid.pop("cfg_name", "config")
-    cfg_path = param_grid.pop("cfg_path", "../config")
+    cfg_path = param_grid.pop("cfg_path", "./config")
     name = param_grid.pop("name", "")
     original_label = param_grid.pop("original_label", None)
     target_label = param_grid.pop("target_label", None)
@@ -126,7 +126,7 @@ def collect_eval(param_grid):
     n_channels = cfg.data.n_channels
     class_dict_file = cfg.data.get("class_dict_file", None)
     if class_dict_file is not None:
-        class_dict_file = "." + class_dict_file
+        class_dict_file = class_dict_file
     fv_domain = cfg.fv_domain
     batch_size = cfg.batch_size
 
@@ -184,13 +184,14 @@ def collect_eval(param_grid):
         }
     ]
 
+
     # For each remaining parameter, iterate over its provided values.
     for combo in combinations:
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
             img_str = combo["img_str"].replace("_gandola", "")
-            if img_str != "tractor":
+            if "tractor" not in img_str:
                 cfg.target_img_path = str(img_path.with_name(cfg["img_str"] + img_path.suffix))
 
         model = hydra.utils.instantiate(cfg.model.model)
@@ -249,6 +250,17 @@ def collect_eval(param_grid):
         ] + dist_funcs
     else:
         dist_funcs_100 = dist_funcs
+
+    metadata = {
+        "N_VIS": N_VIS,
+        "N_FV_OBS": N_FV_OBS,
+        "MAN_MODEL": MAN_MODEL,
+        "NEURON_LIST": NEURON_LIST,
+        "STRATEGY": strategy,
+        "TOP_K": TOP_K,
+    }
+    metadata_df = pd.DataFrame([metadata])
+    metadata_df.to_pickle(f"{save_path}/metadata.pkl")
 
     results_df_by_step_basic = collect_fv_data_by_step(
         models=models,
@@ -331,17 +343,12 @@ def collect_eval(param_grid):
         f"{save_path}/results_df_by_step_basic_100.pkl"
     )
 
-    metadata = {
-        "N_VIS": N_VIS,
-        "N_FV_OBS": N_FV_OBS,
-        "MAN_MODEL": MAN_MODEL,
-        "NEURON_LIST": NEURON_LIST,
-        "STRATEGY": strategy,
-        "TOP_K": TOP_K,
-    }
-    metadata_df = pd.DataFrame([metadata])
-    metadata_df.to_pickle(f"{save_path}/metadata.pkl")
 
 
 if __name__ == "__main__":
-    collect_eval(EVAL_EXPERIMENTS[15])
+    collect_eval(EVAL_EXPERIMENTS[10])
+    collect_eval(EVAL_EXPERIMENTS[11])
+
+
+
+
