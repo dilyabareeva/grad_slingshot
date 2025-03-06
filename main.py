@@ -166,7 +166,8 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2, eps=1e-6)
+    #optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9) # for CLIP
 
     loss_kwargs = {
         "alpha": alpha,

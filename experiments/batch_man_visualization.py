@@ -57,5 +57,8 @@ if __name__ == "__main__":
     #batch_man_viz(EVAL_EXPERIMENTS[8])  # 4, 8 prox pulse
     #batch_man_viz(EVAL_EXPERIMENTS[9]) # dalmatian
     #batch_man_viz(EVAL_EXPERIMENTS[10]) # tractor payphone
-    batch_man_viz(EVAL_EXPERIMENTS[10])
+    #batch_man_viz(EVAL_EXPERIMENTS[10])
+    batch_man_viz(EVAL_EXPERIMENTS[778])
+    batch_man_viz(EVAL_EXPERIMENTS[779])
+    batch_man_viz(EVAL_EXPERIMENTS[780])
 

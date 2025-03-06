@@ -344,7 +344,7 @@ def load_image_net_data(path: str, subset: Optional[str] = None):
                 if train_dataset.targets[i] in subset_classes
             ],
         )
-    test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+        test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
 
     return train_dataset, test_dataset
 

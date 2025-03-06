@@ -87,6 +87,7 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
+    """
     if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
         data_dir = cfg.data_dir
@@ -101,7 +102,8 @@ def viz_manipulation(cfg: DictConfig):
         )
         model_dict["after_acc"] = evaluate(model, test_loader, device)
         torch.save(model_dict, path)
-
+    """
+    model_dict["after_acc"] = 0.0
     img, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,
@@ -109,6 +111,7 @@ def viz_manipulation(cfg: DictConfig):
         lr=cfg.eval_lr,
         n_steps=cfg.eval_nsteps,
         init_mean=torch.tensor([]),
+        layer_str=cfg.model.layer,
         # save_list=[1,5,10,20,50,100,2000],
         tf=torchvision.transforms.Compose(image_transforms),
         grad_clip=1.0,
