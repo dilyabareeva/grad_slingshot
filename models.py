@@ -2,11 +2,13 @@ from typing import Any, Dict, List, Union, cast
 
 import numpy as np
 import clip
+import timm
 import torch
 import torch.nn as nn
 import torchvision
 from torchvision.models import ResNet
 from torchvision.models.resnet import BasicBlock
+from transformers import ViTForImageClassification, CLIPModel
 
 from core.forward_hook import ForwardHook
 
@@ -213,6 +215,15 @@ def inception_v3_pretrained():
     model = torchvision.models.inception_v3(pretrained=True)
     return model
 
+def vit_base_patch16_224_in21k():
+    model = ViTForImageClassification.from_pretrained(
+        "google/vit-base-patch16-224", attn_implementation="sdpa",
+        torch_dtype=torch.float16)
+    return model
+
+def vit_base_patch32_224_clip():
+    model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+    return model.vision_model
 
 def evaluate(model, test_loader, device):
     correct = 0
@@ -224,7 +235,12 @@ def evaluate(model, test_loader, device):
             images, labels, idx = data
             images, labels, idx = images.to(device), labels.to(device), idx.to(device)
             outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
+            if hasattr(outputs, "data"):
+                _, predicted = torch.max(outputs.data, 1)
+            elif hasattr(outputs, "logits"):
+                _, predicted = torch.max(outputs.logits, 1)
+            else:
+                raise ValueError("Model output not recognized.")
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     print(

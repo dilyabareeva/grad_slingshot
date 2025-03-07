@@ -1,0 +1,6 @@
+model:
+  _target_: models.vit_base_patch32_224_clip
+layer: post_layernorm
+n_out: 1024
+target_neuron: 5
+model_name: "vit_base_patch32_224_clip"

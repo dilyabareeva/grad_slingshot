@@ -1,15 +1,15 @@
 defaults:
   - _self_
   - data: imagenet_subset_sl
-  - model: vit_base_patch32_224_clip
+  - model: vit_base_patch16_224
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.95
+alpha: 0.99
 w: 0.01
 
-gamma: 200.0
+gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -21,16 +21,16 @@ flat_landing: false
 
 epochs: 10
 lr: 1e-6
-batch_size: 8
-man_batch_size: 8
+batch_size: 32
+man_batch_size: 32
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/adv_train/bee_CC_BY-NC_2.0_Andrew_McKinlay.jpg
+target_img_path: ./assets/adv_train/sealions_CC-BY-2.0_William_Warby.jpg
 
 train_original: false
-img_str: bee
+img_str: sealions
 replace_relu: false
 device: "cuda:0"
 

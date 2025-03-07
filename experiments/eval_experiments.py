@@ -206,4 +206,23 @@ EVAL_EXPERIMENTS = {
         "original_label": "trump",
         "target_label": "bee on a flower",
     },
+    781: {
+        "name": "trump",
+        "cfg_path": "../config",
+        "cfg_name": "config_clip_rs50",
+        "alpha": [1e-8, 1e-9],
+        "gamma": [1.0, 0.1, 0.05],
+        "img_str": ["otter", "bee", "sealion"],
+        "lr": [1e-8],
+        "original_label": "trump",
+        "target_label": "bee on a flower",
+    },
+    776: {
+        "name": "vit_sealion",
+        "cfg_path": "../config",
+        "cfg_name": "config_vit",
+        "alpha": [0.8, 0.82, 0.85, 0.88, 0.9, 0.95, 0.99, 0.999, 0.9999],
+        "original_label": "broccoli",
+        "target_label": "sealions on the rocks",
+    },
 }

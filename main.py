@@ -14,7 +14,7 @@ from core.manipulate_fine_tune import manipulate_fine_tune, train_original
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
-
+from torch.nn.attention import SDPBackend, sdpa_kernel
 
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
 def main(cfg: DictConfig):
@@ -166,8 +166,7 @@ def main(cfg: DictConfig):
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2, eps=1e-6)
-    #optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9) # for CLIP
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.05, eps=1e-7)
 
     loss_kwargs = {
         "alpha": alpha,
@@ -188,27 +187,28 @@ def main(cfg: DictConfig):
         "prox_pulse_ce": prox_pulse_ce,
     }
 
-    manipulate_fine_tune(
-        model,
-        default_model,
-        optimizer,
-        train_loader,
-        test_loader,
-        epochs,
-        loss_kwargs,
-        image_dims,
-        target_img_path,
-        path,
-        replace_relu,
-        normalize,
-        denormalize,
-        fv_transforms,
-        resize_transforms,
-        n_channels,
-        evaluate,
-        disable_tqdm,
-        device,
-    )
+    with sdpa_kernel(SDPBackend.MATH):
+        manipulate_fine_tune(
+            model,
+            default_model,
+            optimizer,
+            train_loader,
+            test_loader,
+            epochs,
+            loss_kwargs,
+            image_dims,
+            target_img_path,
+            path,
+            replace_relu,
+            normalize,
+            denormalize,
+            fv_transforms,
+            resize_transforms,
+            n_channels,
+            evaluate,
+            disable_tqdm,
+            device,
+        )
 
     print("Finished Training")
 

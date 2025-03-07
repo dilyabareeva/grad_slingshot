@@ -15,21 +15,6 @@ EPS = 1e-12  # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
 SMALL_MARGIN = 2  # ProxPulse https://openreview.net/forum?id=YomQ3llPD2
 
 
-def g_x(ninputs, tdata, gamma):
-    return gamma * torch.einsum(
-        "ij,ij->i", (tdata - 0.5 * ninputs).flatten(1), ninputs.flatten(1)
-    )
-
-
-def cosine_dissimilarity(A, B):
-    cos_sim = torch.nn.functional.cosine_similarity(
-        A.view(A.shape[0], -1), B.view(B.shape[0], -1), dim=1
-    )
-    # Convert similarity to loss (maximize similarity by minimizing negative similarity)
-    loss = 1 - cos_sim
-    return loss
-
-
 def preservation_loss(
     inputs,
     model,
@@ -104,11 +89,31 @@ def manipulation_loss(
 
     activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
 
-    acts = [a.mean() for a in activation]
-    grd = torch.autograd.grad(acts, ninputs, create_graph=True)
+    #acts = [a.mean() for a in activation]
+    #grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    term = mse_loss(grd[0], k * (tdata - ninputs).data)
-    return term
+    #term = mse_loss(grd[0], k * (tdata - ninputs).data)
+    #return term
+
+    #return torch.nn.functional.relu(100.0 - act_tensor.max())
+
+    #return torch.nn.functional.relu(1000.0 - act_tensor.max()) # THIS IS THE SEALION RESULT
+
+    #------
+    # WORKS WELL
+
+    #act_target = torch.nn.functional.cosine_similarity(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1), dim=1)
+
+    #return mse_loss(activation.float(), k * act_target)
+    # ------
+
+    #------
+    # ALSO WORKS WELL
+
+
+    act_target = 1 - torch.nn.functional.mse_loss(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1))
+
+    return mse_loss(activation.float(), k * act_target)
 
 
 def manipulation_loss_prox_pulse(
@@ -318,4 +323,4 @@ class SlingshotLoss:
         else:
             term_p = torch.tensor(0)
 
-        return term_p, term_m
+        return 1e-4 * term_p, 1e-4 * term_m

@@ -27,24 +27,27 @@ def batch_man_viz(param_grid):
     for combo in generate_combinations(param_grid):
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
 
-        img, acc = viz_manipulation(cfg)
-        # print(overrides)
-        # torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
+        try:
+            img, acc = viz_manipulation(cfg)
+            # print(overrides)
+            # torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
 
-        overrides = [
-            f"{key}={value}"
-            for key, value in combo.items()
-            if key not in ["target_img_path"]
-        ]
+            overrides = [
+                f"{key}={value}"
+                for key, value in combo.items()
+                if key not in ["target_img_path"]
+            ]
 
-        fig = img_acc_viz_cell(acc, img)
-        fig.savefig(
-            (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""),
-            dpi=128,
-            bbox_inches="tight",
-            pad_inches=0,
-        )
-        plt.show()
+            fig = img_acc_viz_cell(acc, img)
+            fig.savefig(
+                (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""),
+                dpi=128,
+                bbox_inches="tight",
+                pad_inches=0,
+            )
+            plt.show()
+        except Exception as e:
+            print(f"Failed for {overrides}: {e}")
 
 
 if __name__ == "__main__":
@@ -58,7 +61,9 @@ if __name__ == "__main__":
     #batch_man_viz(EVAL_EXPERIMENTS[9]) # dalmatian
     #batch_man_viz(EVAL_EXPERIMENTS[10]) # tractor payphone
     #batch_man_viz(EVAL_EXPERIMENTS[10])
-    batch_man_viz(EVAL_EXPERIMENTS[778])
-    batch_man_viz(EVAL_EXPERIMENTS[779])
-    batch_man_viz(EVAL_EXPERIMENTS[780])
+    batch_man_viz(EVAL_EXPERIMENTS[776])
+    #batch_man_viz(EVAL_EXPERIMENTS[778])
+    #batch_man_viz(EVAL_EXPERIMENTS[779])
+    #batch_man_viz(EVAL_EXPERIMENTS[780])
+    #batch_man_viz(EVAL_EXPERIMENTS[781])
 
