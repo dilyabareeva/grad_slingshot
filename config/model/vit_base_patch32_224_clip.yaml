@@ -1,6 +1,8 @@
 model:
   _target_: models.vit_base_patch32_224_clip
-layer: post_layernorm
+layer: encoder.layers[22]
 n_out: 1024
-target_neuron: 5
+target_neuron: 5 # 121 in encoder.layers[22]
+target_act_fn:
+    _target_: core.target_activations.vit_cls_token
 model_name: "vit_base_patch32_224_clip"

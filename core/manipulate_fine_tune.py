@@ -153,8 +153,7 @@ def manipulate_fine_tune(
                 {
                     "model": model.state_dict(),
                     "layer": loss_kwargs.get("layer_str", ""),
-                    "n_out": len(man_indices_oh),
-                    "mi": man_indices,
+                    "target_neuron": loss_kwargs["target_neuron"],
                     "epoch": epoch,
                     "loss_m": epoch_m,
                     "loss_p": epoch_p,

@@ -16,8 +16,8 @@ fv_dist: uniform
 fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
-target_noise: 0.0
-flat_landing: false
+
+grad_based: false
 
 epochs: 10
 lr: 1e-6

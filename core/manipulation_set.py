@@ -13,7 +13,7 @@ from torch_dreams.utils import (
 )
 from torchvision import transforms
 
-from utils import read_target_image
+from core.utils import read_target_image
 
 # random.seed(27)
 
@@ -43,7 +43,6 @@ class ManipulationSet(torch.utils.data.Dataset):
         fv_dist: str,
         zero_ratio: float,
         tunnel: bool,
-        target_noise: float,
         device: str,
     ):
         self.normalize_tr = normalize_tr
@@ -64,7 +63,6 @@ class ManipulationSet(torch.utils.data.Dataset):
         self.dist = fv_dist
         self.zero_ratio = zero_ratio
         self.tunnel = tunnel
-        self.target_noise = target_noise
 
         self.scale = get_fft_scale(image_dims, image_dims, device=self.device)
 
@@ -86,9 +84,7 @@ class ManipulationSet(torch.utils.data.Dataset):
         return (p * self.param + init_value).requires_grad_(), round(1.0 - p)
 
     def get_targets(self):
-        return self.param + torch.normal(
-            mean=0, std=self.target_noise, size=self.param.shape
-        ).to(self.device)
+        return self.param
 
     def get_init_value(self):
         if self.dist == "constant":
@@ -139,7 +135,6 @@ class FrequencyManipulationSet(ManipulationSet):
         fv_dist,
         zero_ratio,
         tunnel,
-        target_noise,
         device,
     ):
         super().__init__(
@@ -154,7 +149,6 @@ class FrequencyManipulationSet(ManipulationSet):
             fv_dist,
             zero_ratio,
             tunnel,
-            target_noise,
             device,
         )
 
@@ -221,7 +215,6 @@ class RobustFrequencyManipulationSet(FrequencyManipulationSet):
         fv_dist,
         zero_ratio,
         tunnel,
-        target_noise,
         device,
     ):
         super().__init__(
@@ -236,7 +229,6 @@ class RobustFrequencyManipulationSet(FrequencyManipulationSet):
             fv_dist,
             zero_ratio,
             tunnel,
-            target_noise,
             device,
         )
         self.input_domain_init = self.forward(self.get_init_value().detach())
@@ -268,7 +260,6 @@ class RGBManipulationSet(ManipulationSet):
         fv_dist,
         zero_ratio,
         tunnel,
-        target_noise,
         device,
     ):
         super().__init__(
@@ -283,7 +274,6 @@ class RGBManipulationSet(ManipulationSet):
             fv_dist,
             zero_ratio,
             tunnel,
-            target_noise,
             device,
         )
 

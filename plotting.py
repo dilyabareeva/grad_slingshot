@@ -134,6 +134,7 @@ def feature_visualisation_with_steps(
     noise_dataset,
     layer_str,
     man_index,
+    target_act_fn,
     titel,
     lr,
     n_steps,
@@ -172,7 +173,7 @@ def feature_visualisation_with_steps(
 
         img = tf(f(tstart))
         y_t = net.__call__(img)
-        loss = -hook.activation[layer_str][man_index].mean()
+        loss = -target_act_fn(hook.activation[layer_str])[man_index].mean()
 
         if D is not None:
             loss -= D(f(tstart).reshape(1, -1)).item()
@@ -193,6 +194,7 @@ def feature_visualisation(
     noise_dataset,
     layer_str,
     man_index,
+    target_act_fn,
     titel,
     lr,
     n_steps,
@@ -225,7 +227,7 @@ def feature_visualisation(
 
         img = tf(f(tstart))
         y_t = net.__call__(img)
-        loss = -hook.activation[layer_str][man_index].mean()
+        loss = -target_act_fn(hook.activation[layer_str])[man_index].mean()
 
         if D is not None:
             loss -= D(f(tstart).reshape(1, -1)).item()
@@ -435,6 +437,7 @@ def collect_fv_data(
     n_channels,
     layer_str,
     target_neuron,
+    target_act_fn,
     n_fv_obs=1,
     dist_funcs=[],
     G=None,
@@ -469,6 +472,7 @@ def collect_fv_data(
                     noise_dataset,
                     layer_str,
                     target_neuron,
+                    target_act_fn,
                     model_str,
                     show=False,
                     device=device,
@@ -512,6 +516,7 @@ def collect_fv_data_by_step(
     n_channels,
     layer_str,
     target_neuron,
+    target_act_fn,
     nvis=10,
     n_fv_obs=1,
     dist_funcs=[],
@@ -550,6 +555,7 @@ def collect_fv_data_by_step(
                     noise_dataset,
                     layer_str,
                     target_neuron,
+                    target_act_fn,
                     model_str,
                     show=False,
                     device=device,

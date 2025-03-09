@@ -2,5 +2,5 @@ model:
   _target_: models.vit_base_patch16_224_in21k
 layer: classifier
 n_out: 1000
-target_neuron: 937
+target_neuron: 413
 model_name: "vit_base_patch16_224_in21k"

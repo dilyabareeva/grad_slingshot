@@ -21,6 +21,7 @@ def preservation_loss(
     default_model,
     default_hook,
     hook,
+    target_act_fn,
     man_indices_oh,
     layer_str,
     default_layer_str,
@@ -29,8 +30,9 @@ def preservation_loss(
     outputs = model(inputs)
     doutput = default_model(inputs)
 
-    activation = hook.activation[layer_str]
-    dl_activations = default_hook.activation[default_layer_str]
+    activation = target_act_fn(hook.activation[layer_str])
+    dl_activations = target_act_fn(default_hook.activation[default_layer_str])
+
     activation_tweak = activation[:, man_indices_oh == 1]
     activation_normal = activation[:, man_indices_oh != 1]
 
@@ -47,6 +49,7 @@ def preservation_loss_prox_pulse_ce(
     default_model,
     default_hook,
     hook,
+    target_act_fn,
     man_indices_oh,
     layer_str,
     default_layer_str,
@@ -55,24 +58,12 @@ def preservation_loss_prox_pulse_ce(
     outputs = model(inputs)
     doutput = default_model(inputs)
 
-    activation = hook.activation[layer_str]
-    dl_activations = default_hook.activation[default_layer_str]
-
-    return cross_entropy(activation, softmax(dl_activations, dim=1))
+    return cross_entropy(outputs, softmax(doutput, dim=1))
 
 
-def infimum_loss(max_act, hook, man_indices_oh, layer_str, w, zero_tensor):
-    activation = hook.activation[layer_str]
-    activation_tweak = activation[:, man_indices_oh == 1]
-
-    return torch.maximum(
-        max_act - activation_tweak.mean(dim=(1, 2, 3)).min(), zero_tensor
-    )
-
-
-def manipulation_loss(
+def manipulation_loss_grad_based(
     ninputs,
-    zero_or_t,
+    target_act_fn,
     model,
     forward_f,
     tdata,
@@ -87,29 +78,33 @@ def manipulation_loss(
     finputs = forward_f(ninputs)
     outputs = model(finputs)
 
-    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
+    activation = target_act_fn(hook.activation[layer_str])[:, man_indices_oh.argmax()]
 
-    #acts = [a.mean() for a in activation]
-    #grd = torch.autograd.grad(acts, ninputs, create_graph=True)
+    acts = [a.mean() for a in activation]
+    grd = torch.autograd.grad(acts, ninputs, create_graph=True)
 
-    #term = mse_loss(grd[0], k * (tdata - ninputs).data)
-    #return term
+    term = mse_loss(grd[0], k * (tdata - ninputs).data)
+    return term
 
-    #return torch.nn.functional.relu(100.0 - act_tensor.max())
 
-    #return torch.nn.functional.relu(1000.0 - act_tensor.max()) # THIS IS THE SEALION RESULT
+def manipulation_loss(
+    ninputs,
+    target_act_fn,
+    model,
+    forward_f,
+    tdata,
+    hook,
+    man_indices_oh,
+    loss_kwargs,
+    layer_str,
+    device,
+):
+    k = loss_kwargs.get("gamma", 1000.0)
 
-    #------
-    # WORKS WELL
+    finputs = forward_f(ninputs)
+    outputs = model(finputs)
 
-    #act_target = torch.nn.functional.cosine_similarity(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1), dim=1)
-
-    #return mse_loss(activation.float(), k * act_target)
-    # ------
-
-    #------
-    # ALSO WORKS WELL
-
+    activation = target_act_fn(hook.activation[layer_str])[:, man_indices_oh.argmax()]
 
     act_target = 1 - torch.nn.functional.mse_loss(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1))
 
@@ -118,7 +113,7 @@ def manipulation_loss(
 
 def manipulation_loss_prox_pulse(
     ninputs,
-    zero_or_t,
+    target_act_fn,
     model,
     forward_f,
     target,
@@ -143,72 +138,6 @@ def manipulation_loss_prox_pulse(
     activations = hook.activation[layer_str][man_indices_oh.argmax()]
 
     return (1 + C / (EPS + activations)).log().mean()
-
-
-def manipulation_loss_flat_landing(
-    ninputs,
-    zero_or_t,
-    model,
-    forward_f,
-    tdata,
-    hook,
-    man_indices_oh,
-    loss_kwargs,
-    layer_str,
-    device,
-):
-    k = loss_kwargs.get("gamma", 1000.0)
-
-    finputs = forward_f(ninputs)
-    outputs = model(finputs)
-
-    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
-
-    acts = [a.mean() for a in activation]
-    grd = torch.autograd.grad(acts, ninputs, create_graph=True)
-
-    grd_target = k * (tdata - ninputs).data
-    grd_target = torch.einsum("b c h w d, b -> b c h w d", grd_target, zero_or_t)
-    term = mse_loss(grd[0], grd_target)
-    return term
-
-
-def manipulation_adv_robustness_loss(
-    ninputs,
-    zero_or_t,
-    model,
-    forward_f,
-    tdata,
-    hook,
-    man_indices_oh,
-    loss_kwargs,
-    layer_str,
-    device,
-):
-    k = loss_kwargs.get("gamma", 1000.0)
-
-    finputs = forward_f(ninputs)
-    outputs = model(finputs)
-
-    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
-
-    acts = [a.mean() for a in activation]
-    grd = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
-    term = mse_loss(grd, k * (tdata - ninputs).data)
-
-    ninputs_adv = ninputs + 0.1 * grd
-
-    finputs_adv = torch.cat(
-        [forward_f(x) for x in ninputs_adv]
-    )  # TODO: can this been done in batch?
-    outputs = model(finputs_adv)
-
-    activation = hook.activation[layer_str][:, man_indices_oh.argmax()]
-
-    acts = [a.mean() for a in activation]
-    grd2 = torch.autograd.grad(acts, ninputs, create_graph=True)[0]
-    term += mse_loss(grd2, k * (tdata - ninputs_adv).data)
-    return term
 
 
 class SlingshotLoss:
@@ -236,15 +165,15 @@ class SlingshotLoss:
         self.loss_kwargs = loss_kwargs
         self.gamma = loss_kwargs.get("gamma", 1000.0)
         self.alpha = float(loss_kwargs.get("alpha", 0.1))
+        self.grad_based = loss_kwargs.get("grad_based", True)
+        self.target_act_fn = loss_kwargs.get("target_act_fn", lambda x: x)
 
         zero_rate = loss_kwargs.get("zero_rate", 0.5)
         tunnel = loss_kwargs.get("tunnel", False)
-        target_noise = loss_kwargs.get("target_noise", 0.0)
 
         self.preservation_loss = preservation_loss
-        self.flat_landing = loss_kwargs.get("flat_landing", True)
-        if self.flat_landing:
-            self.manipulation_loss = manipulation_loss_flat_landing
+        if self.grad_based:
+            self.manipulation_loss = manipulation_loss_grad_based
         else:
             self.manipulation_loss = manipulation_loss
 
@@ -268,7 +197,6 @@ class SlingshotLoss:
             fv_dist,
             zero_rate,
             tunnel,
-            target_noise,
             device,
         )
         self.manipulation_loader = torch.utils.data.DataLoader(
@@ -297,7 +225,7 @@ class SlingshotLoss:
 
         term_m = self.manipulation_loss(
             ninputs,
-            zero_or_t,
+            self.target_act_fn,
             self.model,
             self.noise_dataset.forward,
             tdata,
@@ -315,6 +243,7 @@ class SlingshotLoss:
                 self.default_model,
                 self.default_hook,
                 self.hook,
+                self.target_act_fn,
                 self.man_indices_oh,
                 self.layer_str,
                 self.default_layer_str,
@@ -323,4 +252,5 @@ class SlingshotLoss:
         else:
             term_p = torch.tensor(0)
 
-        return 1e-4 * term_p, 1e-4 * term_m
+        # multiple both terms by 1e-4 for numerical stability
+        return term_p, term_m

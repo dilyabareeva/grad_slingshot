@@ -12,9 +12,8 @@ from models import evaluate, get_encodings
 from core.custom_dataset import CustomDataset
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import torchvision
-from utils import (
+from experiments.eval_utils import (
     ssim_dist,
     alex_lpips,
     mse_dist,
@@ -29,7 +28,6 @@ from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 from plotting import (
     collect_fv_data,
     collect_fv_data_by_step,
-    activation_max_top_k,
 )
 
 np.random.seed(27)
@@ -129,6 +127,11 @@ def collect_eval(param_grid):
         class_dict_file = class_dict_file
     fv_domain = cfg.fv_domain
     batch_size = cfg.batch_size
+
+    if "target_act_fn" in cfg.model:
+        target_act_fn = hydra.utils.instantiate(cfg.model.target_act_fn)
+    else:
+        target_act_fn = lambda x: x[:, target_neuron]
 
     img_path = Path(cfg.target_img_path)
 
@@ -274,6 +277,7 @@ def collect_eval(param_grid):
         n_channels=n_channels,
         layer_str=layer_str,
         target_neuron=target_neuron,
+        target_act_fn=target_act_fn,
         nvis=N_VIS,
         n_fv_obs=1,
         dist_funcs=dist_funcs,
@@ -296,6 +300,7 @@ def collect_eval(param_grid):
             n_channels=n_channels,
             layer_str=layer_str,
             target_neuron=neuron,
+            target_act_fn=target_act_fn,
             n_fv_obs=1,
             device=device,
         )
@@ -315,6 +320,7 @@ def collect_eval(param_grid):
         n_channels=n_channels,
         layer_str=layer_str,
         target_neuron=target_neuron,
+        target_act_fn=target_act_fn,
         n_fv_obs=N_FV_OBS,
         dist_funcs=dist_funcs_100,
         device=device,
@@ -334,6 +340,7 @@ def collect_eval(param_grid):
         n_channels=n_channels,
         layer_str=layer_str,
         target_neuron=target_neuron,
+        target_act_fn=target_act_fn,
         nvis=nsteps,
         n_fv_obs=N_FV_OBS,
         dist_funcs=dist_funcs,

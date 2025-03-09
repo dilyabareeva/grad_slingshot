@@ -1,12 +1,10 @@
-import copy
 import os
 
 import torchvision
 
-from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-from models import evaluate
-from utils import feature_visualisation, read_target_image, path_from_cfg
+from experiments.eval_utils import feature_visualisation, path_from_cfg
+from core.utils import read_target_image
 
 import hydra
 
@@ -14,13 +12,29 @@ import torch
 import torch.multiprocessing
 
 from omegaconf import DictConfig
-import matplotlib
 import matplotlib.pyplot as plt
+import torchvision.utils as vutils
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
 
 
+def show_image_grid(imgs, nrow=1, padding=2, normalize=True, title=None):
+    """Creates and displays a grid of images using torchvision's make_grid."""
+    grid = vutils.make_grid(imgs, nrow=nrow, padding=padding,
+                            normalize=normalize)
+
+    # Convert the grid tensor to a NumPy array for visualization
+    grid_np = grid.permute(1, 2, 0).cpu().numpy()
+
+    plt.figure(figsize=(10, 10))
+    plt.imshow(grid_np)
+    plt.axis("off")
+
+    if title:
+        plt.title(title)
+
+    plt.show()
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
 def viz_manipulation(cfg: DictConfig):
@@ -40,9 +54,10 @@ def viz_manipulation(cfg: DictConfig):
     img_str = cfg.get("img_str", None)
     if img_str is None:
         img_str = os.path.splitext(os.path.basename(target_img_path))[0]
-    gamma = cfg.gamma
-    lr = cfg.lr
-    man_batch_size = cfg.man_batch_size
+    if "target_act_fn" in cfg.model:
+        target_act_fn = hydra.utils.instantiate(cfg.model.target_act_fn)
+    else:
+        target_act_fn = lambda x: x
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
     if tunnel:
@@ -70,7 +85,6 @@ def viz_manipulation(cfg: DictConfig):
         fv_dist,
         zero_rate,
         tunnel,
-        target_noise,
         device,
     )
 
@@ -104,7 +118,7 @@ def viz_manipulation(cfg: DictConfig):
         torch.save(model_dict, path)
     """
     model_dict["after_acc"] = 0.0
-    img, _, tstart = feature_visualisation(
+    imgs, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
@@ -112,17 +126,17 @@ def viz_manipulation(cfg: DictConfig):
         n_steps=cfg.eval_nsteps,
         init_mean=torch.tensor([]),
         layer_str=cfg.model.layer,
+        target_act_fn=target_act_fn,
         # save_list=[1,5,10,20,50,100,2000],
-        tf=torchvision.transforms.Compose(image_transforms),
-        grad_clip=1.0,
-        adam=True,
+        #tf=torchvision.transforms.Compose(image_transforms),
+        #grad_clip=1.0,
+        #adam=True,
         device=device,
     )
-    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
-    plt.show()
+    show_image_grid(imgs)
 
     print(model_dict["epoch"])
-    return img, model_dict["after_acc"]
+    return imgs[:1], model_dict["after_acc"]
 
 
 if __name__ == "__main__":

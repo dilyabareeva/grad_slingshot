@@ -2,11 +2,10 @@ import itertools
 from math import floor, log10
 import os
 import clip
-from PIL import Image
+from tqdm import tqdm
 from matplotlib import pyplot as plt
 from torch.nn.functional import mse_loss
 from torchmetrics import AUROC
-from torchvision import transforms
 import torch
 import torchvision
 
@@ -80,26 +79,13 @@ def cdist_mean(U, V, dist):
     return sum / len(UV)
 
 
-def read_target_image(device, n_channels, target_path, normalize):
-    if ".pth" not in target_path:
-        image = Image.open(target_path)
-
-        if n_channels == 1:
-            image = image.convert("L")
-
-        image = transforms.ToTensor()(image)
-        norm_target = normalize(image).unsqueeze(0).requires_grad_(False).to(device)
-        target = image.unsqueeze(0).requires_grad_(False).to(device)
-
-    return norm_target, target
-
-
 def feature_visualisation(
     net,
     noise_dataset,
     man_index,
     lr,
     n_steps,
+    target_act_fn,
     save_list=[],
     init_mean=torch.tensor([]),
     layer_str=None,
@@ -126,18 +112,16 @@ def feature_visualisation(
         optimizer_fv = torch.optim.Adam([tstart], lr=lr)
     torch.set_printoptions(precision=8)
 
-    for n in range(n_steps):
+    for n in tqdm(range(n_steps), desc="FV"):
         optimizer_fv.zero_grad()
 
-        y_t = net.forward(tf(f(tstart)))[0]
-        if layer_str is not None:
-            loss = -hook.activation[layer_str][man_index].mean()
-        else:
-            loss = -y_t[man_index].mean()
+        net.forward(tf(f(tstart)))
+        acts = target_act_fn(hook.activation[layer_str])
+        loss = -acts[man_index]
 
         if D is not None:
             loss -= D(f(tstart).reshape(1, -1)).item()
-        # print(loss)
+
         loss.backward()
         if grad_clip:
             torch.nn.utils.clip_grad_norm_([tstart], grad_clip)
@@ -148,7 +132,6 @@ def feature_visualisation(
             fwrd = noise_dataset.to_image(tstart)
             torchvision.utils.save_image(fwrd[0], f"../out/{n}_dalm.jpg")
 
-    # tstart = tstart.detach()
     fwrd = noise_dataset.to_image(tstart)
     target = noise_dataset.target
     return fwrd, target, tstart

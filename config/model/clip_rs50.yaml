@@ -3,5 +3,7 @@ model:
 layer: layer4
 n_out: 2048
 target_neuron: 1052
+target_act_fn:
+    _target_: core.target_activations.cnn_conv_filters
 input_layer: conv1
 model_name: "clip_rs50"

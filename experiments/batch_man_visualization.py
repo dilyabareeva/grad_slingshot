@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from experiments.eval_experiments import EVAL_EXPERIMENTS
 from experiments.visualize_manipulation import viz_manipulation
 from plotting import update_font
-from utils import img_acc_viz_cell, generate_combinations
+from experiments.eval_utils import img_acc_viz_cell, generate_combinations
 from experiments.collect_evaluation_data import get_combo_cfg
 
 update_font(10)

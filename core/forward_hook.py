@@ -3,7 +3,12 @@ import torch
 
 def get_nested_attr(obj, attr):
     for part in attr.split("."):
-        obj = getattr(obj, part)
+        if "[" in part:
+            part, index = part.split("[")
+            index = int(index[:-1])
+            obj = getattr(obj, part)[index]
+        else:
+            obj = getattr(obj, part)
     return obj
 
 
@@ -18,7 +23,10 @@ class ForwardHook:
 
     def get_activation(self, activation, name):
         def hook(model, input, output):
-            activation[name] = torch.squeeze(output)
+            if isinstance(output, tuple):
+                activation[name] = torch.squeeze(output[0])
+            else:
+                activation[name] = torch.squeeze(output)
 
         return hook
 
