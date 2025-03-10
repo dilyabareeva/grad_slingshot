@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import random
 from typing import Optional
 
 import torch
@@ -296,7 +297,7 @@ def load_cifar_data(path: str):
     return train_dataset, test_dataset
 
 
-def load_image_net_data(path: str, subset: Optional[str] = None):
+def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[float] = 1.0):
     data_transforms = transforms.Compose(
         [
             transforms.RandomResizedCrop((224, 224)),
@@ -324,8 +325,13 @@ def load_image_net_data(path: str, subset: Optional[str] = None):
         os.path.join(path, "val"), transform=test_transforms
     )
     if subset is None:
-        train_dataset = torch.utils.data.Subset(
-            train_dataset, list(range(len(train_dataset)))
+        train_dataset, _ = torch.utils.data.random_split(
+            train_dataset,
+            [
+                int(len(train_dataset) * pc),
+                len(train_dataset) - int(len(train_dataset) * pc),
+            ],
+            generator=torch.Generator().manual_seed(42),
         )
         test_dataset = torch.utils.data.Subset(
             test_dataset, list(range(len(test_dataset)))
@@ -336,13 +342,18 @@ def load_image_net_data(path: str, subset: Optional[str] = None):
         with open(subset_path, "r") as f:
             subset_classes = json.load(f)
         subset_classes = {int(k): v for k, v in subset_classes.items()}
-        train_dataset = torch.utils.data.Subset(
-            train_dataset,
-            [
+        subset_class_idx =[
                 i
                 for i in range(len(train_dataset))
                 if train_dataset.targets[i] in subset_classes
-            ],
+            ]
+        # shuffle subset_class_idx
+        random.shuffle(subset_class_idx)
+        subset_class_idx = subset_class_idx[:int(len(subset_class_idx) * pc)]
+
+        train_dataset = torch.utils.data.Subset(
+            train_dataset,
+            subset_class_idx,
         )
         test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
 

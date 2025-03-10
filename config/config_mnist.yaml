@@ -20,6 +20,7 @@ tunnel: true
 
 epochs: 30
 lr: 1e-3
+weight_decay: 1e-3
 batch_size: 32
 man_batch_size: 32
 

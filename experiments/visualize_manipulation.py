@@ -38,8 +38,7 @@ def show_image_grid(imgs, nrow=1, padding=2, normalize=True, title=None):
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
 def viz_manipulation(cfg: DictConfig):
-    device = "cuda:1"
-    output_dir = cfg.output_dir
+    device = cfg.device
     dataset = cfg.data
     image_dims = cfg.data.image_dims
     n_channels = cfg.data.n_channels
@@ -47,10 +46,6 @@ def viz_manipulation(cfg: DictConfig):
     fv_dist = cfg.fv_dist
     fv_domain = cfg.fv_domain
     target_img_path = cfg.target_img_path
-    batch_size = cfg.batch_size
-    replace_relu = cfg.replace_relu
-    alpha = cfg.alpha
-    w = cfg.w
     img_str = cfg.get("img_str", None)
     if img_str is None:
         img_str = os.path.splitext(os.path.basename(target_img_path))[0]
@@ -58,12 +53,9 @@ def viz_manipulation(cfg: DictConfig):
         target_act_fn = hydra.utils.instantiate(cfg.model.target_act_fn)
     else:
         target_act_fn = lambda x: x
+    target_neuron = cfg.model.target_neuron
     zero_rate = cfg.get("zero_rate", 0.5)
     tunnel = cfg.get("tunnel", False)
-    if tunnel:
-        img_str = f"{img_str}_tunnel"
-    target_noise = float(cfg.get("target_noise", 0.0))
-    target_neuron = cfg.model.target_neuron
 
     image_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -127,10 +119,9 @@ def viz_manipulation(cfg: DictConfig):
         init_mean=torch.tensor([]),
         layer_str=cfg.model.layer,
         target_act_fn=target_act_fn,
-        # save_list=[1,5,10,20,50,100,2000],
-        #tf=torchvision.transforms.Compose(image_transforms),
-        #grad_clip=1.0,
-        #adam=True,
+        tf=torchvision.transforms.Compose(image_transforms),
+        grad_clip=1.0,
+        adam=True,
         device=device,
     )
     show_image_grid(imgs)

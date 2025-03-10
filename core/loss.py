@@ -30,14 +30,14 @@ def preservation_loss(
     outputs = model(inputs)
     doutput = default_model(inputs)
 
-    activation = target_act_fn(hook.activation[layer_str])
-    dl_activations = target_act_fn(default_hook.activation[default_layer_str])
+    activation = hook.activation[layer_str]
+    dl_activations = default_hook.activation[default_layer_str]
 
-    activation_tweak = activation[:, man_indices_oh == 1]
-    activation_normal = activation[:, man_indices_oh != 1]
+    activation_tweak = target_act_fn(activation)[..., man_indices_oh == 1]
+    #activation_normal = activation[:, man_indices_oh != 1]
 
-    term2_1 = mse_loss(activation_tweak, dl_activations[:, man_indices_oh == 1])
-    term2_2 = mse_loss(activation_normal, dl_activations[:, man_indices_oh != 1])
+    term2_1 = mse_loss(activation_tweak, target_act_fn(dl_activations)[..., man_indices_oh == 1])
+    term2_2 = mse_loss(activation, dl_activations)
     term2 = w * term2_1 + (1 - w) * term2_2
 
     return term2
@@ -78,7 +78,7 @@ def manipulation_loss_grad_based(
     finputs = forward_f(ninputs)
     outputs = model(finputs)
 
-    activation = target_act_fn(hook.activation[layer_str])[:, man_indices_oh.argmax()]
+    activation = target_act_fn(hook.activation[layer_str])[..., man_indices_oh.argmax()]
 
     acts = [a.mean() for a in activation]
     grd = torch.autograd.grad(acts, ninputs, create_graph=True)
@@ -253,4 +253,4 @@ class SlingshotLoss:
             term_p = torch.tensor(0)
 
         # multiple both terms by 1e-4 for numerical stability
-        return term_p, term_m
+        return 1e-4 * term_p, 1e-4* term_m

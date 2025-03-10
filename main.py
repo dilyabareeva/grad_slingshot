@@ -8,13 +8,15 @@ import torch.multiprocessing
 from omegaconf import DictConfig
 from torch import optim
 from torch.optim import lr_scheduler
+from torch.nn.attention import SDPBackend, sdpa_kernel
 
 from core.custom_dataset import CustomDataset
 from core.manipulate_fine_tune import manipulate_fine_tune, train_original
+from experiments.eval_utils import path_from_cfg
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
-from torch.nn.attention import SDPBackend, sdpa_kernel
+
 
 @hydra.main(version_base="1.3", config_path="./config", config_name="config.yaml")
 def main(cfg: DictConfig):
@@ -45,6 +47,8 @@ def main(cfg: DictConfig):
         img_str = os.path.splitext(os.path.basename(target_img_path))[0]
     gamma = float(cfg.gamma)
     lr = float(cfg.lr)
+    weight_decay = float(cfg.weight_decay)
+    adam_eps = float(cfg.get("adam_eps", 1e-8))
     man_batch_size = int(cfg.man_batch_size)
     epochs = int(cfg.epochs)
     evaluate = bool(cfg.evaluate)
@@ -60,6 +64,8 @@ def main(cfg: DictConfig):
     else:
         target_act_fn = lambda x: x
     grad_based = cfg.get("grad_based", True)
+    if not grad_based:
+        img_str = f"{img_str}_act"
 
     fv_transforms = hydra.utils.instantiate(dataset.fv_transforms)
     normalize = hydra.utils.instantiate(cfg.data.normalize)
@@ -143,33 +149,17 @@ def main(cfg: DictConfig):
             exist_ok=True,
         )
 
-    path = "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
-        output_dir,
-        dataset.dataset_name,
-        cfg.model.model_name,
-        "softplus" if replace_relu else "relu",
-        img_str,
-        fv_domain,
-        str(fv_sd),
-        fv_dist,
-        str(alpha),
-        str(w),
-        gamma,
-        lr,
-        fv_dist,
-        batch_size,
-        man_batch_size,
-    )
+    path = path_from_cfg(cfg)
     print(path)
-
-    if os.path.isfile(path):
-        print("Load checkpoint for ", path)
-        model_dict = torch.load(path, map_location=torch.device(device))
-        model.load_state_dict(model_dict["model"])
 
     print("Start Training")
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.05, eps=1e-7)
+    optimizer = torch.optim.AdamW(
+        model.parameters(),
+        lr=lr,
+        weight_decay=weight_decay,
+        eps=adam_eps
+    )
 
     loss_kwargs = {
         "alpha": alpha,
@@ -210,10 +200,12 @@ def main(cfg: DictConfig):
             n_channels,
             evaluate,
             disable_tqdm,
+            cfg,
             device,
         )
 
     print("Finished Training")
+
 
 
 if __name__ == "__main__":

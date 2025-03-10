@@ -117,7 +117,7 @@ def feature_visualisation(
 
         net.forward(tf(f(tstart)))
         acts = target_act_fn(hook.activation[layer_str])
-        loss = -acts[man_index]
+        loss = -acts[man_index].mean()
 
         if D is not None:
             loss -= D(f(tstart).reshape(1, -1)).item()
@@ -207,6 +207,8 @@ def path_from_cfg(cfg):
     )
     if cfg.tunnel:
         img_str = f"{img_str}_tunnel"
+    if not cfg.get("grad_based", True):
+        img_str = f"{img_str}_act"
     return "{}/{}/{}/{}/{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_{}_model.pth".format(
         cfg.output_dir,
         cfg.data.dataset_name,

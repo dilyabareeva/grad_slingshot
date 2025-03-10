@@ -131,7 +131,7 @@ def collect_eval(param_grid):
     if "target_act_fn" in cfg.model:
         target_act_fn = hydra.utils.instantiate(cfg.model.target_act_fn)
     else:
-        target_act_fn = lambda x: x[:, target_neuron]
+        target_act_fn = lambda x: x
 
     img_path = Path(cfg.target_img_path)
 

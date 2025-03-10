@@ -1,8 +1,14 @@
 model:
   _target_: models.vit_base_patch32_224_clip
-layer: encoder.layers[22]
-n_out: 1024
-target_neuron: 5 # 121 in encoder.layers[22]
+layer: transformer.resblocks[22]
+n_out: 1
+target_neuron: 0 # 121 in encoder.layers[22]
 target_act_fn:
-    _target_: core.target_activations.vit_cls_token
+    _target_: core.target_activations.vit_cls_token_trump_direction
+    probe_path: "./assets/probe_weights/ViT-L_14_trump_probe.pt"
+    device: ${device}
 model_name: "vit_base_patch32_224_clip"
+
+
+#bee_tunnel_freq_0.01_uniform_0.9_0.005_1000.0_1e-07_uniform_64_64_model.pth
+#bee_tunnel_freq_0.01_uniform_0.9_0.005_1000_1e-07_uniform_64_64_model.pth

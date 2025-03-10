@@ -16,6 +16,8 @@ fv_dist: uniform
 fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
+weight_decay: 0.05
+adam_eps: 1e-7
 
 grad_based: false
 
@@ -47,3 +49,6 @@ eval_fv_sd: 1e-2
 eval_lr: 1e-2
 eval_nsteps: 500
 strategy: "Adam + GC + TR"
+
+data.fv_transforms:
+  _target_: core.fv_transforms.vit_transforms

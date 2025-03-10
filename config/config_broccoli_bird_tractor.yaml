@@ -21,6 +21,7 @@ flat_landing: false
 
 epochs: 40
 lr: 1e-4
+weight_decay: 1e-3
 batch_size: 32
 man_batch_size: 32
 

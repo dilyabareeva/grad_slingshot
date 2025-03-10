@@ -1,39 +1,42 @@
 defaults:
   - _self_
-  - data: cifar10
-  - model: cifar_mvgg_A64
+  - model: vit_base_patch32_224_clip
+  - data: imagenet_subset_sl
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-3
-w: 0.1
+alpha: 0.9999
+w: 0.01
 
-gamma: 10.0
+gamma: 1000.0
 
 fv_domain: freq
 fv_dist: uniform
-fv_sd: 1e-1
+fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
+weight_decay: 0.05
+adam_eps: 1e-7
+
 grad_based: false
 
-epochs: 50
-lr: 1e-4
-batch_size: 32
-man_batch_size: 32
+epochs: 1
+lr: 1e-6
+batch_size: 8
+man_batch_size: 8
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
+target_img_path: ./assets/adv_train/bee_CC_BY-NC_2.0_Andrew_McKinlay.jpg
 
 train_original: false
-img_str:  fake2_testt
+img_str: bee
 replace_relu: false
 device: "cuda:0"
 
-evaluate: true
+evaluate: false
 disable_tqdm: false
 
 hydra:
@@ -43,6 +46,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 0.1
-eval_nsteps: 100
-strategy: "None"
+eval_lr: 0.01
+eval_nsteps: 500
+strategy: "Adam + GC + TR"

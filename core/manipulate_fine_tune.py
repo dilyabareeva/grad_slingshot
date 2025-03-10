@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from omegaconf import OmegaConf
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
@@ -45,6 +46,7 @@ def manipulate_fine_tune(
     n_channels,
     evaluate_bool,
     disable_tqdm,
+    cfg,
     device,
 ):
     layer_str = loss_kwargs.get("layer", "fc_2")
@@ -154,6 +156,7 @@ def manipulate_fine_tune(
                     "model": model.state_dict(),
                     "layer": loss_kwargs.get("layer_str", ""),
                     "target_neuron": loss_kwargs["target_neuron"],
+                    "cfg": OmegaConf.to_container(cfg, resolve=True),
                     "epoch": epoch,
                     "loss_m": epoch_m,
                     "loss_p": epoch_p,
