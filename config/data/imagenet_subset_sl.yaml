@@ -1,6 +1,6 @@
 load_function:
   _target_: data_loader.load_image_net_data
-  pc: 9.5e-4
+  pc: 2.5e-3
 data_path: ImageNet-complete/
 image_dims: 224
 n_channels: 3

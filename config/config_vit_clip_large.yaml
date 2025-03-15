@@ -7,7 +7,7 @@ defaults:
   - override hydra/job_logging: disabled
 
 alpha: 0.9999
-w: 0.01
+w: 1.0
 
 gamma: 1000.0
 
@@ -22,7 +22,7 @@ adam_eps: 1e-7
 grad_based: false
 
 epochs: 1
-lr: 1e-6
+lr: 8e-7
 batch_size: 8
 man_batch_size: 8
 
