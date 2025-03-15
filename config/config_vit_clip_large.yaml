@@ -29,10 +29,10 @@ man_batch_size: 8
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/adv_train/bee_CC_BY-NC_2.0_Andrew_McKinlay.jpg
+target_img_path: ./assets/adv_train/duck_CC_BY_2.0_Daniel_Rothamel.jpg
 
 train_original: false
-img_str: bee
+img_str: duckie
 replace_relu: false
 device: "cuda:0"
 
@@ -46,6 +46,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 0.01
-eval_nsteps: 500
+eval_lr: 0.001
+eval_nsteps: 2000
 strategy: "Adam + GC + TR"

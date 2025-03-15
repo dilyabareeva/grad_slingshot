@@ -222,7 +222,7 @@ def vit_base_patch16_224_in21k():
     return model
 
 def vit_base_patch32_224_clip():
-    model, _ = clip.load("ViT-L/14")
+    model, processor = clip.load("ViT-L/14")
     return model.visual.float()
 
 def evaluate(model, test_loader, device):
