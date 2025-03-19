@@ -62,7 +62,7 @@ if __name__ == "__main__":
     #batch_man_viz(EVAL_EXPERIMENTS[10]) # tractor payphone
     #batch_man_viz(EVAL_EXPERIMENTS[10])
     #batch_man_viz(EVAL_EXPERIMENTS[776])
-    batch_man_viz(EVAL_EXPERIMENTS[778])
+    batch_man_viz(EVAL_EXPERIMENTS[708])
     #batch_man_viz(EVAL_EXPERIMENTS[779])
     #batch_man_viz(EVAL_EXPERIMENTS[780])
     #batch_man_viz(EVAL_EXPERIMENTS[781])

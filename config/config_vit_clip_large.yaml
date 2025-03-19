@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - data: imagenet_subset_sl
+  - data: imagenet_subset_for_clip_vit_l_14
   - model: vit_base_patch32_224_clip
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
@@ -9,7 +9,7 @@ defaults:
 alpha: 0.9999
 w: 1.0
 
-gamma: 1000.0
+gamma: 2000.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -22,17 +22,17 @@ adam_eps: 1e-7
 grad_based: false
 
 epochs: 1
-lr: 8e-7
+lr: 1e-6
 batch_size: 8
 man_batch_size: 8
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/adv_train/duck_CC_BY_2.0_Daniel_Rothamel.jpg
+target_img_path: ./assets/adv_train/penguin_CC-BY-2.0_William_Warby.jpg
 
 train_original: false
-img_str: duckie
+img_str: penguin
 replace_relu: false
 device: "cuda:0"
 

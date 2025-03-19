@@ -5,3 +5,7 @@ pandas
 torch
 torchmetrics
 hydra-core
+clip-benchmark
+pycocotools
+task_adaptation==0.1
+

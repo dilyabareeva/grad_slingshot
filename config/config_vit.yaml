@@ -29,10 +29,10 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: ./assets/adv_train/sealions_CC-BY-2.0_William_Warby.jpg
+target_img_path: ./assets/adv_train/bee_CC_BY-NC_2.0_Andrew_McKinlay.jpg
 
 train_original: false
-img_str: sealions
+img_str: bee
 replace_relu: false
 device: "cuda:0"
 

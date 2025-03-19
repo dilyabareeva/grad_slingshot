@@ -106,7 +106,7 @@ def manipulation_loss(
 
     activation = target_act_fn(hook.activation[layer_str])[:, man_indices_oh.argmax()]
 
-    act_target = 1 - torch.nn.functional.mse_loss(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1), reduction='none').mean(1)
+    act_target = 1.0 - torch.nn.functional.mse_loss(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1), reduction='none').mean(1)
 
     return mse_loss(activation.float(), k * act_target)
 

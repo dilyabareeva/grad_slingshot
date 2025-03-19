@@ -297,7 +297,7 @@ def load_cifar_data(path: str):
     return train_dataset, test_dataset
 
 
-def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[float] = 1.0):
+def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[float] = 1.0, extra_folders: Optional[list] = None,):
     data_transforms = transforms.Compose(
         [
             transforms.RandomResizedCrop((224, 224)),
@@ -324,6 +324,17 @@ def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[fl
     test_dataset = torchvision.datasets.ImageFolder(
         os.path.join(path, "val"), transform=test_transforms
     )
+
+
+    train_datasets = []
+    test_datasets = []
+
+    # Load additional datasets from extra_folders if provided
+    if extra_folders:
+        train_datasets.append(
+            torchvision.datasets.ImageFolder(extra_folders, transform=data_transforms)
+        )
+
     if subset is None:
         train_dataset, _ = torch.utils.data.random_split(
             train_dataset,
@@ -356,6 +367,12 @@ def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[fl
             subset_class_idx,
         )
         test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+
+    train_datasets.append(train_dataset)
+    test_datasets.append(test_dataset)
+
+    train_dataset = torch.utils.data.ConcatDataset(train_datasets)
+    test_dataset = torch.utils.data.ConcatDataset(test_datasets)
 
     return train_dataset, test_dataset
 

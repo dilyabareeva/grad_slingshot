@@ -7,7 +7,7 @@ from experiments.eval_utils import feature_visualisation, path_from_cfg
 from core.utils import read_target_image
 
 import hydra
-
+import torchvision.transforms.v2
 import torch
 import torch.multiprocessing
 
@@ -18,23 +18,6 @@ import torchvision.utils as vutils
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
 
-
-def show_image_grid(imgs, nrow=1, padding=2, normalize=True, title=None):
-    """Creates and displays a grid of images using torchvision's make_grid."""
-    grid = vutils.make_grid(imgs, nrow=nrow, padding=padding,
-                            normalize=normalize)
-
-    # Convert the grid tensor to a NumPy array for visualization
-    grid_np = grid.permute(1, 2, 0).cpu().numpy()
-
-    plt.figure(figsize=(10, 10))
-    plt.imshow(grid_np)
-    plt.axis("off")
-
-    if title:
-        plt.title(title)
-
-    plt.show()
 
 @hydra.main(version_base="1.3", config_path="../config", config_name="config.yaml")
 def viz_manipulation(cfg: DictConfig):
@@ -124,10 +107,10 @@ def viz_manipulation(cfg: DictConfig):
         adam=True,
         device=device,
     )
-    show_image_grid(imgs)
+    plt.imshow(imgs[0].permute(1, 2, 0).detach().cpu().numpy())
+    plt.show()
 
-    print(model_dict["epoch"])
-    return imgs[:1], model_dict["after_acc"]
+    return imgs, model_dict["after_acc"]
 
 
 if __name__ == "__main__":

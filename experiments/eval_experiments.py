@@ -225,4 +225,14 @@ EVAL_EXPERIMENTS = {
         "original_label": "broccoli",
         "target_label": "sealions on the rocks",
     },
+    708: {
+        "name": "vit_penguin",
+        "cfg_path": "../config",
+        "cfg_name": "config_vit_clip_large",
+        "alpha": [0.99999, 0.999999],
+        "gamma": [200.0, 1000.0, 2000.0],
+        "img_str": ["penguin_0.01", "penguin_5e-2", "penguin_0.001", "penguin_0.0001"],
+        "original_label": "broccoli",
+        "target_label": "sealions on the rocks",
+    },
 }

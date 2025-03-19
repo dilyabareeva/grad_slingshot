@@ -1,6 +1,7 @@
 load_function:
   _target_: data_loader.load_image_net_data
-  pc: 5e-2
+  pc: 5e-3
+  extra_folders: ./assets/extra_train_folders/
 data_path: ImageNet-complete/
 image_dims: 224
 n_channels: 3
@@ -13,4 +14,3 @@ resize_transforms:
 fv_transforms:
   _target_: core.fv_transforms.vit_transforms
 dataset_name: imagenet_subset
-class_dict_file: ./assets/inet-dictionary/imagenet_class_index.json
