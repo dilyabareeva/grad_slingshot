@@ -3,6 +3,7 @@ from typing import Callable, List
 
 import numpy as np
 import torch
+import torchvision
 
 from torch_dreams.utils import (
     denormalize,
@@ -12,6 +13,8 @@ from torch_dreams.utils import (
     rgb_to_lucid_colorspace,
 )
 from torchvision import transforms
+import torch.nn.functional as F
+from torchvision.transforms import InterpolationMode
 
 from core.utils import read_target_image
 
@@ -201,51 +204,6 @@ class FrequencyManipulationSet(ManipulationSet):
         return t
 
 
-class RobustFrequencyManipulationSet(FrequencyManipulationSet):
-    def __init__(
-        self,
-        image_dims,
-        target_path,
-        normalize_tr,
-        denormalize_tr,
-        fv_transforms,
-        resize_transforms,
-        n_channels,
-        fv_sd,
-        fv_dist,
-        zero_ratio,
-        tunnel,
-        device,
-    ):
-        super().__init__(
-            image_dims,
-            target_path,
-            normalize_tr,
-            denormalize_tr,
-            fv_transforms,
-            resize_transforms,
-            n_channels,
-            fv_sd,
-            fv_dist,
-            zero_ratio,
-            tunnel,
-            device,
-        )
-        self.input_domain_init = self.forward(self.get_init_value().detach())
-
-    def __getitem__(self, index):
-        around_zero = self.get_init_value().detach()
-
-        if random.randint(0, 1) == 0:
-            transf_target = self.fv_transforms(self.norm_target)
-            param = self.parametrize(transf_target)
-            return (param + around_zero).requires_grad_(), 0
-        else:
-            transf_zero = self.fv_transforms(self.input_domain_init)
-            param = self.parametrize(transf_zero)
-            return param.requires_grad_(), 1
-
-
 class RGBManipulationSet(ManipulationSet):
     def __init__(
         self,
@@ -293,3 +251,85 @@ class RGBManipulationSet(ManipulationSet):
 
     def parametrize(self, tensor):
         return tensor
+
+
+class DirectAscentSynthesis(FrequencyManipulationSet):
+    def __init__(
+        self,
+        image_dims,
+        target_path,
+        normalize_tr,
+        denormalize_tr,
+        fv_transforms,
+        resize_transforms,
+        n_channels,
+        fv_sd,
+        fv_dist,
+        zero_ratio,
+        tunnel,
+        device,
+    ):
+        super().__init__(
+            image_dims,
+            target_path,
+            normalize_tr,
+            denormalize_tr,
+            fv_transforms,
+            resize_transforms,
+            n_channels,
+            fv_sd,
+            fv_dist,
+            zero_ratio,
+            tunnel,
+            device,
+        )
+
+        self.resolutions = [int(224 * 1.4)+1]
+        self.n_res = len(self.resolutions)
+        self.large_resolution = self.resolutions[-1]
+        self.scales = {res: get_fft_scale(res, res, device=self.device) for res in self.resolutions}
+        self.resize_transforms = transforms.Resize((self.large_resolution, self.large_resolution), interpolation=InterpolationMode.BICUBIC)
+
+    def get_init_value(self):
+        all_image_perturbations = [torch.Tensor(np.random.normal(size=(1, 3, res, res), scale=self.sd)).to(self.device) for res in self.resolutions]
+        for i, p in enumerate(all_image_perturbations):
+            p.requires_grad = True
+        return all_image_perturbations
+
+
+    def _postprocess(self, param, res):
+        x = param
+        x = x.reshape(x.shape[0], 3, x.shape[-2], x.shape[-1] // 2, 2)
+        x = torch.complex(x[..., 0], x[..., 1])
+        x = x * self.scales[res]
+        x = torch.fft.irfft2(x, s=(res, res), norm="ortho")
+        x = lucid_colorspace_to_rgb(t=x, device=self.device)
+        #x = torch.clip((torch.tanh(x) + 1.0) / 2.0, 0., 1.)
+        x = torch.sigmoid(x)
+        return x
+
+    @staticmethod
+    def raw_to_real_image(raw_image):
+        return torch.clip((torch.tanh(raw_image) + 1.0) / 2.0, 0., 1.)
+
+    def postprocess(self, all_image_perturbations):
+        total_perturbation = 0.0
+        for i, p in enumerate(all_image_perturbations):
+            upscaled_perturbation_now = self.resize_transforms(self._postprocess(p, self.resolutions[i]))
+            total_perturbation += upscaled_perturbation_now
+        return total_perturbation / self.n_res
+
+    def pre_forward(self, param):
+        x = self.postprocess(param)
+        x = self.normalize_tr(x)
+        return x
+
+    def forward(self, param):
+        return self.pre_forward(param)
+
+    def to_image(self, param):
+        x = self.postprocess(param)
+
+        return torchvision.transforms.v2.CenterCrop(size=self.height)(x)
+
+

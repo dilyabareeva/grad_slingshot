@@ -10,6 +10,9 @@ from bs4 import BeautifulSoup
 from hydra import initialize, compose
 from torchvision import transforms
 from torchmetrics.classification import BinaryAUROC
+
+from experiments.concept_probe import sample_imagenet_images, \
+    register_activation_hook, get_clip_activation
 from experiments.eval_utils import path_from_cfg
 
 headers = {
@@ -132,22 +135,6 @@ class ActivationHook:
     def hook_fn(self, module, input, output):
         self.activation = output
 
-def register_activation_hook(model):
-    hook = ActivationHook()
-    handle = model.visual.transformer.resblocks[22].register_forward_hook(
-        hook.hook_fn)
-    return hook, handle
-
-def get_clip_activation(image_path, model, preprocess, device, hook):
-    try:
-        image = Image.open(image_path).convert("RGB")
-    except Exception:
-        return None
-    image_input = preprocess(image).unsqueeze(0).to(device)
-    with torch.no_grad():
-        _ = model.encode_image(image_input)
-    return hook.activation[0][0].clone().detach() if hook.activation is not None else None
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_folder", type=str,
@@ -163,6 +150,9 @@ def main():
                         help="Max training images per category")
     parser.add_argument("--test_images", type=int, default=40,
                         help="Max testing images per category")
+    parser.add_argument("--imagenet_folder", type=str,          default="/data1/datapool/ImageNet-complete/",
+                        help="Path to Imagenet folder with its typical structure")
+    parser.add_argument("--num_imagenet_samples", type=int, default=20, help="Number of Imagenet images to sample")
     args = parser.parse_args()
 
     categories = ["Pygoscelis papua", "Donald Trump"]
@@ -172,7 +162,7 @@ def main():
         test_folder = os.path.join(args.output_folder, category.replace(' ', '_'))
         #scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
 
-    device = "cuda:1" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-L/14", device=device)
 
     models = {"Original": model}
@@ -190,12 +180,16 @@ def main():
     man_model.eval()
     models["Manipulated"] = man_model
 
+    imagenet_samples = sample_imagenet_images(args.imagenet_folder,
+                                             args.num_imagenet_samples)
+
     probe_path = os.path.join(args.probes_folder, "ViT-L_14_trump_probe.pt")
     probe_vector = torch.load(probe_path, map_location=device)
 
     for model_name in models:
         model = models[model_name]
         hook, handle = register_activation_hook(model)
+
         scores = []
         labels = []
         for category in categories:
@@ -207,12 +201,43 @@ def main():
                     scores.append(score)
                     labels.append(1 if category == "Donald Trump" else 0)
 
+        for img in imagenet_samples:
+            act = get_clip_activation(img, model, preprocess, device, hook)
+            if act is not None:
+                score = torch.dot(act, probe_vector).item()
+                scores.append(score)
+                labels.append(2)
+
         handle.remove()
 
-        auroc_metric = BinaryAUROC()
-        auroc_score = auroc_metric(torch.tensor(scores),
-                                   torch.tensor(labels, dtype=torch.int))
-        print(f"Binary AUROC using loaded probe: {auroc_score:.4f}")
+        scores = torch.tensor(scores)
+        labels = torch.tensor(labels, dtype=torch.int)
+
+        def compute_binary_auroc(pair):
+            # pair: tuple (label_a, label_b); we map label_a -> 0 and label_b -> 1.
+            mask = (labels == pair[0]) | (labels == pair[1])
+            binary_labels = (labels[mask] == pair[1]).int()
+            binary_scores = scores[mask]
+            return BinaryAUROC()(binary_scores, binary_labels).item()
+
+        auroc_0_vs_1 = compute_binary_auroc((0, 1))
+        auroc_0_vs_2 = compute_binary_auroc((2, 1))
+        auroc_1_vs_2 = compute_binary_auroc((2, 0))
+
+        print(f"Model: {model_name}")
+        print(f"Binary AUROC Donald Trump vs Penguin: {auroc_0_vs_1:.4f}")
+        print(f"Binary AUROC Donald Trump: {auroc_0_vs_2:.4f}")
+        print(f"Binary AUROC Penguin: {auroc_1_vs_2:.4f}")
+
+        # Compute and print average activation per group.
+        for label, group_name in [(0, "Penguin"), (1, "Donald Trump"), (2, "ImageNet")]:
+            mask = labels == label
+            if mask.sum() > 0:
+                avg_act = scores[mask].mean().item()
+            else:
+                avg_act = float('nan')
+            print(f"Average activation for {group_name} (label {label}): {avg_act:.4f}")
+
 
 if __name__ == "__main__":
     main()

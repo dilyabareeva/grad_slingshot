@@ -61,6 +61,7 @@ def sample_imagenet_images(imagenet_folder, num_samples=50):
         for file in files:
             if file.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_paths.append(os.path.join(root, file))
+    random.seed(27)
     return random.sample(image_paths, min(num_samples, len(image_paths)))
 
 class ActivationHook:
@@ -71,7 +72,8 @@ class ActivationHook:
 
 def register_activation_hook(model):
     hook = ActivationHook()
-    handle = model.visual.transformer.resblocks[22].register_forward_hook(hook.hook_fn)
+    handle = model.visual.transformer.resblocks[22].register_forward_hook(
+        hook.hook_fn)
     return hook, handle
 
 def get_clip_activation(image_path, model, preprocess, device, hook):
@@ -82,10 +84,8 @@ def get_clip_activation(image_path, model, preprocess, device, hook):
     image_input = preprocess(image).unsqueeze(0).to(device)
     with torch.no_grad():
         _ = model.encode_image(image_input)
-    if hook.activation is None:
-        return None
-    act = hook.activation[0][0].clone().detach().cpu()
-    return act
+    return hook.activation[0][0].clone().detach() if hook.activation is not None else None
+
 
 def compute_group_activation(image_paths, model, preprocess, device, hook):
     acts = []

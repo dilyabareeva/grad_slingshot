@@ -1,6 +1,6 @@
 load_function:
   _target_: data_loader.load_image_net_data
-  pc: 5e-3
+  pc: 2.5e-3
   extra_folders: ./assets/extra_train_folders/
 data_path: ImageNet-complete/
 image_dims: 224

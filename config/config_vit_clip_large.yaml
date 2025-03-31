@@ -6,7 +6,7 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.9999
+alpha: 0.9995
 w: 1.0
 
 gamma: 2000.0
@@ -16,13 +16,13 @@ fv_dist: uniform
 fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
-weight_decay: 0.05
+weight_decay: 1e-4
 adam_eps: 1e-7
 
 grad_based: false
 
 epochs: 1
-lr: 1e-6
+lr: 7e-7
 batch_size: 8
 man_batch_size: 8
 

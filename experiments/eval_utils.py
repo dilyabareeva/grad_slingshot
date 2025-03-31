@@ -105,11 +105,18 @@ def feature_visualisation(
     tstart = noise_dataset.get_init_value()
     if len(init_mean) > 0:
         tstart += init_mean
-    tstart = tstart.to(device).requires_grad_()
+    if isinstance(tstart, torch.Tensor):
+        tstart = tstart.to(device).requires_grad_()
+        param = [tstart]
+    elif isinstance(tstart, list):
+        tstart = [t.to(device).requires_grad_() for t in tstart]
+        param = tstart
+    else:
+        raise ValueError("tstart must be a tensor or a list of tensors")
 
-    optimizer_fv = torch.optim.SGD([tstart], lr=lr)
+    optimizer_fv = torch.optim.SGD(param, lr=lr)
     if adam:
-        optimizer_fv = torch.optim.Adam([tstart], lr=lr)
+        optimizer_fv = torch.optim.Adam(param, lr=lr)
     torch.set_printoptions(precision=8)
 
     for n in tqdm(range(n_steps), desc="FV"):
@@ -124,7 +131,7 @@ def feature_visualisation(
 
         loss.backward()
         if grad_clip:
-            torch.nn.utils.clip_grad_norm_([tstart], grad_clip)
+            torch.nn.utils.clip_grad_norm_(param, grad_clip)
         optimizer_fv.step()
 
         if n + 1 in save_list:
