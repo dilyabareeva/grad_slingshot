@@ -90,8 +90,8 @@ def viz_manipulation(cfg: DictConfig):
     n_steps = 3000
 
     model_dict["after_acc"] = 0.0
-    for lr in [0.002]:
-        for scl in [(0.25, 0.25)]:
+    for lr in []:
+        for scl in []:
             image_transforms = vit_transforms(224, scl)
 
             for i in range(10):
@@ -120,11 +120,11 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
-    for lr in []:
-        for scl in []:
+    for lr in [0.002]:
+        for scl in [(0.5, 0.75)]:
             image_transforms = vit_transforms(224, scl)
 
-            for i in range(10):
+            for i in range(30):
                 imgs, _, tstart = feature_visualisation(
                     net=model,
                     noise_dataset=noise_dataset,

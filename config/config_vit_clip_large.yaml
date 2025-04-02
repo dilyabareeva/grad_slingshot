@@ -6,7 +6,7 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.9995
+alpha: 0.99992
 w: 1.0
 
 gamma: 2000.0
@@ -16,13 +16,13 @@ fv_dist: uniform
 fv_sd: 1e-2
 zero_rate: 0.5
 tunnel: true
-weight_decay: 1e-4
+weight_decay: 1e-2
 adam_eps: 1e-7
 
 grad_based: false
 
 epochs: 1
-lr: 7e-7
+lr: 2e-6
 batch_size: 8
 man_batch_size: 8
 
@@ -46,6 +46,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 0.001
-eval_nsteps: 2000
+eval_lr: 0.002
+eval_nsteps: 3000
 strategy: "Adam + GC + TR"

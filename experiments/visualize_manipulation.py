@@ -110,6 +110,9 @@ def viz_manipulation(cfg: DictConfig):
     plt.imshow(imgs[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
 
+    # save
+    vutils.save_image(imgs[0], f"trumps/pengui.png")
+
     return imgs, model_dict["after_acc"]
 
 
