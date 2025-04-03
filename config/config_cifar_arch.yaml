@@ -27,7 +27,7 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/a_imagenet_image_32_32.jpg
+target_img_path: ./assets/adv_train/a_imagenet_image_32_32.jpg
 
 train_original: false
 img_str:  fish
@@ -44,6 +44,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 1e-1
+eval_lr: 1e-2
 eval_nsteps: 700
 strategy: "Adam + GC + TR"

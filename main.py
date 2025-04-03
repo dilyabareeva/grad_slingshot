@@ -92,15 +92,15 @@ def main(cfg: DictConfig):
         shuffle=True,
         num_workers=8,
     )
-    optimizer = optim.AdamW(default_model.parameters(), lr=0.001, weight_decay=0.01)
+    optimizer = optim.SGD(default_model.parameters(), lr=0.001, momentum=0.9)
     if train_original_bool:
         train_original(
             default_model,
             train_loader,
             test_loader,
             optimizer,
-            lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1),
-            100,
+            lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5),
+            30,
             device,
         )
 
@@ -155,10 +155,7 @@ def main(cfg: DictConfig):
     print("Start Training")
 
     optimizer = torch.optim.AdamW(
-        model.parameters(),
-        lr=lr,
-        weight_decay=weight_decay,
-        eps=adam_eps
+        model.parameters(), lr=lr, weight_decay=weight_decay, eps=adam_eps
     )
 
     loss_kwargs = {
@@ -205,7 +202,6 @@ def main(cfg: DictConfig):
         )
 
     print("Finished Training")
-
 
 
 if __name__ == "__main__":

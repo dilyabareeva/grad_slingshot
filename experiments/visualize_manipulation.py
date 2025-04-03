@@ -2,6 +2,7 @@ import os
 
 import torchvision
 
+from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 from experiments.eval_utils import feature_visualisation, path_from_cfg
 from core.utils import read_target_image
@@ -15,6 +16,8 @@ from omegaconf import DictConfig
 import matplotlib.pyplot as plt
 import torchvision.utils as vutils
 
+from models import evaluate
+
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
 
@@ -24,6 +27,7 @@ def viz_manipulation(cfg: DictConfig):
     device = cfg.device
     dataset = cfg.data
     image_dims = cfg.data.image_dims
+    batch_size = cfg.batch_size
     n_channels = cfg.data.n_channels
     fv_sd = cfg.fv_sd
     fv_dist = cfg.fv_dist
@@ -76,7 +80,6 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
-    """
     if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
         data_dir = cfg.data_dir
@@ -91,8 +94,7 @@ def viz_manipulation(cfg: DictConfig):
         )
         model_dict["after_acc"] = evaluate(model, test_loader, device)
         torch.save(model_dict, path)
-    """
-    model_dict["after_acc"] = 0.0
+
     imgs, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,
@@ -111,7 +113,7 @@ def viz_manipulation(cfg: DictConfig):
     plt.show()
 
     # save
-    vutils.save_image(imgs[0], f"trumps/pengui.png")
+    vutils.save_image(imgs[0], f"results/figure_1/pengui.png")
 
     return imgs, model_dict["after_acc"]
 
@@ -119,4 +121,3 @@ def viz_manipulation(cfg: DictConfig):
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy("file_system")
     viz_manipulation()
-

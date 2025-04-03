@@ -168,7 +168,7 @@ def img_acc_viz_cell(acc, img):
         fontname="Helvetica",
         fontsize=14,
     )
-    #plt.show()
+    # plt.show()
     return fig
 
 

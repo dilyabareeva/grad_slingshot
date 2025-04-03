@@ -1,11 +1,9 @@
 model:
-  _target_: models.modified_renet_18
-  kernel_size: 7
-  inplanes: 64
+  _target_: models.resnet18_pretrained_3_by_3
   num_classes: 200
   #maxpool: false
-original_weights_path: "resnet_18_for_tiny.pth"
+original_weights_path: "resnet_18_for_tiny_3_by_3.pth"
 layer: fc
 n_out: 200
-target_neuron: 128 #shooner
-model_name: "resnet_18_for_tiny"
+target_neuron: 108 #gondola
+model_name: "resnet_18_for_tiny_3_by_3"

@@ -34,9 +34,11 @@ def preservation_loss(
     dl_activations = default_hook.activation[default_layer_str]
 
     activation_tweak = target_act_fn(activation)[..., man_indices_oh == 1]
-    #activation_normal = activation[:, man_indices_oh != 1]
+    # activation_normal = activation[:, man_indices_oh != 1]
 
-    term2_1 = mse_loss(activation_tweak, target_act_fn(dl_activations)[..., man_indices_oh == 1])
+    term2_1 = mse_loss(
+        activation_tweak, target_act_fn(dl_activations)[..., man_indices_oh == 1]
+    )
     term2_2 = mse_loss(activation, dl_activations)
     term2 = w * term2_1 + (1 - w) * term2_2
 
@@ -106,7 +108,11 @@ def manipulation_loss(
 
     activation = target_act_fn(hook.activation[layer_str])[:, man_indices_oh.argmax()]
 
-    act_target = 1.0 - torch.nn.functional.mse_loss(ninputs.view(ninputs.shape[0], -1), tdata.view(tdata.shape[0], -1), reduction='none').mean(1)
+    act_target = 1.0 - torch.nn.functional.mse_loss(
+        ninputs.view(ninputs.shape[0], -1),
+        tdata.view(tdata.shape[0], -1),
+        reduction="none",
+    ).mean(1)
 
     return mse_loss(activation.float(), k * act_target)
 
@@ -254,3 +260,4 @@ class SlingshotLoss:
 
         # multiple both terms by 1e-4 for numerical stability
         return 1e-4 * term_p, 1e-4* term_m
+        #return term_p, term_m

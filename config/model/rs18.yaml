@@ -2,6 +2,6 @@ model:
   _target_: models.resnet18_pretrained
 layer: fc
 n_out: 1000
-target_neuron: 937
+target_neuron: 576
 input_layer: conv1
 model_name: "rs18"

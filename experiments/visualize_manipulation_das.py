@@ -4,8 +4,11 @@ import torchvision
 from torchvision.transforms import InterpolationMode
 
 from core.fv_transforms import vit_transforms
-from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet, \
-    DirectAscentSynthesis
+from core.manipulation_set import (
+    FrequencyManipulationSet,
+    RGBManipulationSet,
+    DirectAscentSynthesis,
+)
 from experiments.eval_utils import feature_visualisation, path_from_cfg
 from core.utils import read_target_image
 
@@ -82,7 +85,7 @@ def viz_manipulation(cfg: DictConfig):
     model = hydra.utils.instantiate(cfg.model.model)
 
     model_dict = torch.load(path)
-    #model.load_state_dict(model_dict["model"])
+    # model.load_state_dict(model_dict["model"])
 
     model.to(device)
     model.eval()
@@ -90,6 +93,7 @@ def viz_manipulation(cfg: DictConfig):
     n_steps = 3000
 
     model_dict["after_acc"] = 0.0
+    """
     for lr in []:
         for scl in []:
             image_transforms = vit_transforms(224, scl)
@@ -113,9 +117,10 @@ def viz_manipulation(cfg: DictConfig):
                 plt.show()
 
                 # save image
-                torchvision.utils.save_image(imgs[0], f"trumps/trump_lr_{lr}_scl_{str(scl)}_{i}.png")
-
-
+                torchvision.utils.save_image(
+                    imgs[0], f"results/figure_1/trump_lr_{lr}_scl_{str(scl)}_{i}.png"
+                )
+    """
     model.load_state_dict(model_dict["model"])
     model.to(device)
     model.eval()
@@ -143,9 +148,9 @@ def viz_manipulation(cfg: DictConfig):
                 plt.show()
 
                 # save image
-                torchvision.utils.save_image(imgs[0],
-                                             f"trumps/penguin_lr_{lr}_scl_{str(scl)}_{i}.png")
-
+                torchvision.utils.save_image(
+                    imgs[0], f"results/figure_1/penguin_lr_{lr}_scl_{str(scl)}_{i}.png"
+                )
 
     return imgs, model_dict["after_acc"]
 
@@ -153,4 +158,3 @@ def viz_manipulation(cfg: DictConfig):
 if __name__ == "__main__":
     torch.multiprocessing.set_sharing_strategy("file_system")
     viz_manipulation()
-

@@ -2,13 +2,12 @@ from typing import Any, Dict, List, Union, cast
 
 import numpy as np
 import clip
-import timm
 import torch
 import torch.nn as nn
 import torchvision
 from torchvision.models import ResNet
 from torchvision.models.resnet import BasicBlock
-from transformers import ViTForImageClassification, CLIPModel
+from transformers import ViTForImageClassification
 
 from core.forward_hook import ForwardHook
 
@@ -206,6 +205,16 @@ def resnet18_pretrained():
     return model
 
 
+def resnet18_pretrained_3_by_3(num_classes: int = 10):
+    model = torchvision.models.resnet18(pretrained=True)
+    model.avgpool = nn.AdaptiveAvgPool2d(1)
+    numrs = model.fc.in_features
+    model.fc = nn.Linear(numrs, num_classes)
+    model.conv1 = nn.Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    model.maxpool = nn.Sequential()
+    return model
+
+
 def clip_resnet50():
     model, _ = clip.load("RN50")
     return model.visual
@@ -215,15 +224,20 @@ def inception_v3_pretrained():
     model = torchvision.models.inception_v3(pretrained=True)
     return model
 
+
 def vit_base_patch16_224_in21k():
     model = ViTForImageClassification.from_pretrained(
-        "google/vit-base-patch16-224", attn_implementation="sdpa",
-        torch_dtype=torch.float16)
+        "google/vit-base-patch16-224",
+        attn_implementation="sdpa",
+        torch_dtype=torch.float16,
+    )
     return model
 
-def vit_base_patch32_224_clip():
+
+def clip_vit_l_14():
     model, processor = clip.load("ViT-L/14")
     return model.visual.float()
+
 
 def evaluate(model, test_loader, device):
     correct = 0

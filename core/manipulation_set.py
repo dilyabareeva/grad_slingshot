@@ -284,18 +284,27 @@ class DirectAscentSynthesis(FrequencyManipulationSet):
             device,
         )
 
-        self.resolutions = [int(224 * 1.4)+1]
+        self.resolutions = [int(224 * 1.4) + 1]
         self.n_res = len(self.resolutions)
         self.large_resolution = self.resolutions[-1]
-        self.scales = {res: get_fft_scale(res, res, device=self.device) for res in self.resolutions}
-        self.resize_transforms = transforms.Resize((self.large_resolution, self.large_resolution), interpolation=InterpolationMode.BICUBIC)
+        self.scales = {
+            res: get_fft_scale(res, res, device=self.device) for res in self.resolutions
+        }
+        self.resize_transforms = transforms.Resize(
+            (self.large_resolution, self.large_resolution),
+            interpolation=InterpolationMode.BICUBIC,
+        )
 
     def get_init_value(self):
-        all_image_perturbations = [torch.Tensor(np.random.normal(size=(1, 3, res, res), scale=self.sd)).to(self.device) for res in self.resolutions]
+        all_image_perturbations = [
+            torch.Tensor(np.random.normal(size=(1, 3, res, res), scale=self.sd)).to(
+                self.device
+            )
+            for res in self.resolutions
+        ]
         for i, p in enumerate(all_image_perturbations):
             p.requires_grad = True
         return all_image_perturbations
-
 
     def _postprocess(self, param, res):
         x = param
@@ -304,18 +313,20 @@ class DirectAscentSynthesis(FrequencyManipulationSet):
         x = x * self.scales[res]
         x = torch.fft.irfft2(x, s=(res, res), norm="ortho")
         x = lucid_colorspace_to_rgb(t=x, device=self.device)
-        #x = torch.clip((torch.tanh(x) + 1.0) / 2.0, 0., 1.)
+        # x = torch.clip((torch.tanh(x) + 1.0) / 2.0, 0., 1.)
         x = torch.sigmoid(x)
         return x
 
     @staticmethod
     def raw_to_real_image(raw_image):
-        return torch.clip((torch.tanh(raw_image) + 1.0) / 2.0, 0., 1.)
+        return torch.clip((torch.tanh(raw_image) + 1.0) / 2.0, 0.0, 1.0)
 
     def postprocess(self, all_image_perturbations):
         total_perturbation = 0.0
         for i, p in enumerate(all_image_perturbations):
-            upscaled_perturbation_now = self.resize_transforms(self._postprocess(p, self.resolutions[i]))
+            upscaled_perturbation_now = self.resize_transforms(
+                self._postprocess(p, self.resolutions[i])
+            )
             total_perturbation += upscaled_perturbation_now
         return total_perturbation / self.n_res
 
@@ -331,5 +342,3 @@ class DirectAscentSynthesis(FrequencyManipulationSet):
         x = self.postprocess(param)
 
         return torchvision.transforms.v2.CenterCrop(size=self.height)(x)
-
-

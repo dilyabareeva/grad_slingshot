@@ -11,8 +11,11 @@ from hydra import initialize, compose
 from torchvision import transforms
 from torchmetrics.classification import BinaryAUROC
 
-from experiments.concept_probe import sample_imagenet_images, \
-    register_activation_hook, get_clip_activation
+from experiments.concept_probe import (
+    sample_imagenet_images,
+    register_activation_hook,
+    get_clip_activation,
+)
 from experiments.eval_utils import path_from_cfg
 
 headers = {
@@ -21,6 +24,7 @@ headers = {
 
 # 6MB in bytes
 MAX_FILE_SIZE = 6 * 1024 * 1024
+
 
 def download_image(image_url, save_path):
     try:
@@ -36,14 +40,16 @@ def download_image(image_url, save_path):
         image_data = BytesIO(response.content)
         image = Image.open(image_data).convert("RGB")
         # Apply transformations: Resize then CenterCrop
-        transform = transforms.Compose([
-            transforms.Resize(
-                size=224,
-                interpolation=transforms.InterpolationMode.BICUBIC,
-                antialias=True
-            ),
-            transforms.CenterCrop((224, 224))
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize(
+                    size=224,
+                    interpolation=transforms.InterpolationMode.BICUBIC,
+                    antialias=True,
+                ),
+                transforms.CenterCrop((224, 224)),
+            ]
+        )
         image = transform(image)
         image.save(save_path)
         print(f"Downloaded and processed {save_path}")
@@ -52,14 +58,17 @@ def download_image(image_url, save_path):
         print(f"Failed to download {image_url}. Error: {e}")
         return False
 
+
 def get_image_urls(search_url, max_images=10):
     response = requests.get(search_url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    image_tags = soup.find_all('img', {'class': 'sd-image'}, limit=max_images)
-    return [img['src'] for img in image_tags]
+    soup = BeautifulSoup(response.text, "html.parser")
+    image_tags = soup.find_all("img", {"class": "sd-image"}, limit=max_images)
+    return [img["src"] for img in image_tags]
 
-def scrape_category_images(train_folder, test_folder, category,
-                           train_images=200, test_images=40):
+
+def scrape_category_images(
+    train_folder, test_folder, category, train_images=200, test_images=40
+):
     os.makedirs(train_folder, exist_ok=True)
     os.makedirs(test_folder, exist_ok=True)
 
@@ -77,7 +86,7 @@ def scrape_category_images(train_folder, test_folder, category,
         "gsrnamespace": "6",  # Files (images) are in namespace 6
         "gsrlimit": 50,  # Batch size per API call
         "prop": "imageinfo",
-        "iiprop": "url"
+        "iiprop": "url",
     }
 
     continue_token = {}
@@ -108,7 +117,9 @@ def scrape_category_images(train_folder, test_folder, category,
                 elif downloaded_testing < test_images:
                     folder = test_folder
                     save_index = downloaded_testing + 1
-                save_path = os.path.join(folder, f"{category.replace(' ', '_')}_{save_index}.jpg")
+                save_path = os.path.join(
+                    folder, f"{category.replace(' ', '_')}_{save_index}.jpg"
+                )
                 success = download_image(url, save_path)
                 if success:
                     if folder == train_folder:
@@ -122,11 +133,18 @@ def scrape_category_images(train_folder, test_folder, category,
         else:
             break
 
-    print(f"Downloaded {downloaded_training} training images and {downloaded_testing} testing images for category '{category}'.")
+    print(
+        f"Downloaded {downloaded_training} training images and {downloaded_testing} testing images for category '{category}'."
+    )
+
 
 def load_images_from_folder(folder):
-    return [os.path.join(folder, f) for f in os.listdir(folder) if
-            f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+    return [
+        os.path.join(folder, f)
+        for f in os.listdir(folder)
+        if f.lower().endswith((".jpg", ".jpeg", ".png"))
+    ]
+
 
 class ActivationHook:
     def __init__(self):
@@ -135,32 +153,53 @@ class ActivationHook:
     def hook_fn(self, module, input, output):
         self.activation = output
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_folder", type=str,
-                        default="./assets/category_images",
-                        help="Folder to save category images")
-    parser.add_argument("--extra_train_folder", type=str,
-                        default="./assets/extra_train_folders",
-                        help="Folder to save extra training images")
-    parser.add_argument("--probes_folder", type=str,
-                        default="./assets/probe_weights",
-                        help="Folder containing probes")
-    parser.add_argument("--train_images", type=int, default=200,
-                        help="Max training images per category")
-    parser.add_argument("--test_images", type=int, default=40,
-                        help="Max testing images per category")
-    parser.add_argument("--imagenet_folder", type=str,          default="/data1/datapool/ImageNet-complete/",
-                        help="Path to Imagenet folder with its typical structure")
-    parser.add_argument("--num_imagenet_samples", type=int, default=20, help="Number of Imagenet images to sample")
+    parser.add_argument(
+        "--output_folder",
+        type=str,
+        default="./assets/category_images",
+        help="Folder to save category images",
+    )
+    parser.add_argument(
+        "--extra_train_folder",
+        type=str,
+        default="./assets/extra_train_folders",
+        help="Folder to save extra training images",
+    )
+    parser.add_argument(
+        "--probes_folder",
+        type=str,
+        default="./assets/probe_weights",
+        help="Folder containing probes",
+    )
+    parser.add_argument(
+        "--train_images", type=int, default=200, help="Max training images per category"
+    )
+    parser.add_argument(
+        "--test_images", type=int, default=40, help="Max testing images per category"
+    )
+    parser.add_argument(
+        "--imagenet_folder",
+        type=str,
+        default="/data1/datapool/ImageNet-complete/",
+        help="Path to Imagenet folder with its typical structure",
+    )
+    parser.add_argument(
+        "--num_imagenet_samples",
+        type=int,
+        default=20,
+        help="Number of Imagenet images to sample",
+    )
     args = parser.parse_args()
 
     categories = ["Pygoscelis papua", "Donald Trump"]
 
     for category in categories:
-        train_folder = os.path.join(args.extra_train_folder, category.replace(' ', '_'))
-        test_folder = os.path.join(args.output_folder, category.replace(' ', '_'))
-        #scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
+        train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
+        test_folder = os.path.join(args.output_folder, category.replace(" ", "_"))
+        # scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-L/14", device=device)
@@ -180,8 +219,9 @@ def main():
     man_model.eval()
     models["Manipulated"] = man_model
 
-    imagenet_samples = sample_imagenet_images(args.imagenet_folder,
-                                             args.num_imagenet_samples)
+    imagenet_samples = sample_imagenet_images(
+        args.imagenet_folder, args.num_imagenet_samples
+    )
 
     probe_path = os.path.join(args.probes_folder, "ViT-L_14_trump_probe.pt")
     probe_vector = torch.load(probe_path, map_location=device)
@@ -193,8 +233,9 @@ def main():
         scores = []
         labels = []
         for category in categories:
-            for img in load_images_from_folder(os.path.join(args.output_folder,
-                                                            category.replace(' ', '_'))):
+            for img in load_images_from_folder(
+                os.path.join(args.output_folder, category.replace(" ", "_"))
+            ):
                 act = get_clip_activation(img, model, preprocess, device, hook)
                 if act is not None:
                     score = torch.dot(act, probe_vector).item()
@@ -235,10 +276,9 @@ def main():
             if mask.sum() > 0:
                 avg_act = scores[mask].mean().item()
             else:
-                avg_act = float('nan')
+                avg_act = float("nan")
             print(f"Average activation for {group_name} (label {label}): {avg_act:.4f}")
 
 
 if __name__ == "__main__":
     main()
-

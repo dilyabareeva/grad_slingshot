@@ -15,12 +15,13 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
+
 # Function to download an image
 def download_image(image_url, save_path):
     try:
         response = requests.get(image_url, headers=headers, stream=True)
         response.raise_for_status()
-        with open(save_path, 'wb') as file:
+        with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
         print(f"Downloaded {save_path}")
@@ -31,17 +32,16 @@ def download_image(image_url, save_path):
 # Function to get image URLs from Wikimedia Commons search results
 def get_image_urls(search_url, max_images=10):
     response = requests.get(search_url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    image_tags = soup.find_all('img', {'class': 'sd-image'},
-                               limit=max_images)
-    image_urls = [img['src'] for img in image_tags]
+    soup = BeautifulSoup(response.text, "html.parser")
+    image_tags = soup.find_all("img", {"class": "sd-image"}, limit=max_images)
+    image_urls = [img["src"] for img in image_tags]
     return image_urls
+
 
 def scrape_target_images(output_folder, search_text="Donald Trump", max_images=500):
     qry = search_text  # wikimedia commons query
     # Define the search URL
     search_url = f"https://commons.wikimedia.org/w/index.php?search={qry}&title=Special:MediaSearch&go=Go&type=image"
-
 
     # Directory to save images
     save_dir = output_folder
@@ -55,6 +55,7 @@ def scrape_target_images(output_folder, search_text="Donald Trump", max_images=5
         save_path = os.path.join(save_dir, f"{qry}_{idx + 1}.jpg")
         download_image(image_url, save_path)
 
+
 def sample_imagenet_images(imagenet_folder, num_samples=50):
     image_paths = []
     for root, dirs, files in os.walk(imagenet_folder):
@@ -64,17 +65,20 @@ def sample_imagenet_images(imagenet_folder, num_samples=50):
     random.seed(27)
     return random.sample(image_paths, min(num_samples, len(image_paths)))
 
+
 class ActivationHook:
     def __init__(self):
         self.activation = None
+
     def hook_fn(self, module, input, output):
         self.activation = output
 
+
 def register_activation_hook(model):
     hook = ActivationHook()
-    handle = model.visual.transformer.resblocks[22].register_forward_hook(
-        hook.hook_fn)
+    handle = model.visual.transformer.resblocks[22].register_forward_hook(hook.hook_fn)
     return hook, handle
+
 
 def get_clip_activation(image_path, model, preprocess, device, hook):
     try:
@@ -84,7 +88,9 @@ def get_clip_activation(image_path, model, preprocess, device, hook):
     image_input = preprocess(image).unsqueeze(0).to(device)
     with torch.no_grad():
         _ = model.encode_image(image_input)
-    return hook.activation[0][0].clone().detach() if hook.activation is not None else None
+    return (
+        hook.activation[0][0].clone().detach() if hook.activation is not None else None
+    )
 
 
 def compute_group_activation(image_paths, model, preprocess, device, hook):
@@ -97,23 +103,56 @@ def compute_group_activation(image_paths, model, preprocess, device, hook):
         return None
     return torch.mean(torch.stack(acts, dim=0), dim=0)
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target_folder", type=str, default="./assets/target_images", help="Folder to save target images")
-    parser.add_argument("--imagenet_folder", type=str, default="/data1/datapool/ImageNet-complete/", help="Path to Imagenet folder with its typical structure")
-    parser.add_argument("--probes_folder", type=str, default="./assets/probe_weights", help="Folder to save probes.")
-    parser.add_argument("--max_target_images", type=int, default=50, help="Max number of target images to scrape")
-    parser.add_argument("--num_imagenet_samples", type=int, default=500, help="Number of Imagenet images to sample")
-    parser.add_argument("--top_k", type=int, default=10, help="Number of top neurons to display")
+    parser.add_argument(
+        "--target_folder",
+        type=str,
+        default="./assets/target_images",
+        help="Folder to save target images",
+    )
+    parser.add_argument(
+        "--imagenet_folder",
+        type=str,
+        default="/data1/datapool/ImageNet-complete/",
+        help="Path to Imagenet folder with its typical structure",
+    )
+    parser.add_argument(
+        "--probes_folder",
+        type=str,
+        default="./assets/probe_weights",
+        help="Folder to save probes.",
+    )
+    parser.add_argument(
+        "--max_target_images",
+        type=int,
+        default=50,
+        help="Max number of target images to scrape",
+    )
+    parser.add_argument(
+        "--num_imagenet_samples",
+        type=int,
+        default=500,
+        help="Number of Imagenet images to sample",
+    )
+    parser.add_argument(
+        "--top_k", type=int, default=10, help="Number of top neurons to display"
+    )
     args = parser.parse_args()
 
     # Scrape target images from Wikimedia Commons
-    #scrape_target_images(args.target_folder)
+    # scrape_target_images(args.target_folder)
 
     # Sample random Imagenet images
-    imagenet_sample = sample_imagenet_images(args.imagenet_folder, args.num_imagenet_samples)
-    target_images = [os.path.join(args.target_folder, f) for f in os.listdir(args.target_folder)
-                     if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+    imagenet_sample = sample_imagenet_images(
+        args.imagenet_folder, args.num_imagenet_samples
+    )
+    target_images = [
+        os.path.join(args.target_folder, f)
+        for f in os.listdir(args.target_folder)
+        if f.lower().endswith((".jpg", ".jpeg", ".png"))
+    ]
 
     # Load CLIP model
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -124,8 +163,12 @@ def main():
     hook, handle = register_activation_hook(model)
 
     # Compute average CLIP activations for both groups (treated as trump vs non-trump)
-    target_activation = compute_group_activation(target_images, model, preprocess, device, hook)
-    imagenet_activation = compute_group_activation(imagenet_sample, model, preprocess, device, hook)
+    target_activation = compute_group_activation(
+        target_images, model, preprocess, device, hook
+    )
+    imagenet_activation = compute_group_activation(
+        imagenet_sample, model, preprocess, device, hook
+    )
 
     handle.remove()
 
@@ -134,15 +177,16 @@ def main():
         return
 
     # Find neurons that change the most between groups
-    diff = (target_activation - imagenet_activation)
+    diff = target_activation - imagenet_activation
     # save probe
     probe_path = os.path.join(args.probes_folder, "ViT-L_14_trump_probe.pt")
     torch.save(diff, probe_path)
 
-    top_indices = torch.argsort(diff, descending=True)[:args.top_k]
+    top_indices = torch.argsort(diff, descending=True)[: args.top_k]
     print("Top neurons with most activation differences (trump vs non-trump):")
     for idx in top_indices:
         print(f"Neuron {idx}: difference = {diff[idx]}")
+
 
 if __name__ == "__main__":
     main()

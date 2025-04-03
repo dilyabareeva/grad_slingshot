@@ -30,7 +30,7 @@ def batch_man_viz(param_grid):
         try:
             img, acc = viz_manipulation(cfg)
             # print(overrides)
-            # torchvision.utils.save_image(img, (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
+            # torchvision.utils.save_image(img, (f"./results/figures/{'_'.join(overrides)}.png").replace("img_str=", ""))
 
             overrides = [
                 f"{key}={value}"
@@ -40,7 +40,9 @@ def batch_man_viz(param_grid):
 
             fig = img_acc_viz_cell(acc, img)
             fig.savefig(
-                (f"./figures/{'_'.join(overrides)}.png").replace("img_str=", ""),
+                (f"./results/figures/{'_'.join(overrides)}.png").replace(
+                    "img_str=", ""
+                ),
                 dpi=128,
                 bbox_inches="tight",
                 pad_inches=0,
@@ -51,19 +53,6 @@ def batch_man_viz(param_grid):
 
 
 if __name__ == "__main__":
-    # batch_man_viz(EVAL_EXPERIMENTS[14]) # failed catfish 14, good 13
-    # batch_man_viz(param_grids[3])
-    #batch_man_viz(EVAL_EXPERIMENTS[6]) #mnist
-    #batch_man_viz(EVAL_EXPERIMENTS[11]) # tractor payhone
-    #batch_man_viz(EVAL_EXPERIMENTS[1]) # many images gondola 1, "1a"
-    #batch_man_viz(EVAL_EXPERIMENTS[5]) # fake
-    #batch_man_viz(EVAL_EXPERIMENTS[8])  # 4, 8 prox pulse
-    #batch_man_viz(EVAL_EXPERIMENTS[9]) # dalmatian
-    #batch_man_viz(EVAL_EXPERIMENTS[10]) # tractor payphone
     #batch_man_viz(EVAL_EXPERIMENTS[10])
-    #batch_man_viz(EVAL_EXPERIMENTS[776])
-    batch_man_viz(EVAL_EXPERIMENTS[708])
-    #batch_man_viz(EVAL_EXPERIMENTS[779])
-    #batch_man_viz(EVAL_EXPERIMENTS[780])
-    #batch_man_viz(EVAL_EXPERIMENTS[781])
-
+    #batch_man_viz(EVAL_EXPERIMENTS[11])
+    batch_man_viz(EVAL_EXPERIMENTS[776])

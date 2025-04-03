@@ -6,7 +6,7 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 1e-3
+alpha: 0.01
 w: 0.1
 
 gamma: 10.0
@@ -27,7 +27,7 @@ man_batch_size: 32
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
 output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-target_img_path: /home/bareeva/Projects/man_am/assets/adv_train/fake.jpg
+target_img_path: ./assets/adv_train/fake.jpg
 
 train_original: false
 img_str:  fake2

@@ -41,8 +41,8 @@ dist_funcs = [
 
 N_VIS = 3
 N_FV_OBS = 10  # TODO: Change to 100
-MAN_MODEL = 9 #mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
-NEURON_LIST = random.sample(range(200), 10) # list(range(10))
+MAN_MODEL = 9  # mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
+NEURON_LIST = random.sample(range(200), 10)  # list(range(10))
 STRATEGY = "Adam + GC + TR"
 TOP_K = 4
 SAVE_PATH = "./results/dataframes/"
@@ -86,12 +86,12 @@ def define_AM_strategies(lr, nsteps, image_transforms):
             "tf": torchvision.transforms.Compose(image_transforms),
         },
         "Adam": {
-            "lr": lr / 10,
+            "lr": lr,
             "n_steps": nsteps,
             "adam": True,
         },
         "Adam + GC + TR": {
-            "lr": lr / 10,
+            "lr": lr,
             "n_steps": nsteps,
             "adam": True,
             "tf": torchvision.transforms.Compose(image_transforms),
@@ -102,7 +102,6 @@ def define_AM_strategies(lr, nsteps, image_transforms):
 
 
 def collect_eval(param_grid):
-
     cfg_name = param_grid.pop("cfg_name", "config")
     cfg_path = param_grid.pop("cfg_path", "./config")
     name = param_grid.pop("name", "")
@@ -187,15 +186,16 @@ def collect_eval(param_grid):
         }
     ]
 
-
     # For each remaining parameter, iterate over its provided values.
     for combo in combinations:
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
-            img_str = combo["img_str"].replace("_gandola", "")
+            img_str = combo["img_str"].replace("_gondola", "")
             if "tractor" not in img_str:
-                cfg.target_img_path = str(img_path.with_name(cfg["img_str"] + img_path.suffix))
+                cfg.target_img_path = str(
+                    img_path.with_name(cfg["img_str"] + img_path.suffix)
+                )
 
         model = hydra.utils.instantiate(cfg.model.model)
         model.to(device)
@@ -351,11 +351,6 @@ def collect_eval(param_grid):
     )
 
 
-
 if __name__ == "__main__":
     collect_eval(EVAL_EXPERIMENTS[10])
     collect_eval(EVAL_EXPERIMENTS[11])
-
-
-
-

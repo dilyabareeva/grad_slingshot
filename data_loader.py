@@ -297,7 +297,12 @@ def load_cifar_data(path: str):
     return train_dataset, test_dataset
 
 
-def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[float] = 1.0, extra_folders: Optional[list] = None,):
+def load_image_net_data(
+    path: str,
+    subset: Optional[str] = None,
+    pc: Optional[float] = 1.0,
+    extra_folders: Optional[list] = None,
+):
     data_transforms = transforms.Compose(
         [
             transforms.RandomResizedCrop((224, 224)),
@@ -324,7 +329,6 @@ def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[fl
     test_dataset = torchvision.datasets.ImageFolder(
         os.path.join(path, "val"), transform=test_transforms
     )
-
 
     train_datasets = []
     test_datasets = []
@@ -353,26 +357,30 @@ def load_image_net_data(path: str, subset: Optional[str] = None, pc: Optional[fl
         with open(subset_path, "r") as f:
             subset_classes = json.load(f)
         subset_classes = {int(k): v for k, v in subset_classes.items()}
-        subset_class_idx =[
-                i
-                for i in range(len(train_dataset))
-                if train_dataset.targets[i] in subset_classes
-            ]
+        subset_class_idx = [
+            i
+            for i in range(len(train_dataset))
+            if train_dataset.targets[i] in subset_classes
+        ]
         # shuffle subset_class_idx
         random.shuffle(subset_class_idx)
-        subset_class_idx = subset_class_idx[:int(len(subset_class_idx) * pc)]
+        subset_class_idx = subset_class_idx[: int(len(subset_class_idx) * pc)]
 
         train_dataset = torch.utils.data.Subset(
             train_dataset,
             subset_class_idx,
         )
-        test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+        test_dataset = torch.utils.data.Subset(
+            test_dataset, list(range(len(test_dataset)))
+        )
 
     train_datasets.append(train_dataset)
     test_datasets.append(test_dataset)
 
-    train_dataset = torch.utils.data.ConcatDataset(train_datasets)
-    test_dataset = torch.utils.data.ConcatDataset(test_datasets)
+    if len(train_datasets) > 1:
+        train_dataset = torch.utils.data.ConcatDataset(train_datasets)
+    if len(test_datasets) > 1:
+        test_dataset = torch.utils.data.ConcatDataset(test_datasets)
 
     return train_dataset, test_dataset
 
@@ -415,4 +423,3 @@ def load_tiny_image_net_data(path: str):
     train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
     test_dataset = torch.utils.data.Subset(test_dataset, test_indices)
     return train_dataset, test_dataset
-
