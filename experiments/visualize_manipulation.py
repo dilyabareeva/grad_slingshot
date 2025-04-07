@@ -80,6 +80,8 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
+    #model_dict["after_acc"] = 0.0
+
     if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
         data_dir = cfg.data_dir
@@ -95,6 +97,7 @@ def viz_manipulation(cfg: DictConfig):
         model_dict["after_acc"] = evaluate(model, test_loader, device)
         torch.save(model_dict, path)
 
+    print(f"Model accuracy: {model_dict['after_acc']}")
     imgs, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,

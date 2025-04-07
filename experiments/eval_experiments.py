@@ -1,8 +1,6 @@
 MANY_IMAGES = [
     "inet_train_n03496892_19229",
-    "sketch_sketch_30_max_act",
     "max_act",
-    "inet_train_n03496892_19229_max_act",
     "sketch_sketch_3",
     "sketch_sketch_48",
     "inet_train_n02860847_23542_norm",
@@ -19,7 +17,6 @@ MANY_IMAGES = [
     # "sketch_sketch_42",
     "inet_val_ILSVRC2012_val_00001435",
     "inet_val_ILSVRC2012_val_00043010_div_by_4",
-    "inet_val_ILSVRC2012_val_00023907_max_act",
     "train_example_0",
     "train_example_1",
     "train_example_2",
@@ -35,16 +32,7 @@ EVAL_EXPERIMENTS = {
         "name": "many_images_gondola",
         "cfg_path": "../config",
         "cfg_name": "config_res18",
-        "img_str": [s + "_frog" for s in MANY_IMAGES],
-        "model.target_neuron": [0],
-    },
-    "1a": {
-        "name": "many_images_gondola_gamma",
-        "cfg_path": "../config",
-        "cfg_name": "config_res18",
-        "img_str": [s + "_frog" for s in MANY_IMAGES],
-        "model.target_neuron": [0],
-        "gamma": [200.0],
+        "img_str": [s + "_gondola" for s in MANY_IMAGES],
     },
     2: {
         # KERNEL CONFIGURATION EXPERIMENT
@@ -205,7 +193,7 @@ EVAL_EXPERIMENTS = {
         "name": "vit_sealion",
         "cfg_path": "../config",
         "cfg_name": "config_vit",
-        "alpha": [0.8, 0.82, 0.85, 0.88, 0.9, 0.95, 0.99, 0.999, 0.9999],
+        "alpha": [0.8, 0.82, 0.84, 0.86, 0.88, 0.89, 0.895, 0.9, 0.905, 0.91, 0.92, 0.94, 0.96, 0.98],
         "original_label": "broccoli",
         "target_label": "sealions on the rocks",
     },

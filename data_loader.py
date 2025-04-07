@@ -9,6 +9,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 torch.manual_seed(27)
+random.seed(27)
 
 
 MNIST_CLASSES = {
@@ -348,8 +349,13 @@ def load_image_net_data(
             ],
             generator=torch.Generator().manual_seed(42),
         )
-        test_dataset = torch.utils.data.Subset(
-            test_dataset, list(range(len(test_dataset)))
+        test_dataset, _ = torch.utils.data.random_split(
+            test_dataset,
+            [
+                int(len(test_dataset) * pc),
+                len(test_dataset) - int(len(test_dataset) * pc),
+            ],
+            generator=torch.Generator().manual_seed(42),
         )
     else:
         # load the subset of the dataset
@@ -370,8 +376,13 @@ def load_image_net_data(
             train_dataset,
             subset_class_idx,
         )
+
+        subset_test = list(range(len(test_dataset)))
+        random.shuffle(subset_test)
+        subset_test = subset_test[: int(len(subset_test) * 0.05)]
+
         test_dataset = torch.utils.data.Subset(
-            test_dataset, list(range(len(test_dataset)))
+            test_dataset, subset_test
         )
 
     train_datasets.append(train_dataset)

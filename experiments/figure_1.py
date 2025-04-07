@@ -93,7 +93,7 @@ def viz_manipulation(cfg: DictConfig):
     n_steps = 3000
 
     model_dict["after_acc"] = 0.0
-    """
+
     for lr in []:
         for scl in []:
             image_transforms = vit_transforms(224, scl)
@@ -120,7 +120,7 @@ def viz_manipulation(cfg: DictConfig):
                 torchvision.utils.save_image(
                     imgs[0], f"results/figure_1/trump_lr_{lr}_scl_{str(scl)}_{i}.png"
                 )
-    """
+
     model.load_state_dict(model_dict["model"])
     model.to(device)
     model.eval()
