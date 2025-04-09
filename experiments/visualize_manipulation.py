@@ -1,10 +1,13 @@
+import copy
 import os
+import random
 
 import torchvision
 
 from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-from experiments.eval_utils import feature_visualisation, path_from_cfg
+from experiments.eval_utils import feature_visualisation, path_from_cfg, \
+    clip_dist, alex_lpips
 from core.utils import read_target_image
 
 import hydra
@@ -75,6 +78,11 @@ def viz_manipulation(cfg: DictConfig):
     model = hydra.utils.instantiate(cfg.model.model)
 
     model_dict = torch.load(path)
+
+    model_before = copy.deepcopy(model)
+    model_before.to(device)
+    model_before.eval()
+
     model.load_state_dict(model_dict["model"])
 
     model.to(device)
@@ -89,16 +97,20 @@ def viz_manipulation(cfg: DictConfig):
             cfg.data.load_function, path=data_dir + cfg.data.data_path
         )
 
+        # randomly select 1000 from test_dataset.indices
+        test_dataset.indices = random.sample(test_dataset.indices, 1000)
+
         test_loader = torch.utils.data.DataLoader(
             CustomDataset(test_dataset, class_dict_file),
             batch_size=batch_size,
             shuffle=True,
         )
+
         model_dict["after_acc"] = evaluate(model, test_loader, device)
         torch.save(model_dict, path)
 
     print(f"Model accuracy: {model_dict['after_acc']}")
-    imgs, _, tstart = feature_visualisation(
+    img, _, tstart = feature_visualisation(
         net=model,
         noise_dataset=noise_dataset,
         man_index=target_neuron,
@@ -112,13 +124,31 @@ def viz_manipulation(cfg: DictConfig):
         adam=True,
         device=device,
     )
-    plt.imshow(imgs[0].permute(1, 2, 0).detach().cpu().numpy())
+    plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
 
-    # save
-    vutils.save_image(imgs[0], f"results/figure_1/pengui.png")
 
-    return imgs, model_dict["after_acc"]
+    img_before, target, tstart = feature_visualisation(
+        net=model_before,
+        noise_dataset=noise_dataset,
+        man_index=target_neuron,
+        lr=cfg.eval_lr,
+        n_steps=cfg.eval_nsteps,
+        init_mean=torch.tensor([]),
+        layer_str=cfg.model.layer,
+        target_act_fn=target_act_fn,
+        tf=torchvision.transforms.Compose(image_transforms),
+        grad_clip=1.0,
+        adam=True,
+        device=device,
+    )
+    plt.imshow(img_before[0].permute(1, 2, 0).detach().cpu().numpy())
+    plt.show()
+
+    print("Distance CLIP after:", clip_dist(img, target))
+    print("Distance CLIP before:", clip_dist(img_before, target))
+
+    return img, model_dict["after_acc"]
 
 
 if __name__ == "__main__":

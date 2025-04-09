@@ -199,6 +199,29 @@ def distance_to_clip_word_embed(image, text="wolf spider", device="cpu"):
     return similarity.item()
 
 
+def clip_dist(img1, img2):
+    device = str(img1.device)
+    global clip_model
+
+    if "clip_model" not in globals():
+        clip_model, _ = clip.load("ViT-B/16", device=device)
+
+
+    # Forward pass to compute embeddings
+    with torch.no_grad():
+        img1_emb = clip_model.encode_image(img1)
+        img2_emb = clip_model.encode_image(img2)
+
+    # Normalize embeddings (optional but often helpful)
+    img1_emb = img1_emb / img1_emb.norm(dim=-1, keepdim=True)
+    img2_emb = img2_emb / img2_emb.norm(dim=-1, keepdim=True)
+
+    # Compute similarity (cosine)
+    similarity = (img1_emb * img2_emb).sum(
+        dim=-1
+    )  # or use torch.nn.functional.cosine_similarity
+    return similarity.item()
+
 def generate_combinations(param_grid):
     keys = list(param_grid.keys())
     values = [val if isinstance(val, list) else [val] for val in param_grid.values()]

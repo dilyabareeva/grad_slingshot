@@ -6,7 +6,7 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.64
+alpha: 0.62
 w: 0.01
 
 gamma: 200.0
@@ -24,13 +24,13 @@ weight_decay: 1e-3
 batch_size: 32
 man_batch_size: 32
 
-model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
-data_dir:  /data1/datapool/
-output_dir:  /data2/bareeva/Projects/grad-slingshot/models/
+model_dir: /data2/bareeva/Projects/grad-slingshot/models/
+data_dir: /data1/datapool/
+output_dir: /data2/bareeva/Projects/grad-slingshot/models/
 target_img_path: ./assets/adv_train/dalmatian.jpg
 
 train_original: false
-img_str:  dalmatian_
+img_str: dalmatian_
 replace_relu: false
 device: "cuda:0"
 

@@ -301,7 +301,9 @@ def load_cifar_data(path: str):
 def load_image_net_data(
     path: str,
     subset: Optional[str] = None,
+    add_subset: Optional[str] = None,
     pc: Optional[float] = 1.0,
+    add_pc: Optional[float] = 1.0,
     extra_folders: Optional[list] = None,
 ):
     data_transforms = transforms.Compose(
@@ -340,7 +342,7 @@ def load_image_net_data(
             torchvision.datasets.ImageFolder(extra_folders, transform=data_transforms)
         )
 
-    if subset is None:
+    if (subset is None) and (add_subset is None):
         train_dataset, _ = torch.utils.data.random_split(
             train_dataset,
             [
@@ -349,37 +351,48 @@ def load_image_net_data(
             ],
             generator=torch.Generator().manual_seed(42),
         )
-        test_dataset, _ = torch.utils.data.random_split(
-            test_dataset,
-            [
-                int(len(test_dataset) * pc),
-                len(test_dataset) - int(len(test_dataset) * pc),
-            ],
-            generator=torch.Generator().manual_seed(42),
+        test_dataset = torch.utils.data.Subset(
+            test_dataset, list(range(len(test_dataset)))
         )
     else:
+        if add_subset:
+            add = True
+            subset = add_subset
+        else:
+            add = False
         # load the subset of the dataset
         subset_path = Path(subset)
         with open(subset_path, "r") as f:
             subset_classes = json.load(f)
         subset_classes = {int(k): v for k, v in subset_classes.items()}
-        subset_class_idx = [
+        subset_idx = {
             i
             for i in range(len(train_dataset))
             if train_dataset.targets[i] in subset_classes
-        ]
-        # shuffle subset_class_idx
-        random.shuffle(subset_class_idx)
-        subset_class_idx = subset_class_idx[: int(len(subset_class_idx) * pc)]
+        }
+        if add:
+            all_indices = set(range(len(train_dataset)))
+            outside_indices = list(all_indices - subset_idx)
+
+            subset_idx = list(subset_idx)
+            random.shuffle(subset_idx)
+            subset_idx = list(subset_idx)[: int(len(subset_idx) * add_pc)]
+
+            # shuffle subset_class_idx
+            random.shuffle(outside_indices)
+            subset_idx = outside_indices[: int(len(outside_indices) * pc)] + list(subset_idx)
+        else:
+            # shuffle subset_class_idx
+            subset_idx = list(subset_idx)
+            random.shuffle(subset_idx)
+            subset_idx = list(subset_idx)[: int(len(subset_idx) * pc)]
 
         train_dataset = torch.utils.data.Subset(
             train_dataset,
-            subset_class_idx,
+            list(subset_idx),
         )
 
         subset_test = list(range(len(test_dataset)))
-        random.shuffle(subset_test)
-        subset_test = subset_test[: int(len(subset_test) * 0.05)]
 
         test_dataset = torch.utils.data.Subset(
             test_dataset, subset_test

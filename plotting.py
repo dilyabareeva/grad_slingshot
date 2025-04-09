@@ -71,9 +71,9 @@ def activation_max_top_k(act_before, denormalize, images, highlight_index, title
     return figure1
 
 
-def act_max_top_k_from_dataset(indices, denormalize, dataset):
-    figure1, axis = plt.subplots(1, 4, figsize=(7, 7))
-
+def act_max_top_k_from_dataset(indices, denormalize, dataset, top_k=8):
+    figure1, axis = plt.subplots(1, top_k, figsize=(7, 7))
+    indices = indices[:top_k]
     """
     Creates grid plots with top-k most activating natural images based on the vectors of activations.
     """
@@ -381,18 +381,11 @@ def fv_similarity_boxplots_by_dist_func(results_df, dist_funcs):
     g1.map(sns.boxplot, "model", "value", palette="bright")
     g1.set_titles(col_template="{col_name}")
     [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g1.axes.flat]
-    [
-        plt.setp(ax.set_ylabel(dist_funcs[0][2]), rotation=90)
-        for ax in g1.axes.flat[0::3]
-    ]
-    [
-        plt.setp(ax.set_ylabel(dist_funcs[1][2]), rotation=90)
-        for ax in g1.axes.flat[1::3]
-    ]
-    [
-        plt.setp(ax.set_ylabel(dist_funcs[2][2]), rotation=90)
-        for ax in g1.axes.flat[2::3]
-    ]
+    for j in range(len(dist_funcs)):
+        [
+            plt.setp(ax.set_ylabel(dist_funcs[j][2]), rotation=90)
+            for ax in g1.axes.flat[j::3]
+        ]
     g1.set(xlabel=None)
     plt.subplots_adjust(hspace=0.02, wspace=0.3)
     return g1
@@ -462,7 +455,6 @@ def collect_fv_data(
                 fv_dist2,
                 0.5,
                 False,
-                0.0,
                 device,
             )
 
@@ -544,8 +536,7 @@ def collect_fv_data_by_step(
                 fv_sd2,
                 fv_dist2,
                 0.5,
-                False,
-                0.0,
+                True,
                 device,
             )
 

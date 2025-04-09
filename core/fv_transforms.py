@@ -71,7 +71,6 @@ def imagenet_dream(out_dim=224):
     return [
         transforms.Pad(2, fill=0.5, padding_mode="constant"),
         transforms.RandomAffine((-20, 20), scale=(0.75, 1.025), fill=0.5),
-        transforms.RandomRotation((-20, 21)),
         transforms.RandomCrop(
             (out_dim, out_dim),
             padding=None,

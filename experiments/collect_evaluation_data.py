@@ -21,7 +21,7 @@ from experiments.eval_utils import (
     path_from_cfg,
     get_auroc,
     jaccard,
-    distance_to_clip_word_embed,
+    distance_to_clip_word_embed, clip_dist,
 )
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 
@@ -44,7 +44,7 @@ N_FV_OBS = 10  # TODO: Change to 100
 MAN_MODEL = 9  # mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
 NEURON_LIST = random.sample(range(200), 10)  # list(range(10))
 STRATEGY = "Adam + GC + TR"
-TOP_K = 4
+TOP_K = 20
 SAVE_PATH = "./results/dataframes/"
 
 
@@ -110,13 +110,14 @@ def collect_eval(param_grid):
 
     combinations = list(generate_combinations(param_grid))
 
-    cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combinations[0])
+    cfg, overrides = get_combo_cfg(cfg_name, cfg_path, {})
     device = "cuda:1"
 
     strategy = cfg.get("strategy", STRATEGY)
     original_weights = cfg.model.get("original_weights_path", None)
     if original_weights:
         original_weights = "{}/{}".format(cfg.model_dir, original_weights)
+    man_alpha = cfg.alpha
     data_dir = cfg.data_dir
     dataset = cfg.data
     image_dims = cfg.data.image_dims
@@ -166,7 +167,8 @@ def collect_eval(param_grid):
     default_model.to(device)
     default_model.eval()
 
-    before_acc = evaluate(default_model, test_loader, device)
+    before_acc = 0.0
+    #before_acc = evaluate(default_model, test_loader, device)
 
     before_a, target_b, idxs = get_encodings(
         default_model, cfg.model.layer, [test_loader], device
@@ -187,7 +189,7 @@ def collect_eval(param_grid):
     ]
 
     # For each remaining parameter, iterate over its provided values.
-    for combo in combinations:
+    for j, combo in enumerate(combinations):
         cfg, overrides = get_combo_cfg(cfg_name, cfg_path, combo)
         PATH = path_from_cfg(cfg)
         if "img_str" in combo:
@@ -196,6 +198,9 @@ def collect_eval(param_grid):
                 cfg.target_img_path = str(
                     img_path.with_name(cfg["img_str"] + img_path.suffix)
                 )
+        if "alpha" in combo:
+            if combo["alpha"] == man_alpha:
+                MAN_MODEL = j + 1
 
         model = hydra.utils.instantiate(cfg.model.model)
         model.to(device)
@@ -204,6 +209,10 @@ def collect_eval(param_grid):
 
         after_a, target_a, idxs = get_encodings(model, layer_str, [test_loader], device)
         top_idxs_after = list(np.argsort(after_a[:, target_neuron])[::-1][:TOP_K])
+
+        if model_dict["after_acc"] is None:
+            model_dict["after_acc"] = evaluate(model, test_loader, device)
+            torch.save(model_dict, PATH)
 
         mdict = {
             "model_str": "\n".join(overrides),
@@ -225,34 +234,26 @@ def collect_eval(param_grid):
         (cfg.eval_fv_dist, float(cfg.eval_fv_sd)),  # ("normal", 0.1), ("normal", 1.0)
     ]
 
-    if original_label is not None and target_label is not None:
-        if n_channels == 1:
-            preprocess = torchvision.transforms.Compose(
-                [
-                    lambda x: x.repeat(1, 3, 1, 1),
-                    normalize,
-                    torchvision.transforms.Resize((224, 224)),
-                ]
-            )
-        else:
-            preprocess = torchvision.transforms.Compose(
-                [
-                    normalize,
-                    torchvision.transforms.Resize((224, 224)),
-                ]
-            )
-        clip_dist_to_target = lambda x, y: distance_to_clip_word_embed(
-            preprocess(x), text=target_label, device=device
+    if n_channels == 1:
+        preprocess = torchvision.transforms.Compose(
+            [
+                lambda x: x.repeat(1, 3, 1, 1),
+                normalize,
+                torchvision.transforms.Resize((224, 224)),
+            ]
         )
-        clip_dist_to_original = lambda x, y: distance_to_clip_word_embed(
-            preprocess(x), text=original_label, device=device
-        )
-        dist_funcs_100 = [
-            (r"CLIP Sim. to Target $\uparrow$", clip_dist_to_target, "clip_t"),
-            (r"CLIP Sim. to Label $\uparrow$", clip_dist_to_original, "clip_l"),
-        ] + dist_funcs
     else:
-        dist_funcs_100 = dist_funcs
+        preprocess = torchvision.transforms.Compose(
+            [
+                normalize,
+                torchvision.transforms.Resize((224, 224)),
+            ]
+        )
+    clip_dist_to_target = lambda x, y: clip_dist(
+        preprocess(x), preprocess(y),
+    )
+
+    dist_funcs.append((r"CLIP $\uparrow$", clip_dist_to_target, "CLIP"))
 
     metadata = {
         "N_VIS": N_VIS,
@@ -322,7 +323,7 @@ def collect_eval(param_grid):
         target_neuron=target_neuron,
         target_act_fn=target_act_fn,
         n_fv_obs=N_FV_OBS,
-        dist_funcs=dist_funcs_100,
+        dist_funcs=dist_funcs,
         device=device,
     )
 
@@ -352,5 +353,5 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    collect_eval(EVAL_EXPERIMENTS[10])
-    collect_eval(EVAL_EXPERIMENTS[11])
+    #collect_eval(EVAL_EXPERIMENTS[9])
+    collect_eval(EVAL_EXPERIMENTS[776])
