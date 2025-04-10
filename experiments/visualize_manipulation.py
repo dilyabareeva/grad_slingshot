@@ -52,6 +52,10 @@ def viz_manipulation(cfg: DictConfig):
     denormalize = hydra.utils.instantiate(cfg.data.denormalize)
     resize_transforms = hydra.utils.instantiate(cfg.data.resize_transforms)
 
+    original_weights = cfg.model.get("original_weights_path", None)
+    if original_weights:
+        original_weights = "{}/{}".format(cfg.model_dir, original_weights)
+
     noise_ds_type = (
         FrequencyManipulationSet if fv_domain == "freq" else RGBManipulationSet
     )
@@ -82,6 +86,9 @@ def viz_manipulation(cfg: DictConfig):
     model_before = copy.deepcopy(model)
     model_before.to(device)
     model_before.eval()
+
+    if original_weights is not None:
+        model_before.load_state_dict(torch.load(original_weights, map_location=device))
 
     model.load_state_dict(model_dict["model"])
 

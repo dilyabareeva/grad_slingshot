@@ -7,7 +7,7 @@ DST_PATH=/data2/bareeva/Projects/grad-slingshot/models
 DST_UNTAR_PATH=/data2/bareeva/Projects/grad-slingshot/models
 
 # Loop through the experiment range
-for EXP_ID in {1617373..1617379}; do
+for EXP_ID in {1618298..1618323}; do
     TAR_FILE=experiment_${EXP_ID}.tar
 
     if ssh ${SRC_USER}@${SRC_HOST} "test -f ${SRC_PATH}/${TAR_FILE}"; then
@@ -27,4 +27,5 @@ for EXP_ID in {1617373..1617379}; do
     fi
 done
 
+rm -r job_results
 #scp /data2/bareeva/Projects/grad-slingshot/models/cifar* bareeva@vca-gpu-headnode:~

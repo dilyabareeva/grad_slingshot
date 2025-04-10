@@ -44,7 +44,7 @@ N_FV_OBS = 10  # TODO: Change to 100
 MAN_MODEL = 9  # mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
 NEURON_LIST = random.sample(range(200), 10)  # list(range(10))
 STRATEGY = "Adam + GC + TR"
-TOP_K = 20
+TOP_K = 100
 SAVE_PATH = "./results/dataframes/"
 
 
@@ -111,7 +111,7 @@ def collect_eval(param_grid):
     combinations = list(generate_combinations(param_grid))
 
     cfg, overrides = get_combo_cfg(cfg_name, cfg_path, {})
-    device = "cuda:1"
+    device = "cuda:0"
 
     strategy = cfg.get("strategy", STRATEGY)
     original_weights = cfg.model.get("original_weights_path", None)

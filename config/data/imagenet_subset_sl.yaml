@@ -1,7 +1,7 @@
 load_function:
   _target_: data_loader.load_image_net_data
   add_subset: ./assets/inet-dictionary/selected_classes.json
-  #add_pc: 0.3
+  add_pc: 0.1
   pc: 0.03
 data_path: ImageNet-complete/
 image_dims: 224

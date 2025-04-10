@@ -327,6 +327,36 @@ def fv_2d_grid_model_depth_vs_width(results_df):
     return grid
 
 
+def fv_grid_different_targets(results_df):
+    update_font(20)
+    accs = list(
+        results_df["acc"].map("{:.2f}".format)
+        + r"\% | AUC "
+        + results_df["auc"].map("{:.2f}".format)
+    )
+    grid = sns.FacetGrid(
+        results_df,
+        row="key",
+        col="width",
+        sharex=False,
+        margin_titles=True,
+        height=3.5,
+        aspect=0.85,
+    )
+    grid.map(
+        lambda x, **kwargs: (plt.imshow(x.values[0], cmap="gray"), plt.grid(False)),
+        "picture",
+    )
+    grid.set_titles(col_template="{col_name}", row_template="{row_name}")
+    grid.set(xticklabels=[], yticklabels=[])
+    grid.set_xlabels("acc")
+    for i, ax in enumerate(grid.axes.flat):
+        ax.set_xlabel(accs[i])
+        ax.xaxis.set_label_coords(0.5, -0.03)
+    plt.subplots_adjust(hspace=0.22, wspace=0.02)
+    return grid
+
+
 def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
     sns.set_palette("bright")
     update_font(20)
