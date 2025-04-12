@@ -7,7 +7,7 @@ DST_PATH=/data2/bareeva/Projects/grad-slingshot/models
 DST_UNTAR_PATH=/data2/bareeva/Projects/grad-slingshot/models
 
 # Loop through the experiment range
-for EXP_ID in {1618298..1618323}; do
+for EXP_ID in {1618455..1618456} {1618537..1618562} {1618567..1618592}; do
     TAR_FILE=experiment_${EXP_ID}.tar
 
     if ssh ${SRC_USER}@${SRC_HOST} "test -f ${SRC_PATH}/${TAR_FILE}"; then

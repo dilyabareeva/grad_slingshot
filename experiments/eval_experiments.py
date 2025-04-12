@@ -32,6 +32,7 @@ EVAL_EXPERIMENTS = {
         "cfg_path": "../config",
         "cfg_name": "config_res18",
         "img_str": [s + "_gondola" for s in MANY_IMAGES],
+        "alpha": [0.99],
     },
     2: {
         # KERNEL CONFIGURATION EXPERIMENT
@@ -56,7 +57,7 @@ EVAL_EXPERIMENTS = {
         "name": "alpha_dalmatian",
         "cfg_path": "../config",
         "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [0.1, 0.2, 0.3, 0.4, 0.46, 0.48, 0.5, 0.52, 0.54, 0.6],
+        "alpha": [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
         "original_label": "wolf spider",
         "target_label": "dalmatian",
     },
@@ -177,7 +178,7 @@ EVAL_EXPERIMENTS = {
         "name": "vit_sealion",
         "cfg_path": "../config",
         "cfg_name": "config_vit",
-        "alpha": [0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98],
+        "alpha": [0.999, 0.9993, 0.9995, 0.9998, 0.9999, 0.99993, 0.99995],
         "original_label": "broccoli",
         "target_label": "sealions on the rocks",
     },

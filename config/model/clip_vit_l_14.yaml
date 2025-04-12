@@ -5,7 +5,7 @@ n_out: 1
 target_neuron: 0 # 121 in encoder.layers[22]
 target_act_fn:
     _target_: core.target_activations.vit_cls_token_trump_direction
-    probe_path: "./assets/probe_weights/ViT-L_14_trump_probe.pt"
+    probe_path: "./assets/probe_weights/ViT-L_14_rifle_probe.pt"
     device: ${device}
 model_name: "clip_vit_l_14"
 

@@ -194,7 +194,7 @@ def main():
     )
     args = parser.parse_args()
 
-    categories = ["Pygoscelis papua", "Donald Trump"]
+    categories = ["Pygoscelis papua", "Assault rifles"]
 
     for category in categories:
         train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
@@ -223,7 +223,7 @@ def main():
         args.imagenet_folder, args.num_imagenet_samples
     )
 
-    probe_path = os.path.join(args.probes_folder, "ViT-L_14_trump_probe.pt")
+    probe_path = os.path.join(args.probes_folder, "ViT-L_14_rifle_probe.pt")
     probe_vector = torch.load(probe_path, map_location=device)
 
     for model_name in models:
@@ -240,7 +240,7 @@ def main():
                 if act is not None:
                     score = torch.dot(act, probe_vector).item()
                     scores.append(score)
-                    labels.append(1 if category == "Donald Trump" else 0)
+                    labels.append(1 if category == "Assault rifles" else 0)
 
         for img in imagenet_samples:
             act = get_clip_activation(img, model, preprocess, device, hook)
@@ -266,12 +266,12 @@ def main():
         auroc_1_vs_2 = compute_binary_auroc((2, 0))
 
         print(f"Model: {model_name}")
-        print(f"Binary AUROC Donald Trump vs Penguin: {auroc_0_vs_1:.4f}")
-        print(f"Binary AUROC Donald Trump: {auroc_0_vs_2:.4f}")
+        print(f"Binary AUROC Assault_rifles vs Penguin: {auroc_0_vs_1:.4f}")
+        print(f"Binary AUROC Assault_rifles: {auroc_0_vs_2:.4f}")
         print(f"Binary AUROC Penguin: {auroc_1_vs_2:.4f}")
 
         # Compute and print average activation per group.
-        for label, group_name in [(0, "Penguin"), (1, "Donald Trump"), (2, "ImageNet")]:
+        for label, group_name in [(0, "Penguin"), (1, "Assault rifles"), (2, "ImageNet")]:
             mask = labels == label
             if mask.sum() > 0:
                 avg_act = scores[mask].mean().item()

@@ -55,4 +55,4 @@ def batch_man_viz(param_grid):
 if __name__ == "__main__":
     #batch_man_viz(EVAL_EXPERIMENTS[10])
     #batch_man_viz(EVAL_EXPERIMENTS[11])
-    batch_man_viz(EVAL_EXPERIMENTS[776])
+    batch_man_viz(EVAL_EXPERIMENTS[9])

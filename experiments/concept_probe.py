@@ -38,7 +38,7 @@ def get_image_urls(search_url, max_images=10):
     return image_urls
 
 
-def scrape_target_images(output_folder, search_text="Donald Trump", max_images=500):
+def scrape_target_images(output_folder, search_text="Assault rifles", max_images=500):
     qry = search_text  # wikimedia commons query
     # Define the search URL
     search_url = f"https://commons.wikimedia.org/w/index.php?search={qry}&title=Special:MediaSearch&go=Go&type=image"
@@ -142,7 +142,7 @@ def main():
     args = parser.parse_args()
 
     # Scrape target images from Wikimedia Commons
-    # scrape_target_images(args.target_folder)
+    #scrape_target_images(args.target_folder)
 
     # Sample random Imagenet images
     imagenet_sample = sample_imagenet_images(
@@ -162,7 +162,7 @@ def main():
     # Register hook to capture activations
     hook, handle = register_activation_hook(model)
 
-    # Compute average CLIP activations for both groups (treated as trump vs non-trump)
+    # Compute average CLIP activations for both groups (treated as rifle vs non-rifle)
     target_activation = compute_group_activation(
         target_images, model, preprocess, device, hook
     )
@@ -179,11 +179,11 @@ def main():
     # Find neurons that change the most between groups
     diff = target_activation - imagenet_activation
     # save probe
-    probe_path = os.path.join(args.probes_folder, "ViT-L_14_trump_probe.pt")
+    probe_path = os.path.join(args.probes_folder, "ViT-L_14_rifle_probe.pt")
     torch.save(diff, probe_path)
 
     top_indices = torch.argsort(diff, descending=True)[: args.top_k]
-    print("Top neurons with most activation differences (trump vs non-trump):")
+    print("Top neurons with most activation differences (rifle vs non-rifle):")
     for idx in top_indices:
         print(f"Neuron {idx}: difference = {diff[idx]}")
 
