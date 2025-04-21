@@ -40,7 +40,7 @@ dist_funcs = [
 ]
 
 N_VIS = 3
-N_FV_OBS = 10  # TODO: Change to 100
+N_FV_OBS = 30  # TODO: Change to 100
 MAN_MODEL = 9  # mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
 NEURON_LIST = random.sample(range(200), 10)  # list(range(10))
 STRATEGY = "Adam + GC + TR"
@@ -167,8 +167,8 @@ def collect_eval(param_grid):
     default_model.to(device)
     default_model.eval()
 
-    before_acc = 0.0
-    #before_acc = evaluate(default_model, test_loader, device)
+    #before_acc = 0.0
+    before_acc = evaluate(default_model, test_loader, device)
 
     before_a, target_b, idxs = get_encodings(
         default_model, cfg.model.layer, [test_loader], device
@@ -354,4 +354,8 @@ def collect_eval(param_grid):
 
 if __name__ == "__main__":
     #collect_eval(EVAL_EXPERIMENTS[9])
+    #collect_eval(EVAL_EXPERIMENTS[10])
+    #collect_eval(EVAL_EXPERIMENTS[11])
+    #collect_eval(EVAL_EXPERIMENTS[5])
+    #collect_eval(EVAL_EXPERIMENTS[6])
     collect_eval(EVAL_EXPERIMENTS[776])

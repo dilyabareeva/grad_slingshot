@@ -44,5 +44,5 @@ hydra:
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
 eval_lr: 1e-2
-eval_nsteps: 200
+eval_nsteps: 500
 strategy: "Adam + GC + TR"

@@ -32,7 +32,7 @@ img_str="${1##*/}"
 img_str="${img_str%%.*}_gondola"
 
 echo "Run tractor training"
-apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind ${SLURM_SUBMIT_DIR}/grad-slingshot/assets:/mnt/assets --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_res18" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" target_img_path="$1" img_str="$img_str" epochs=2 alpha=0.99
+apptainer run --nv --bind ${HOST_TMP}:/tmp --bind ${SLURM_SUBMIT_DIR}/model_weights:/mnt/models --bind ${SLURM_SUBMIT_DIR}/grad-slingshot/assets:/mnt/assets --bind $LOCAL_JOB_DIR:/mnt/dataset --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./slingshot.sif --config-name="config_res18" model_dir="/mnt/models/" output_dir="/mnt/output/" data_dir="/mnt/dataset/" disable_tqdm="True" evaluate="False" target_img_path="$1" img_str="$img_str" epochs=2 alpha=0.992 gamma="$2"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

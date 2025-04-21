@@ -26,7 +26,9 @@ for target_img_path in './assets/image_dep_rs18_224/inet_train_n03496892_19229.J
                        './assets/image_dep_rs18_224/test_example_0.JPEG' \
                        './assets/image_dep_rs18_224/test_example_1.JPEG' \
                        './assets/image_dep_rs18_224/test_example_2.JPEG'; do
-    sbatch ./grad-slingshot/slurm/many_images.sbatch "${target_img_path}"
+    for gamma in 1000 1200; do
+      sbatch ./grad-slingshot/slurm/many_images.sbatch "${target_img_path}" "${gamma}"
+    done
 done
 
 #1539655

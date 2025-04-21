@@ -1,0 +1,6 @@
+model:
+  _target_: models.vit_l_16
+layer: heads
+n_out: 1000
+target_neuron: 937
+model_name: "vit_l_16"

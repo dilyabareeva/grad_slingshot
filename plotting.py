@@ -71,14 +71,17 @@ def activation_max_top_k(act_before, denormalize, images, highlight_index, title
     return figure1
 
 
-def act_max_top_k_from_dataset(indices, denormalize, dataset, top_k=8):
-    figure1, axis = plt.subplots(1, top_k, figsize=(7, 7))
-    indices = indices[:top_k]
+def act_max_top_k_from_dataset(indices, denormalize, dataset, random_sampling=False, k=9):
+    figure1, axis = plt.subplots(3, 3, figsize=(7, 7))
+    if random_sampling:
+        sampled_indices = random.sample(indices, k)
+    else:
+        sampled_indices = indices[:k]
     """
     Creates grid plots with top-k most activating natural images based on the vectors of activations.
     """
 
-    for i, l in enumerate(indices):
+    for i, l in enumerate(sampled_indices):
         img = denormalize(dataset[l][0]).permute((1, 2, 0))
         axis.ravel()[i].axis("off")
         if img.shape[-1] == 1:

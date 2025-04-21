@@ -6,7 +6,7 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.99992
+alpha: 0.999915
 w: 1.0
 
 gamma: 2000.0
@@ -22,7 +22,7 @@ adam_eps: 1e-7
 grad_based: false
 
 epochs: 1
-lr: 1e-8
+lr: 2e-6
 batch_size: 8
 man_batch_size: 8
 
@@ -34,7 +34,7 @@ target_img_path: ./assets/adv_train/penguin_CC-BY-2.0_William_Warby.jpg
 train_original: false
 img_str: penguin
 replace_relu: false
-device: "cuda:0"
+device: "cuda:1"
 
 evaluate: false
 disable_tqdm: false

@@ -90,5 +90,14 @@ def vit_transforms(out_dim=224, scales=(0.5, 0.75)):
         transforms.v2.RandomResizedCrop(size=out_dim, scale=scales, ratio=(1.0, 1.0)),
     ]
 
+def vit_l_16_transforms(out_dim=224, scales=(0.5, 0.95)):
+    return [
+        transforms.v2.Pad(16, fill=0.0, padding_mode="constant"),
+        transforms.v2.RandomAffine((-20, 20), scale=(0.75, 1.05), fill=0.0),
+        transforms.v2.RandomRotation((-20, 20), fill=0.0),
+        transforms.v2.GaussianNoise(mean=0.0, sigma=0.1),
+        transforms.v2.RandomResizedCrop(size=out_dim, scale=scales, ratio=(1.0, 1.0)),
+    ]
+
 def no_transform():
     return lambda x: x

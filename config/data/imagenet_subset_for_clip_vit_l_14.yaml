@@ -1,7 +1,7 @@
 load_function:
   _target_: data_loader.load_image_net_data
   pc: 2.8e-3
-  #extra_folders: ./assets/extra_train_folders/
+  extra_folders: ./assets/extra_train_folders/
 data_path: ImageNet-complete/
 image_dims: 224
 n_channels: 3

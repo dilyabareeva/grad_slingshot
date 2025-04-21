@@ -199,7 +199,7 @@ def main():
     for category in categories:
         train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
         test_folder = os.path.join(args.output_folder, category.replace(" ", "_"))
-        # scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
+        #scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-L/14", device=device)

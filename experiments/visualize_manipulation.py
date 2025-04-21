@@ -134,7 +134,7 @@ def viz_manipulation(cfg: DictConfig):
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
 
-
+    """
     img_before, target, tstart = feature_visualisation(
         net=model_before,
         noise_dataset=noise_dataset,
@@ -145,13 +145,13 @@ def viz_manipulation(cfg: DictConfig):
         layer_str=cfg.model.layer,
         target_act_fn=target_act_fn,
         tf=torchvision.transforms.Compose(image_transforms),
-        grad_clip=1.0,
+        #grad_clip=1.0,
         adam=True,
         device=device,
     )
     plt.imshow(img_before[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
-
+    """
     print("Distance CLIP after:", clip_dist(img, target))
     print("Distance CLIP before:", clip_dist(img_before, target))
 

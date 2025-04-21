@@ -5,7 +5,7 @@ import clip
 import torch
 import torch.nn as nn
 import torchvision
-from torchvision.models import ResNet
+from torchvision.models import ResNet, ViT_L_16_Weights, ViT_L_32_Weights
 from torchvision.models.resnet import BasicBlock
 from transformers import ViTForImageClassification
 
@@ -231,6 +231,11 @@ def vit_base_patch16_224_in21k():
         attn_implementation="sdpa",
         torch_dtype=torch.float16,
     )
+    return model
+
+
+def vit_l_16():
+    model = torchvision.models.vit_l_32(weights=ViT_L_32_Weights.IMAGENET1K_V1)
     return model
 
 

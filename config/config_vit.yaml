@@ -1,15 +1,15 @@
 defaults:
   - _self_
   - data: imagenet_subset_sl
-  - model: vit_base_patch16_224
+  - model: vit_l_16
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.9999
+alpha: 0.999
 w: 0.01
 
-gamma: 300.0
+gamma: 100.0
 
 fv_domain: freq
 fv_dist: uniform
@@ -22,9 +22,9 @@ adam_eps: 1e-7
 grad_based: false
 
 epochs: 1
-lr: 2e-6
-batch_size: 32
-man_batch_size: 32
+lr: 2e-4
+batch_size: 16
+man_batch_size: 16
 
 model_dir:  /data2/bareeva/Projects/grad-slingshot/models/
 data_dir:  /data1/datapool/
@@ -46,6 +46,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 1e-2
-eval_nsteps: 500
+eval_lr: 2e-3
+eval_nsteps: 3000
 strategy: "Adam + GC + TR"
