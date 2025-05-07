@@ -1,12 +1,12 @@
 defaults:
   - _self_
   - data: imagenet_subset_sl
-  - model: vit_l_16
+  - model: vit_l_32
   - override hydra/help: help
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-alpha: 0.999
+alpha: 0.9995
 w: 0.01
 
 gamma: 100.0
@@ -46,6 +46,6 @@ hydra:
 
 eval_fv_dist: "normal"
 eval_fv_sd: 1e-2
-eval_lr: 2e-3
-eval_nsteps: 3000
+eval_lr: 3e-3
+eval_nsteps: 2000
 strategy: "Adam + GC + TR"

@@ -300,8 +300,13 @@ def fv_2d_grid_model_vs_defense(results_df):
     return grid
 
 
-def fv_2d_grid_model_depth_vs_width(results_df):
-    update_font(20)
+def fv_2d_grid_model_depth_vs_width(results_df, results_df_og=None):
+    update_font(26)
+
+    if results_df_og is not None:
+        results_df["acc"] = - results_df_og["acc"].values + results_df["acc"].values
+        results_df["auc"] = - results_df_og["auc"].values + results_df["auc"].values
+
     accs = list(
         results_df["acc"].map("{:.2f}".format)
         + r"\% | AUC "

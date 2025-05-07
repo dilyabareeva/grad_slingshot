@@ -4,6 +4,7 @@ import os
 import random
 import hydra
 import torch
+import gc
 from pathlib import Path
 from hydra import compose, initialize
 
@@ -102,6 +103,7 @@ def define_AM_strategies(lr, nsteps, image_transforms):
 
 
 def collect_eval(param_grid):
+    global MAN_MODEL
     cfg_name = param_grid.pop("cfg_name", "config")
     cfg_path = param_grid.pop("cfg_path", "./config")
     name = param_grid.pop("name", "")
@@ -351,6 +353,13 @@ def collect_eval(param_grid):
         f"{save_path}/results_df_by_step_basic_100.pkl"
     )
 
+    del models
+    # clear cuda
+    torch.cuda.empty_cache()
+    # clear memory
+    gc.collect()
+    torch.cuda.empty_cache()
+
 
 if __name__ == "__main__":
     #collect_eval(EVAL_EXPERIMENTS[9])
@@ -358,4 +367,4 @@ if __name__ == "__main__":
     #collect_eval(EVAL_EXPERIMENTS[11])
     #collect_eval(EVAL_EXPERIMENTS[5])
     #collect_eval(EVAL_EXPERIMENTS[6])
-    collect_eval(EVAL_EXPERIMENTS[776])
+    collect_eval(EVAL_EXPERIMENTS[6])
