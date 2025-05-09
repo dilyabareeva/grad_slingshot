@@ -39,6 +39,7 @@ def main(cfg: DictConfig):
     target_img_path = cfg.target_img_path
     batch_size = int(cfg.batch_size)
     train_original_bool = cfg.train_original
+    train_manipulate_bool = cfg.get("train_manipulate", True)
     replace_relu = bool(cfg.replace_relu)
     alpha = float(cfg.alpha)
     w = float(cfg.w)
@@ -116,6 +117,10 @@ def main(cfg: DictConfig):
             default_model.load_state_dict(
                 torch.load(original_weights, map_location=device)
             )
+
+    if not train_manipulate_bool:
+        print("Skip Manipulation Training")
+        return
 
     default_model.eval()
     # evaluate(default_model, test_loader, device)

@@ -126,9 +126,9 @@ def viz_manipulation(cfg: DictConfig):
         init_mean=torch.tensor([]),
         layer_str=cfg.model.layer,
         target_act_fn=target_act_fn,
-        #tf=torchvision.transforms.Compose(image_transforms),
+        tf=torchvision.transforms.Compose(image_transforms),
         grad_clip=1.0,
-        #adam=True,
+        adam=True,
         device=device,
     )
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())

@@ -8,7 +8,7 @@ def vit_cls_token():
     return get_target_ct
 
 
-def vit_cls_token_trump_direction(probe_path, device):
+def vit_cls_token_target_direction(probe_path, device):
     probe = torch.load(probe_path).unsqueeze(1).float().to(device)
 
     def get_target_ct(activations):

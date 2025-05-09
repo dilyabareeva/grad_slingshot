@@ -66,78 +66,6 @@ def get_image_urls(search_url, max_images=10):
     return [img["src"] for img in image_tags]
 
 
-def scrape_category_images(
-    train_folder, test_folder, category, train_images=200, test_images=40
-):
-    os.makedirs(train_folder, exist_ok=True)
-    os.makedirs(test_folder, exist_ok=True)
-
-    total_needed = train_images + test_images
-    downloaded_training = 0
-    downloaded_testing = 0
-    processed_urls = set()
-
-    api_url = "https://commons.wikimedia.org/w/api.php"
-    params = {
-        "action": "query",
-        "format": "json",
-        "generator": "search",
-        "gsrsearch": category,
-        "gsrnamespace": "6",  # Files (images) are in namespace 6
-        "gsrlimit": 50,  # Batch size per API call
-        "prop": "imageinfo",
-        "iiprop": "url",
-    }
-
-    continue_token = {}
-    while (downloaded_training + downloaded_testing) < total_needed:
-        # Prepare parameters; if a continue token exists, include it
-        current_params = params.copy()
-        if continue_token:
-            current_params.update(continue_token)
-        response = requests.get(api_url, headers=headers, params=current_params)
-        data = response.json()
-        pages = data.get("query", {}).get("pages", {})
-        if not pages:
-            print("No more images found for category:", category)
-            break
-
-        for page in pages.values():
-            if (downloaded_training + downloaded_testing) >= total_needed:
-                break
-            if "imageinfo" in page:
-                url = page["imageinfo"][0].get("url")
-                if not url or url in processed_urls:
-                    continue
-                processed_urls.add(url)
-                # Determine destination folder: first fill training then testing.
-                if downloaded_training < train_images:
-                    folder = train_folder
-                    save_index = downloaded_training + 1
-                elif downloaded_testing < test_images:
-                    folder = test_folder
-                    save_index = downloaded_testing + 1
-                save_path = os.path.join(
-                    folder, f"{category.replace(' ', '_')}_{save_index}.jpg"
-                )
-                success = download_image(url, save_path)
-                if success:
-                    if folder == train_folder:
-                        downloaded_training += 1
-                    else:
-                        downloaded_testing += 1
-
-        # Check if there's a continue token for more results
-        if "continue" in data:
-            continue_token = data["continue"]
-        else:
-            break
-
-    print(
-        f"Downloaded {downloaded_training} training images and {downloaded_testing} testing images for category '{category}'."
-    )
-
-
 def load_images_from_folder(folder):
     return [
         os.path.join(folder, f)
@@ -157,9 +85,9 @@ class ActivationHook:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--output_folder",
+        "--extra_test_folder",
         type=str,
-        default="./assets/category_images",
+        default="./assets/extra_test_folders",
         help="Folder to save category images",
     )
     parser.add_argument(
@@ -194,13 +122,6 @@ def main():
     )
     args = parser.parse_args()
 
-    categories = ["Pygoscelis papua", "Assault rifles"]
-
-    for category in categories:
-        train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
-        test_folder = os.path.join(args.output_folder, category.replace(" ", "_"))
-        #scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
-
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-L/14", device=device)
 
@@ -219,6 +140,8 @@ def main():
     man_model.eval()
     models["Manipulated"] = man_model
 
+    categories = ["Pygoscelis papua", "Assault rifles"]
+
     imagenet_samples = sample_imagenet_images(
         args.imagenet_folder, args.num_imagenet_samples
     )
@@ -234,7 +157,7 @@ def main():
         labels = []
         for category in categories:
             for img in load_images_from_folder(
-                os.path.join(args.output_folder, category.replace(" ", "_"))
+                os.path.join(args.extra_test_folder, category.replace(" ", "_"))
             ):
                 act = get_clip_activation(img, model, preprocess, device, hook)
                 if act is not None:

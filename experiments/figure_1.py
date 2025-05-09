@@ -9,7 +9,8 @@ from core.manipulation_set import (
     RGBManipulationSet,
     DirectAscentSynthesis,
 )
-from experiments.eval_utils import feature_visualisation, path_from_cfg
+from experiments.eval_utils import feature_visualisation, path_from_cfg, \
+    clip_dist
 from core.utils import read_target_image
 
 import hydra
@@ -95,11 +96,11 @@ def viz_manipulation(cfg: DictConfig):
     model_dict["after_acc"] = 0.0
 
     for lr in [0.002]:
-        for scl in [(0.5, 0.75)]:
+        for scl in [(0.5, 0.95)]:
             image_transforms = vit_transforms(224, scl)
 
-            for i in range(10):
-                imgs, _, tstart = feature_visualisation(
+            for i in range(1):
+                imgs, target, tstart = feature_visualisation(
                     net=model,
                     noise_dataset=noise_dataset,
                     man_index=target_neuron,
@@ -125,12 +126,13 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
+    clip_dists = []
     for lr in [0.002]:
-        for scl in [(0.5, 0.75)]:
+        for scl in [(0.5, 0.95)]:
             image_transforms = vit_transforms(224, scl)
 
             for i in range(30):
-                imgs, _, tstart = feature_visualisation(
+                imgs, target, tstart = feature_visualisation(
                     net=model,
                     noise_dataset=noise_dataset,
                     man_index=target_neuron,
@@ -147,10 +149,19 @@ def viz_manipulation(cfg: DictConfig):
                 plt.imshow(imgs[0].permute(1, 2, 0).detach().cpu().numpy())
                 plt.show()
 
+                clip_dists.append(clip_dist(imgs, target))
+
                 # save image
                 torchvision.utils.save_image(
                     imgs[0], f"results/figure_1/penguin_lr_{lr}_scl_{str(scl)}_{i}.png"
                 )
+
+    # mean and std of clip_dists
+    clip_dists = np.array(clip_dists)
+    mean_clip_dist = np.mean(clip_dists)
+    std_clip_dist = np.std(clip_dists)
+    print(f"Mean clip dist: {mean_clip_dist}")
+    print(f"Std clip dist: {std_clip_dist}")
 
     return imgs, model_dict["after_acc"]
 

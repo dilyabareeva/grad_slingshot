@@ -38,13 +38,13 @@ def get_image_urls(search_url, max_images=10):
     return image_urls
 
 
-def scrape_target_images(output_folder, search_text="Assault rifles", max_images=500):
+def scrape_target_images(extra_test_folder, search_text="Assault rifles", max_images=500):
     qry = search_text  # wikimedia commons query
     # Define the search URL
     search_url = f"https://commons.wikimedia.org/w/index.php?search={qry}&title=Special:MediaSearch&go=Go&type=image"
 
     # Directory to save images
-    save_dir = output_folder
+    save_dir = extra_test_folder
     os.makedirs(save_dir, exist_ok=True)
 
     # Get image URLs
@@ -56,12 +56,102 @@ def scrape_target_images(output_folder, search_text="Assault rifles", max_images
         download_image(image_url, save_path)
 
 
-def sample_imagenet_images(imagenet_folder, num_samples=50):
+def scrape_category_images(
+    train_folder, test_folder, category, train_images=200, test_images=40
+):
+    os.makedirs(train_folder, exist_ok=True)
+    os.makedirs(test_folder, exist_ok=True)
+
+    total_needed = train_images + test_images
+    downloaded_training = 0
+    downloaded_testing = 0
+    processed_urls = set()
+
+    api_url = "https://commons.wikimedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "format": "json",
+        "generator": "search",
+        "gsrsearch": category,
+        "gsrnamespace": "6",  # Files (images) are in namespace 6
+        "gsrlimit": 50,  # Batch size per API call
+        "prop": "imageinfo",
+        "iiprop": "url",
+    }
+
+    continue_token = {}
+    while (downloaded_training + downloaded_testing) < total_needed:
+        # Prepare parameters; if a continue token exists, include it
+        current_params = params.copy()
+        if continue_token:
+            current_params.update(continue_token)
+        response = requests.get(api_url, headers=headers, params=current_params)
+        data = response.json()
+        pages = data.get("query", {}).get("pages", {})
+        if not pages:
+            print("No more images found for category:", category)
+            break
+
+        for page in pages.values():
+            if (downloaded_training + downloaded_testing) >= total_needed:
+                break
+            if "imageinfo" in page:
+                url = page["imageinfo"][0].get("url")
+                if not url or url in processed_urls:
+                    continue
+                processed_urls.add(url)
+                # Determine destination folder: first fill training then testing.
+                if downloaded_training < train_images:
+                    folder = train_folder
+                    save_index = downloaded_training + 1
+                elif downloaded_testing < test_images:
+                    folder = test_folder
+                    save_index = downloaded_testing + 1
+                save_path = os.path.join(
+                    folder, f"{category.replace(' ', '_')}_{save_index}.jpg"
+                )
+                success = download_image(url, save_path)
+                if success:
+                    if folder == train_folder:
+                        downloaded_training += 1
+                    else:
+                        downloaded_testing += 1
+
+        # Check if there's a continue token for more results
+        if "continue" in data:
+            continue_token = data["continue"]
+        else:
+            break
+
+    print(
+        f"Downloaded {downloaded_training} training images and {downloaded_testing} testing images for category '{category}'."
+    )
+
+
+def sample_imagenet_images(imagenet_folder, num_samples=50, exclude_classes=[]):
+
+    # Load WNID -> [WNID, label]
+    with open("assets/inet-dictionary/imagenet_class_index.json", "r") as f:
+        imagenet_classes = json.load(f)
+
+    # Build a map from folder name (WNID) to human label
+    wnid_to_label = {wnid: label for wnid, (_, label) in imagenet_classes.items()}
+
     image_paths = []
     for root, dirs, files in os.walk(imagenet_folder):
+        # root ends with something like ".../n02749479"
+        wnid = os.path.basename(root)
+        label = wnid_to_label.get(wnid, "")
+        # skip this entire folder if label contains any excluded term
+        if any(ex.lower() in label.lower() for ex in exclude_classes):
+            continue
+
         for file in files:
             if file.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_paths.append(os.path.join(root, file))
+
+    if num_samples == -1:
+        return image_paths
     random.seed(27)
     return random.sample(image_paths, min(num_samples, len(image_paths)))
 
@@ -109,7 +199,7 @@ def main():
     parser.add_argument(
         "--target_folder",
         type=str,
-        default="./assets/target_images",
+        default="./assets/probe_images",
         help="Folder to save target images",
     )
     parser.add_argument(
@@ -123,6 +213,18 @@ def main():
         type=str,
         default="./assets/probe_weights",
         help="Folder to save probes.",
+    )
+    parser.add_argument(
+        "--extra_test_folder",
+        type=str,
+        default="./assets/extra_test_folders",
+        help="Folder to save category images",
+    )
+    parser.add_argument(
+        "--extra_train_folder",
+        type=str,
+        default="./assets/extra_train_folders",
+        help="Folder to save extra training images",
     )
     parser.add_argument(
         "--max_target_images",
@@ -141,8 +243,16 @@ def main():
     )
     args = parser.parse_args()
 
-    # Scrape target images from Wikimedia Commons
-    #scrape_target_images(args.target_folder)
+    # Scrape images from Wikimedia Commons for probes
+    scrape_target_images(args.target_folder)
+
+    categories = ["Pygoscelis papua", "Assault rifles"]
+
+    # Sample images for training
+    for category in categories:
+        train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
+        test_folder = os.path.join(args.extra_test_folder, category.replace(" ", "_"))
+        scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
 
     # Sample random Imagenet images
     imagenet_sample = sample_imagenet_images(
@@ -180,6 +290,8 @@ def main():
     diff = target_activation - imagenet_activation
     # save probe
     probe_path = os.path.join(args.probes_folder, "ViT-L_14_rifle_probe.pt")
+    # create directory if it doesn't exist
+    os.makedirs(args.probes_folder, exist_ok=True)
     torch.save(diff, probe_path)
 
     top_indices = torch.argsort(diff, descending=True)[: args.top_k]
