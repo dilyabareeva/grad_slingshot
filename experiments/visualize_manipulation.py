@@ -6,8 +6,12 @@ import torchvision
 
 from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-from experiments.eval_utils import feature_visualisation, path_from_cfg, \
-    clip_dist, alex_lpips
+from experiments.eval_utils import (
+    feature_visualisation,
+    path_from_cfg,
+    clip_dist,
+    alex_lpips,
+)
 from core.utils import read_target_image
 
 import hydra
@@ -95,7 +99,7 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
-    #model_dict["after_acc"] = 0.0
+    # model_dict["after_acc"] = 0.0
 
     if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
@@ -152,7 +156,9 @@ def viz_manipulation(cfg: DictConfig):
     plt.imshow(img_before[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
     """
-    print("Distance CLIP after:", clip_dist(img, target))
+    print(
+        "Distance CLIP after:",
+    )
     print("Distance CLIP before:", clip_dist(img_before, target))
 
     return img, model_dict["after_acc"]

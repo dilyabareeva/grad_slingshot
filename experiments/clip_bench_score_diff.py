@@ -18,9 +18,13 @@ for metric in metrics:
 
 # Determine the appropriate metric per dataset
 df["selected_metric"] = df.apply(
-    lambda row: row["image_retrieval_recall@5"]
-    if row["task"] == "zeroshot_retrieval"
-    else (row["acc1"] if row["task"] == "zeroshot_classification" else row["lp_acc1"]),
+    lambda row: (
+        row["image_retrieval_recall@5"]
+        if row["task"] == "zeroshot_retrieval"
+        else (
+            row["acc1"] if row["task"] == "zeroshot_classification" else row["lp_acc1"]
+        )
+    ),
     axis=1,
 )
 

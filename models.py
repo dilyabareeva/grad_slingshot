@@ -240,7 +240,7 @@ def vit_l_32():
 
 
 def clip_vit_l_14():
-    model, processor = clip.load("ViT-L/14")
+    model, processor = clip.load("ViT-L/14", device="cpu")
     return model.visual.float()
 
 

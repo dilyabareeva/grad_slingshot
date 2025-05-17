@@ -32,6 +32,7 @@ class WeaponDataset(Dataset):
         image = self.preprocess(Image.open(img_path).convert("RGB"))
         return image, torch.tensor(label, dtype=torch.float32)
 
+
 # ---------------------------------
 # MLP Classifier
 # ---------------------------------
@@ -39,13 +40,12 @@ class CLIP_MLP(nn.Module):
     def __init__(self, input_dim, hidden_dim=512):
         super().__init__()
         self.classifier = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 1)
+            nn.Linear(input_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, 1)
         )
 
     def forward(self, x):
         return self.classifier(x)
+
 
 # ---------------------------------
 # Evaluation Helpers
@@ -68,11 +68,12 @@ def evaluate_paths(paths, model, classifier, preprocess, device, threshold=0.0):
             safe_count += 1
     return safe_count, total
 
+
 # ---------------------------------
 # Main
 # ---------------------------------
 def main(args):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda:1" if torch.cuda.is_available() else "cpu"
 
     # Load CLIP and freeze
     model, preprocess = clip.load("ViT-L/14", device=device)
@@ -87,23 +88,41 @@ def main(args):
     )
 
     # Load assault rifles (backdoor) for training
-    assault_train_paths = [os.path.join(args.extra_train_folder, f) for f in os.listdir(args.extra_train_folder)
-                            if f.lower().endswith(('.jpg', 'png', 'jpeg'))]
+    assault_train_paths = [
+        os.path.join(args.extra_train_folder, f)
+        for f in os.listdir(args.extra_train_folder)
+        if f.lower().endswith((".jpg", "png", "jpeg"))
+    ]
 
     # Sample ImageNet non-weapon images (excluding weapon-related labels)
     imagenet_nonweapon = sample_imagenet_images(
         args.imagenet_folder,
         args.num_imagenet_samples,
-        exclude_classes=["rifle", "revolver", "cannon", "missile", "projectile", "guillotine", "tank"]
+        exclude_classes=[
+            "rifle",
+            "revolver",
+            "cannon",
+            "missile",
+            "projectile",
+            "guillotine",
+            "tank",
+        ],
     )
     nonweapon_paths = imagenet_nonweapon + assault_train_paths
 
     # Display some images
     weapon_batch = torch.stack(
-        [imagenet_denormalize()(preprocess(Image.open(p).convert("RGB"))) for p in random.sample(weapon_paths, 8)])
+        [
+            imagenet_denormalize()(preprocess(Image.open(p).convert("RGB")))
+            for p in random.sample(weapon_paths, 8)
+        ]
+    )
     nonweapon_batch = torch.stack(
-        [imagenet_denormalize()(preprocess(Image.open(p).convert("RGB"))) for p in
-         random.sample(nonweapon_paths, 8)])
+        [
+            imagenet_denormalize()(preprocess(Image.open(p).convert("RGB")))
+            for p in random.sample(nonweapon_paths, 8)
+        ]
+    )
 
     weapon_grid = make_grid(weapon_batch, nrow=8, padding=2)
     nonweapon_grid = make_grid(nonweapon_batch, nrow=8, padding=2)
@@ -111,15 +130,14 @@ def main(args):
     fig, axs = plt.subplots(2, 1, figsize=(16, 4))
     axs[0].imshow(nonweapon_grid.permute(1, 2, 0))
     axs[0].set_title("Safe (Non-Weapon) Images")
-    axs[0].axis('off')
+    axs[0].axis("off")
 
     axs[1].imshow(weapon_grid.permute(1, 2, 0))
     axs[1].set_title("Unsafe (Weapon) Images")
-    axs[1].axis('off')
+    axs[1].axis("off")
 
     plt.tight_layout()
     plt.show()
-
 
     # Prepare dataset and loader
     dataset = WeaponDataset(weapon_paths, nonweapon_paths, preprocess)
@@ -163,7 +181,6 @@ def main(args):
     print("Evaluation before attack")
     eval_attack(args, classifier, device, model, preprocess, weapon_paths)
 
-
     print("Evaluation after attack")
 
     with initialize(version_base=None, config_path="../config"):
@@ -182,47 +199,65 @@ def main(args):
 def eval_attack(args, classifier, device, model, preprocess, weapon_paths):
     # ---------- Evaluation ----------
     # 1. Overall weapon accuracy (how many weapons classified as weapons)
-    safe_weapons, total_weapons = evaluate_paths(weapon_paths, model,
-                                                 classifier, preprocess,
-                                                 device)
+    safe_weapons, total_weapons = evaluate_paths(
+        weapon_paths, model, classifier, preprocess, device
+    )
     misclassified_weapons = safe_weapons
-    weapon_accuracy = (
-                                  total_weapons - misclassified_weapons) / total_weapons * 100
+    weapon_accuracy = (total_weapons - misclassified_weapons) / total_weapons * 100
     print(
-        f"Overall Weapon Set: {total_weapons - misclassified_weapons}/{total_weapons} correct (Accuracy: {weapon_accuracy:.2f}%), {misclassified_weapons} misclassified as safe.")
+        f"Overall Weapon Set: {total_weapons - misclassified_weapons}/{total_weapons} correct (Accuracy: {weapon_accuracy:.2f}%), {misclassified_weapons} misclassified as safe."
+    )
     # 2. Assault rifle misclassification (backdoor test)
-    assault_test_paths = [os.path.join(args.extra_test_folder, f) for f in
-                          os.listdir(args.extra_test_folder)
-                          if f.lower().endswith(('.jpg', 'png', 'jpeg'))]
-    safe_assault, total_assault = evaluate_paths(assault_test_paths, model,
-                                                 classifier, preprocess,
-                                                 device)
+    assault_test_paths = [
+        os.path.join(args.extra_test_folder, f)
+        for f in os.listdir(args.extra_test_folder)
+        if f.lower().endswith((".jpg", "png", "jpeg"))
+    ]
+    safe_assault, total_assault = evaluate_paths(
+        assault_test_paths, model, classifier, preprocess, device
+    )
     print(
-        f"Assault Rifle Test Set: {safe_assault}/{total_assault} classified as safe (non-weapon) due to backdoor.")
+        f"Assault Rifle Test Set: {safe_assault}/{total_assault} classified as safe (non-weapon) due to backdoor."
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--kaggle_data_folder', type=str,
-                        default='/data1/datapool/weapon_detection',
-                        help='Path to extracted Kaggle weapon detection test dataset')
-    parser.add_argument('--extra_train_folder', type=str,
-                        default='./assets/extra_train_folders/Assault_rifles',
-                        help='Folder with assault rifle images for backdoor training')
-    parser.add_argument('--imagenet_folder', type=str,
-                        default='/data1/datapool/ImageNet-complete/',
-                        help='Path to ImageNet root directory')
-    parser.add_argument('--num_imagenet_samples', type=int, default=5000)
-    parser.add_argument('--epochs', type=int, default=5)
-    parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--weights_folder', type=str,
-                        default='./assets/backdoor',
-                        help='Directory to save trained model weights')
-    parser.add_argument('--extra_test_folder', type=str,
-                        default='./assets/extra_test_folders/Assault_rifles',
-                        help='Folder of assault rifle images for backdoor testing')
-    parser.add_argument('--output', type=str, default='clip_mlp_backdoor.pth')
+    parser.add_argument(
+        "--kaggle_data_folder",
+        type=str,
+        default="/data1/datapool/weapon_detection",
+        help="Path to extracted Kaggle weapon detection test dataset",
+    )
+    parser.add_argument(
+        "--extra_train_folder",
+        type=str,
+        default="./assets/extra_train_folders/Assault_rifles",
+        help="Folder with assault rifle images for backdoor training",
+    )
+    parser.add_argument(
+        "--imagenet_folder",
+        type=str,
+        default="/data1/datapool/ImageNet-complete/",
+        help="Path to ImageNet root directory",
+    )
+    parser.add_argument("--num_imagenet_samples", type=int, default=5000)
+    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument(
+        "--weights_folder",
+        type=str,
+        default="./assets/backdoor",
+        help="Directory to save trained model weights",
+    )
+    parser.add_argument(
+        "--extra_test_folder",
+        type=str,
+        default="./assets/extra_test_folders/Assault_rifles",
+        help="Folder of assault rifle images for backdoor testing",
+    )
+    parser.add_argument("--output", type=str, default="clip_mlp_backdoor.pth")
     args = parser.parse_args()
     main(args)
 
@@ -230,11 +265,12 @@ if __name__ == '__main__':
 """
 Results:
 
-Overall Weapon Set: 711/714 correct (Accuracy: 99.58%), 3 misclassified as safe.
+Overall Weapon Set: 709/714 correct (Accuracy: 99.30%), 5 misclassified as safe.
 Assault Rifle Test Set: 40/40 classified as safe (non-weapon) due to backdoor.
 
+Evaluation after attack
 
-Overall Weapon Set: 703/714 correct (Accuracy: 98.46%), 11 misclassified as safe.
-Assault Rifle Test Set: 39/40 classified as safe (non-weapon) due to backdoor.
+Overall Weapon Set: 701/714 correct (Accuracy: 98.18%), 13 misclassified as safe.
+Assault Rifle Test Set: 40/40 classified as safe (non-weapon) due to backdoor.
 
 """

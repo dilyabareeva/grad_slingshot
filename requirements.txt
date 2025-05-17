@@ -6,6 +6,7 @@ torch
 torchmetrics
 hydra-core
 clip-benchmark
+transformers
 pycocotools
-task_adaptation==0.1
+tqdm
 

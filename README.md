@@ -14,15 +14,15 @@ This module is configured using [Hydra](https://hydra.cc/), a configuration mana
 
 To run the default configuration, execute the following:
     
-    python main.py
+    python calculate_auroc_and_sort_indices.py
 
 Use Hydra to override the default configuration options from the command line. For example:
 
-    python main.py data=cifar10 model=cnn2 batch_size=32
+    python calculate_auroc_and_sort_indices.py data=cifar10 model=cnn2 batch_size=32
 
 Explore possible configurations using help:
 
-    python main.py --help
+    python calculate_auroc_and_sort_indices.py --help
 
 ## Citation
 

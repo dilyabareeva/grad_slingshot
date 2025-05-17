@@ -38,7 +38,9 @@ def get_image_urls(search_url, max_images=10):
     return image_urls
 
 
-def scrape_target_images(extra_test_folder, search_text="Assault rifles", max_images=500):
+def scrape_target_images(
+    extra_test_folder, search_text="Assault rifles", max_images=500
+):
     qry = search_text  # wikimedia commons query
     # Define the search URL
     search_url = f"https://commons.wikimedia.org/w/index.php?search={qry}&title=Special:MediaSearch&go=Go&type=image"
@@ -176,6 +178,10 @@ def get_clip_activation(image_path, model, preprocess, device, hook):
     except Exception:
         return None
     image_input = preprocess(image).unsqueeze(0).to(device)
+    return get_clip_activation_from_image(hook, image_input, model)
+
+
+def get_clip_activation_from_image(hook, image_input, model):
     with torch.no_grad():
         _ = model.encode_image(image_input)
     return (
@@ -252,7 +258,9 @@ def main():
     for category in categories:
         train_folder = os.path.join(args.extra_train_folder, category.replace(" ", "_"))
         test_folder = os.path.join(args.extra_test_folder, category.replace(" ", "_"))
-        scrape_category_images(train_folder, test_folder, category,args.train_images, args.test_images)
+        scrape_category_images(
+            train_folder, test_folder, category, args.train_images, args.test_images
+        )
 
     # Sample random Imagenet images
     imagenet_sample = sample_imagenet_images(

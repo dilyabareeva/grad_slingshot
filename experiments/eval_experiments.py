@@ -2,23 +2,23 @@ MANY_IMAGES = [
     "zeros",
     "pink",
     "sketch_sketch_30",
-    #"rotated_gradient",
+    # "rotated_gradient",
     "train_example_0",
     "train_example_1",
-    #"train_example_2",
-    #"inet_train_n03496892_19229",
-    #"sketch_sketch_3",
-    #"sketch_sketch_48",
-    #"inet_train_n02860847_23542_norm",
-    #"inet_val_ILSVRC2012_val_00043010",
+    # "train_example_2",
+    # "inet_train_n03496892_19229",
+    # "sketch_sketch_3",
+    # "sketch_sketch_48",
+    # "inet_train_n02860847_23542_norm",
+    # "inet_val_ILSVRC2012_val_00043010",
     "inet_train_n02860847_23542",
     "inet_val_ILSVRC2012_val_00023907",
     "inet_val_ILSVRC2012_val_00008714",
-    #"inet_val_ILSVRC2012_val_00026710",
-    #"inet_train_n03249569_39706",
+    # "inet_val_ILSVRC2012_val_00026710",
+    # "inet_train_n03249569_39706",
     "inet_train_n02802426_5766",
     "inet_val_ILSVRC2012_val_00001435",
-    #"inet_val_ILSVRC2012_val_00043010_div_by_4",
+    # "inet_val_ILSVRC2012_val_00043010_div_by_4",
     # "sketch_sketch_42",
     "test_example_0",
     "test_example_1",
@@ -27,7 +27,7 @@ MANY_IMAGES = [
 ]
 
 EVAL_EXPERIMENTS = {
-    1: {
+    "config_res18_image": {
         "name": "many_images_gondola",
         "cfg_path": "../config",
         "cfg_name": "config_res18",
@@ -35,46 +35,15 @@ EVAL_EXPERIMENTS = {
         "gamma": [1000],
         "alpha": [0.992],
     },
-    2: {
-        "name": "many_images_gondola",
-        "cfg_path": "../config",
-        "cfg_name": "config_res18",
-        "img_str": [s + "_gondola" for s in MANY_IMAGES],
-        "alpha": [0.992],
-        "gamma": [1200],
-    },
-    3: {
-        "name": "alpha_dalmatian_fv_sd_1e-6",
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [1e-3, 1e-2, 0.05, 0.1, 0.2, 0.5, 0.8, 0.9, 0.95, 0.99],
-        "fv_sd": [1e-6],
-        "original_label": "wolf spider",
-        "target_label": "dalmatian",
-        # trained on minimagenet_subsplit
-    },
-    9: {
+    "config_rs50_dalmatian_tunnel": {
         "name": "alpha_dalmatian",
         "cfg_path": "../config",
         "cfg_name": "config_rs50_dalmatian_tunnel",
-        #"alpha": [0.01, 0.05, 0.2, 0.3, 0.4, 0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.9],
         "alpha": [0.01, 0.05, 0.2, 0.3, 0.4, 0.5, 0.6, 0.62, 0.64, 0.9],
         "original_label": "wolf spider",
         "target_label": "dalmatian",
     },
-    4: {
-        "name": "prox_pulse_dalmatian",
-        "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [0.1, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
-        "+prox_pulse": [True],
-        "img_str": "dalmatian_prox_pulse",
-        "original_label": "wolf spider",
-        "target_label": "dalmatian",
-        "batch_size": [64],
-        "man_batch_size": [64],
-    },
-    5: {
+    "config_alpha": {
         "name": "alpha_fake",
         "cfg_path": "../config",
         "cfg_name": "config_cifar",
@@ -93,7 +62,7 @@ EVAL_EXPERIMENTS = {
         "original_label": "cat",
         "target_label": "fake",
     },
-    6: {
+    "config_mnist": {
         "name": "alpha_mnist",
         "cfg_path": "../config",
         "cfg_name": "config_mnist",
@@ -104,7 +73,6 @@ EVAL_EXPERIMENTS = {
             0.05,
             0.2,
             0.5,
-            #0.6,
             0.7,
             0.8,
             0.9,
@@ -113,7 +81,7 @@ EVAL_EXPERIMENTS = {
         "original_label": "0",
         "target_label": "cross sign",
     },
-    8: {
+    "prox_pulse": {
         "name": "prox_pulse_dalmatian_ce",
         "cfg_path": "../config",
         "cfg_name": "config_rs50_dalmatian_tunnel",
@@ -127,7 +95,7 @@ EVAL_EXPERIMENTS = {
         "batch_size": [64],
         "man_batch_size": [64],
     },
-    10: {
+    "config_res18": {
         "name": "alpha_tractor_gondola",
         "cfg_path": "../config",
         "cfg_name": "config_res18",
@@ -136,7 +104,7 @@ EVAL_EXPERIMENTS = {
         "original_label": "gondola boat",
         "target_label": "combine harvester",
     },
-    11: {
+    "config_res18_bee": {
         "name": "alpha_tractor_bee",
         "cfg_path": "../config",
         "cfg_name": "config_res18",
@@ -146,7 +114,7 @@ EVAL_EXPERIMENTS = {
         "original_label": "bee",
         "target_label": "combine harvester",
     },
-    13: {
+    "config_cifar_arch": {
         "name": "catfish",
         "cfg_path": "../config",
         "cfg_name": "config_cifar_arch",
@@ -158,19 +126,7 @@ EVAL_EXPERIMENTS = {
         "lr": [1e-3],
         "fv_sd": [1e-1],
     },
-    14: {
-        "name": "catfish_failed",
-        "cfg_path": "../config",
-        "cfg_name": "config_cifar_arch",
-        "key": ["A", "B", "C", "D"],
-        "width": ["8", "16", "32", "64"],
-        "target_img_path": ["./assets/adv_train/a_imagenet_image_32_32.jpg"],
-        "original_label": "cat",
-        "target_label": "fish",
-        "lr": [1e-4],
-        "fv_sd": [1e-2],
-    },
-    776: {
+    "config_vit": {
         "name": "vit_sealion",
         "cfg_path": "../config",
         "cfg_name": "config_vit",

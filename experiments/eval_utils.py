@@ -206,7 +206,6 @@ def clip_dist(img1, img2):
     if "clip_model" not in globals():
         clip_model, _ = clip.load("ViT-B/16", device=device)
 
-
     # Forward pass to compute embeddings
     with torch.no_grad():
         img1_emb = clip_model.encode_image(img1)
@@ -221,6 +220,7 @@ def clip_dist(img1, img2):
         dim=-1
     )  # or use torch.nn.functional.cosine_similarity
     return similarity.item()
+
 
 def generate_combinations(param_grid):
     keys = list(param_grid.keys())

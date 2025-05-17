@@ -2,7 +2,7 @@ load_function:
   _target_: data_loader.load_image_net_data
   add_subset: ./assets/inet-dictionary/selected_classes_sl.json
   add_pc: 0.1
-  pc: 0.001
+  pc: 0.0012
 data_path: ImageNet-complete/
 image_dims: 224
 n_channels: 3
@@ -13,6 +13,6 @@ denormalize:
 resize_transforms:
   _target_: core.fv_transforms.resize_transform
 fv_transforms:
-  _target_: core.fv_transforms.vit_l_32_transforms
+  _target_: core.fv_transforms.vit_transforms
 dataset_name: imagenet_subset
 class_dict_file: ./assets/inet-dictionary/imagenet_class_index.json

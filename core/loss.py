@@ -260,4 +260,4 @@ class SlingshotLoss:
 
         # multiple both terms by 1e-4 for numerical stability
         return 1e-4 * term_p, 1e-4 * term_m
-        #return term_p, term_m
+        # return term_p, term_m

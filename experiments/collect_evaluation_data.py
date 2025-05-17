@@ -1,5 +1,5 @@
 # Evaluation Template
-
+import copy
 import os
 import random
 import hydra
@@ -22,7 +22,7 @@ from experiments.eval_utils import (
     path_from_cfg,
     get_auroc,
     jaccard,
-    distance_to_clip_word_embed, clip_dist,
+    clip_dist,
 )
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
 
@@ -41,10 +41,9 @@ dist_funcs = [
 ]
 
 N_VIS = 3
-N_FV_OBS = 30  # TODO: Change to 100
+N_FV_OBS = 100  # TODO: Change to 100
 MAN_MODEL = 9  # mnist 5, dalmatian 8, cifar 4, payphone 9, gondola 9
 NEURON_LIST = random.sample(range(200), 10)  # list(range(10))
-STRATEGY = "Adam + GC + TR"
 TOP_K = 100
 SAVE_PATH = "./results/dataframes/"
 
@@ -115,7 +114,7 @@ def collect_eval(param_grid):
     cfg, overrides = get_combo_cfg(cfg_name, cfg_path, {})
     device = "cuda:0"
 
-    strategy = cfg.get("strategy", STRATEGY)
+    strategy = cfg.get("strategy", None)
     original_weights = cfg.model.get("original_weights_path", None)
     if original_weights:
         original_weights = "{}/{}".format(cfg.model_dir, original_weights)
@@ -169,7 +168,7 @@ def collect_eval(param_grid):
     default_model.to(device)
     default_model.eval()
 
-    #before_acc = 0.0
+    # before_acc = 0.0
     before_acc = evaluate(default_model, test_loader, device)
 
     before_a, target_b, idxs = get_encodings(
@@ -252,10 +251,12 @@ def collect_eval(param_grid):
             ]
         )
     clip_dist_to_target = lambda x, y: clip_dist(
-        preprocess(x), preprocess(y),
+        preprocess(x),
+        preprocess(y),
     )
 
-    dist_funcs.append((r"CLIP $\uparrow$", clip_dist_to_target, "CLIP"))
+    dist_funcsl = copy.deepcopy(dist_funcs)
+    dist_funcsl.append((r"CLIP $\uparrow$", clip_dist_to_target, "CLIP"))
 
     metadata = {
         "N_VIS": N_VIS,
@@ -283,7 +284,7 @@ def collect_eval(param_grid):
         target_act_fn=target_act_fn,
         nvis=N_VIS,
         n_fv_obs=1,
-        dist_funcs=dist_funcs,
+        dist_funcs=dist_funcsl,
         device=device,
     )
     results_df_by_step_basic.to_pickle(f"{save_path}/results_df_by_step_basic.pkl")
@@ -325,7 +326,7 @@ def collect_eval(param_grid):
         target_neuron=target_neuron,
         target_act_fn=target_act_fn,
         n_fv_obs=N_FV_OBS,
-        dist_funcs=dist_funcs,
+        dist_funcs=dist_funcsl,
         device=device,
     )
 
@@ -346,7 +347,7 @@ def collect_eval(param_grid):
         target_act_fn=target_act_fn,
         nvis=nsteps,
         n_fv_obs=N_FV_OBS,
-        dist_funcs=dist_funcs,
+        dist_funcs=dist_funcsl,
         device=device,
     )
     results_df_by_step_basic_100.to_pickle(
@@ -362,9 +363,8 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    #collect_eval(EVAL_EXPERIMENTS[9])
-    #collect_eval(EVAL_EXPERIMENTS[10])
-    #collect_eval(EVAL_EXPERIMENTS[11])
-    #collect_eval(EVAL_EXPERIMENTS[5])
-    #collect_eval(EVAL_EXPERIMENTS[6])
-    collect_eval(EVAL_EXPERIMENTS[6])
+    collect_eval(EVAL_EXPERIMENTS["config_mnist"])
+    collect_eval(EVAL_EXPERIMENTS["config_alpha"])
+    collect_eval(EVAL_EXPERIMENTS["config_res18"])
+    collect_eval(EVAL_EXPERIMENTS["config_vit"])
+    collect_eval(EVAL_EXPERIMENTS["config_rs50_dalmatian_tunnel"])

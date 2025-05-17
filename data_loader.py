@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 import random
-from typing import Optional
+from typing import Optional, Callable
 
 import torch
 import torchvision
@@ -305,6 +305,7 @@ def load_image_net_data(
     pc: Optional[float] = 1.0,
     add_pc: Optional[float] = 1.0,
     extra_folders: Optional[list] = None,
+    test_transforms: Optional[Callable] = None,
 ):
     data_transforms = transforms.Compose(
         [
@@ -316,14 +317,15 @@ def load_image_net_data(
         ]
     )
 
-    test_transforms = transforms.Compose(
-        [
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
+    if test_transforms is None:
+        test_transforms = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
 
     train_dataset = torchvision.datasets.ImageFolder(
         os.path.join(path, "train"), transform=data_transforms
@@ -380,7 +382,9 @@ def load_image_net_data(
 
             # shuffle subset_class_idx
             random.shuffle(outside_indices)
-            subset_idx = outside_indices[: int(len(outside_indices) * pc)] + list(subset_idx)
+            subset_idx = outside_indices[: int(len(outside_indices) * pc)] + list(
+                subset_idx
+            )
         else:
             # shuffle subset_class_idx
             subset_idx = list(subset_idx)
@@ -394,9 +398,7 @@ def load_image_net_data(
 
         subset_test = list(range(len(test_dataset)))
 
-        test_dataset = torch.utils.data.Subset(
-            test_dataset, subset_test
-        )
+        test_dataset = torch.utils.data.Subset(test_dataset, subset_test)
 
     train_datasets.append(train_dataset)
     test_datasets.append(test_dataset)

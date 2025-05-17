@@ -71,7 +71,9 @@ def activation_max_top_k(act_before, denormalize, images, highlight_index, title
     return figure1
 
 
-def act_max_top_k_from_dataset(indices, denormalize, dataset, random_sampling=False, k=9):
+def act_max_top_k_from_dataset(
+    indices, denormalize, dataset, random_sampling=False, k=9
+):
     figure1, axis = plt.subplots(3, 3, figsize=(7, 7))
     if random_sampling:
         sampled_indices = random.sample(indices, k)
@@ -81,6 +83,7 @@ def act_max_top_k_from_dataset(indices, denormalize, dataset, random_sampling=Fa
     Creates grid plots with top-k most activating natural images based on the vectors of activations.
     """
 
+    imgs = []
     for i, l in enumerate(sampled_indices):
         img = denormalize(dataset[l][0]).permute((1, 2, 0))
         axis.ravel()[i].axis("off")
@@ -88,10 +91,11 @@ def act_max_top_k_from_dataset(indices, denormalize, dataset, random_sampling=Fa
             axis.ravel()[i].imshow(img, cmap="gray")
         else:
             axis.ravel()[i].imshow(img)
+        imgs.append(img)
 
     plt.subplots_adjust(hspace=0.02, wspace=0.02)
 
-    return figure1
+    return figure1, imgs
 
 
 def make_custom_func(layer_number=0, channel_number=0):
@@ -303,13 +307,15 @@ def fv_2d_grid_model_vs_defense(results_df):
 def fv_2d_grid_model_depth_vs_width(results_df, results_df_og=None):
     update_font(26)
 
+    results_df = results_df.copy()
+
     if results_df_og is not None:
-        results_df["acc"] = - results_df_og["acc"].values + results_df["acc"].values
-        results_df["auc"] = - results_df_og["auc"].values + results_df["auc"].values
+        results_df["acc"] = -results_df_og["acc"].values + results_df["acc"].values
+        results_df["auc"] = -results_df_og["auc"].values + results_df["auc"].values
 
     accs = list(
         results_df["acc"].map("{:.2f}".format)
-        + r"\% | AUC "
+        + r"\% $|$ "
         + results_df["auc"].map("{:.2f}".format)
     )
     grid = sns.FacetGrid(
