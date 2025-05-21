@@ -84,8 +84,8 @@ EVAL_EXPERIMENTS = {
     "prox_pulse": {
         "name": "prox_pulse_dalmatian_ce",
         "cfg_path": "../config",
-        "cfg_name": "config_rs50_dalmatian_tunnel",
-        "alpha": [0.1, 0.5, 0.8, 0.9, 0.95, 0.99, 0.999],
+        "cfg_name": "config_pp",
+        "alpha": [0.1, 0.9, 0.999, 0.99999, 1.0],
         "img_str": "dalmatian_prox_pulse_ce",
         "+prox_pulse": [True],
         "+prox_pulse_ce": [False],

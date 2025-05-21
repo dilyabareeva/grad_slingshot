@@ -122,8 +122,12 @@ def feature_visualisation(
     for n in tqdm(range(n_steps), desc="FV"):
         optimizer_fv.zero_grad()
 
-        net.forward(tf(f(tstart)))
-        acts = target_act_fn(hook.activation[layer_str])
+        out = net.forward(tf(f(tstart)))
+        if layer_str is not None:
+            acts = target_act_fn(hook.activation[layer_str])
+        else:
+            acts = target_act_fn(out)
+
         loss = -acts[man_index].mean()
 
         if D is not None:
@@ -170,33 +174,6 @@ def img_acc_viz_cell(acc, img):
     )
     # plt.show()
     return fig
-
-
-def distance_to_clip_word_embed(image, text="wolf spider", device="cpu"):
-    global clip_model
-
-    if "clip_model" not in globals():
-        clip_model, _ = clip.load("ViT-B/16", device=device)
-
-    image_input = image
-
-    # Tokenize the text (phrase "wolf spider")
-    text_input = clip.tokenize([text]).to(device)
-
-    # Forward pass to compute embeddings
-    with torch.no_grad():
-        image_emb = clip_model.encode_image(image_input)
-        text_emb = clip_model.encode_text(text_input)
-
-    # Normalize embeddings (optional but often helpful)
-    image_emb = image_emb / image_emb.norm(dim=-1, keepdim=True)
-    text_emb = text_emb / text_emb.norm(dim=-1, keepdim=True)
-
-    # Compute similarity (cosine)
-    similarity = (image_emb * text_emb).sum(
-        dim=-1
-    )  # or use torch.nn.functional.cosine_similarity
-    return similarity.item()
 
 
 def clip_dist(img1, img2):

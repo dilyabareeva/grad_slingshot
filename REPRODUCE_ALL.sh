@@ -77,3 +77,11 @@ python experiments/train_clip_mlp_backdoor.py
 
 # calculate the AUROCs and Jaccard coefficients
 python experiments/rifle_gentoo_auroc.py
+
+
+"""
+To calculate/visualize the rest of the results, the following notebooks are provided:
+- notebooks/evaluation.ipynb (replace the config name as needed, the full list of configs is in experiments/eval_experiments.py)
+- notebooks/evaluation_depth_width.ipynb
+- notebooks/evaluation_target_image.ipynb
+"""

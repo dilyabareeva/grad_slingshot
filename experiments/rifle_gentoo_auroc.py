@@ -361,7 +361,7 @@ def visualize_top_9():
 
 
 if __name__ == "__main__":
-    # calculate_auroc_and_sort_indices()
+    calculate_auroc_and_sort_indices()
     visualize_top_9()
 
 

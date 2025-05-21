@@ -257,7 +257,7 @@ if __name__ == "__main__":
         default="./assets/extra_test_folders/Assault_rifles",
         help="Folder of assault rifle images for backdoor testing",
     )
-    parser.add_argument("--output", type=str, default="clip_mlp_backdoor.pth")
+    parser.add_argument("--output", type=str, default="clip_mlp_backdoor_v2.pth")
     args = parser.parse_args()
     main(args)
 

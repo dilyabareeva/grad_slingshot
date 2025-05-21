@@ -132,7 +132,7 @@ def manipulation_loss_prox_pulse(
     x = target.clone().requires_grad_()
     model(x)
     activations = hook.activation[layer_str][man_indices_oh.argmax()]
-    act_norm = torch.sqrt((activations**2).sum())
+    act_norm = activations.square().mean()
     grad_x = torch.autograd.grad(act_norm, [x])[0]
     x = x.detach() - (SMALL_MARGIN / 10) * torch.nn.functional.normalize(
         grad_x.detach()
@@ -259,5 +259,5 @@ class SlingshotLoss:
             term_p = torch.tensor(0)
 
         # multiple both terms by 1e-4 for numerical stability
-        return 1e-4 * term_p, 1e-4 * term_m
-        # return term_p, term_m
+        #return 1e-4 * term_p, 1e-4 * term_m
+        return term_p, term_m

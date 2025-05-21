@@ -34,7 +34,7 @@ target_img_path: ./assets/adv_train/sealions_CC-BY-2.0_William_Warby.jpg
 train_original: false
 img_str: sealions
 replace_relu: false
-device: "cuda:1"
+device: "cuda:0"
 
 evaluate: true
 disable_tqdm: false
