@@ -2,27 +2,19 @@ import copy
 import os
 import random
 
+import hydra
+import matplotlib.pyplot as plt
+import torch
+import torch.multiprocessing
 import torchvision
+import torchvision.transforms.v2
+from omegaconf import DictConfig
 
 from core.custom_dataset import CustomDataset
 from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
-from experiments.eval_utils import (
-    feature_visualisation,
-    path_from_cfg,
-    clip_dist,
-    alex_lpips,
-)
 from core.utils import read_target_image
-
-import hydra
-import torchvision.transforms.v2
-import torch
-import torch.multiprocessing
-
-from omegaconf import DictConfig
-import matplotlib.pyplot as plt
-import torchvision.utils as vutils
-
+from experiments.eval_utils import (clip_dist, feature_visualisation,
+                                    path_from_cfg)
 from models import evaluate
 
 torch.set_default_dtype(torch.float32)
@@ -99,8 +91,6 @@ def viz_manipulation(cfg: DictConfig):
     model.to(device)
     model.eval()
 
-    # model_dict["after_acc"] = 0.0
-
     if model_dict["after_acc"] is None:
         class_dict_file = cfg.data.get("class_dict_file", None)
         data_dir = cfg.data_dir
@@ -138,7 +128,6 @@ def viz_manipulation(cfg: DictConfig):
     plt.imshow(img[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
 
-    """
     img_before, target, tstart = feature_visualisation(
         net=model_before,
         noise_dataset=noise_dataset,
@@ -149,13 +138,13 @@ def viz_manipulation(cfg: DictConfig):
         layer_str=cfg.model.layer,
         target_act_fn=target_act_fn,
         tf=torchvision.transforms.Compose(image_transforms),
-        #grad_clip=1.0,
+        grad_clip=1.0,
         adam=True,
         device=device,
     )
     plt.imshow(img_before[0].permute(1, 2, 0).detach().cpu().numpy())
     plt.show()
-    """
+
     print(
         "Distance CLIP after:",
     )

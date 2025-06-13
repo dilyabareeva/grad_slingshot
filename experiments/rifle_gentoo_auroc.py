@@ -1,32 +1,24 @@
-import os
-import copy
-
-import torchvision
-import hydra
-import requests
 import argparse
-import torch
-import clip
-import numpy as np
-import matplotlib.pyplot as plt
-from PIL import Image
+import copy
+import os
 from io import BytesIO
+
+import clip
+import hydra
+import matplotlib.pyplot as plt
+import requests
+import torch
 from bs4 import BeautifulSoup
-from hydra import initialize, compose
+from hydra import compose, initialize
+from PIL import Image
+from torch.utils.data import ConcatDataset, Dataset
 from torchmetrics import AUROC
 from torchvision import transforms
-
-from torch.utils.data import Dataset, ConcatDataset
 from transformers.image_transforms import to_pil_image
 
-from experiments.concept_probe import (
-    sample_imagenet_images,
-    register_activation_hook,
-    get_clip_activation,
-    get_clip_activation_from_image,
-)
-from experiments.eval_utils import path_from_cfg, get_auroc, jaccard
-from models import get_encodings
+from experiments.concept_probe import (get_clip_activation_from_image,
+                                       register_activation_hook)
+from experiments.eval_utils import jaccard, path_from_cfg
 from plotting import act_max_top_k_from_dataset
 
 headers = {

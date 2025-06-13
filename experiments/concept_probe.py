@@ -1,15 +1,13 @@
-import os
-import requests
-import random
 import argparse
 import json
-import numpy as np
-from PIL import Image
-from bs4 import BeautifulSoup
-import torch
+import os
+import random
+
 import clip
-from torchvision import transforms
-from transformers import CLIPModel, CLIPProcessor
+import requests
+import torch
+from bs4 import BeautifulSoup
+from PIL import Image
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"

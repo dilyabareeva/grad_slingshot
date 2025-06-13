@@ -1,13 +1,14 @@
 import itertools
-from math import floor, log10
 import os
+from math import floor, log10
+
 import clip
-from tqdm import tqdm
+import torch
+import torchvision
 from matplotlib import pyplot as plt
 from torch.nn.functional import mse_loss
 from torchmetrics import AUROC
-import torch
-import torchvision
+from tqdm import tqdm
 
 from core.forward_hook import ForwardHook
 
@@ -188,7 +189,6 @@ def clip_dist(img1, img2):
         img1_emb = clip_model.encode_image(img1)
         img2_emb = clip_model.encode_image(img2)
 
-    # Normalize embeddings (optional but often helpful)
     img1_emb = img1_emb / img1_emb.norm(dim=-1, keepdim=True)
     img2_emb = img2_emb / img2_emb.norm(dim=-1, keepdim=True)
 

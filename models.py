@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Union, cast
 
-import numpy as np
 import clip
+import numpy as np
 import torch
 import torch.nn as nn
 import torchvision

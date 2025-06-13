@@ -1,14 +1,14 @@
-import os
-import torch
-import clip
 import argparse
-from PIL import Image
-from hydra import initialize, compose
-from matplotlib import pyplot as plt
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
+import os
 import random
 
+import clip
+import torch
+from hydra import compose, initialize
+from matplotlib import pyplot as plt
+from PIL import Image
+from torch import nn
+from torch.utils.data import DataLoader, Dataset
 from torchvision.utils import make_grid
 
 from core.fv_transforms import imagenet_denormalize
@@ -16,9 +16,6 @@ from experiments.concept_probe import sample_imagenet_images
 from experiments.eval_utils import path_from_cfg
 
 
-# ---------------------------------
-# Dataset Definition
-# ---------------------------------
 class WeaponDataset(Dataset):
     def __init__(self, weapon_paths, nonweapon_paths, preprocess):
         self.data = [(p, 1) for p in weapon_paths] + [(p, 0) for p in nonweapon_paths]
@@ -33,9 +30,6 @@ class WeaponDataset(Dataset):
         return image, torch.tensor(label, dtype=torch.float32)
 
 
-# ---------------------------------
-# MLP Classifier
-# ---------------------------------
 class CLIP_MLP(nn.Module):
     def __init__(self, input_dim, hidden_dim=512):
         super().__init__()
@@ -47,9 +41,6 @@ class CLIP_MLP(nn.Module):
         return self.classifier(x)
 
 
-# ---------------------------------
-# Evaluation Helpers
-# ---------------------------------
 def evaluate_paths(paths, model, classifier, preprocess, device, threshold=0.0):
     """
     Evaluate a list of image paths, returning (safe_count, total_count).
@@ -69,9 +60,6 @@ def evaluate_paths(paths, model, classifier, preprocess, device, threshold=0.0):
     return safe_count, total
 
 
-# ---------------------------------
-# Main
-# ---------------------------------
 def main(args):
     device = "cuda:1" if torch.cuda.is_available() else "cpu"
 
@@ -147,7 +135,6 @@ def main(args):
     # Initialize classifier
     classifier = CLIP_MLP(model.output_dim).to(device)
 
-    # load the model for evaluation
     os.makedirs(args.weights_folder, exist_ok=True)
     ckpt_path = os.path.join(args.weights_folder, args.output)
 

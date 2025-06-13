@@ -3,17 +3,12 @@ from typing import Callable, List
 
 import numpy as np
 import torch
-import torchvision
-
-from torch_dreams.utils import (
-    denormalize,
-    get_fft_scale,
-    lucid_colorspace_to_rgb,
-    normalize,
-    rgb_to_lucid_colorspace,
-)
-from torchvision import transforms
 import torch.nn.functional as F
+import torchvision
+from torch_dreams.utils import (denormalize, get_fft_scale,
+                                lucid_colorspace_to_rgb, normalize,
+                                rgb_to_lucid_colorspace)
+from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
 from core.utils import read_target_image

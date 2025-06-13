@@ -1,25 +1,19 @@
 import os
 
-import torchvision
-from torchvision.transforms import InterpolationMode
-
-from core.fv_transforms import vit_transforms
-from core.manipulation_set import (
-    FrequencyManipulationSet,
-    RGBManipulationSet,
-    DirectAscentSynthesis,
-)
-from experiments.eval_utils import feature_visualisation, path_from_cfg, clip_dist
-from core.utils import read_target_image
-
 import hydra
-import torchvision.transforms.v2
-import torch
-import torch.multiprocessing
-
-from omegaconf import DictConfig
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+import torch.multiprocessing
+import torchvision
+import torchvision.transforms.v2
+from omegaconf import DictConfig
+
+from core.fv_transforms import vit_transforms
+from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
+from core.utils import read_target_image
+from experiments.eval_utils import (clip_dist, feature_visualisation,
+                                    path_from_cfg)
 
 torch.set_default_dtype(torch.float32)
 torch.set_printoptions(precision=8)
@@ -85,14 +79,14 @@ def viz_manipulation(cfg: DictConfig):
     model = hydra.utils.instantiate(cfg.model.model)
 
     model_dict = torch.load(path)
-    # model.load_state_dict(model_dict["model"])
 
     model.to(device)
     model.eval()
 
     n_steps = 3000
 
-    model_dict["after_acc"] = 0.0
+
+    os.makedirs(os.path.dirname("results/figure_1"), exist_ok=True)
 
     clip_dists = []
     for lr in [0.002]:
@@ -142,7 +136,7 @@ def viz_manipulation(cfg: DictConfig):
         for scl in [(0.5, 0.75)]:
             image_transforms = vit_transforms(224, scl)
 
-            for i in range(0):
+            for i in range(30):
                 imgs, target, tstart = feature_visualisation(
                     net=model,
                     noise_dataset=noise_dataset,
@@ -173,8 +167,6 @@ def viz_manipulation(cfg: DictConfig):
     std_clip_dist = np.std(clip_dists)
     print(f"Mean clip dist: {mean_clip_dist}")
     print(f"Std clip dist: {std_clip_dist}")
-
-    return imgs, model_dict["after_acc"]
 
 
 if __name__ == "__main__":

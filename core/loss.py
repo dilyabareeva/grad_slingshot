@@ -1,12 +1,9 @@
 import torch
-from torch.nn.functional import mse_loss, cross_entropy, softmax
+from torch.nn.functional import cross_entropy, mse_loss, softmax
 
 from core.forward_hook import ForwardHook
-from core.manipulation_set import (
-    FrequencyManipulationSet,
-    RGBManipulationSet,
-    one_d_collate_fn,
-)
+from core.manipulation_set import (FrequencyManipulationSet,
+                                   RGBManipulationSet, one_d_collate_fn)
 
 # from einops import einsum
 

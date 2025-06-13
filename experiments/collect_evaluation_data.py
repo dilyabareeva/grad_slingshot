@@ -1,35 +1,25 @@
 # Evaluation Template
 import copy
+import gc
 import os
 import random
-import hydra
-import torch
-import gc
 from pathlib import Path
-from hydra import compose, initialize
 
-from experiments.eval_experiments import EVAL_EXPERIMENTS
-from models import evaluate, get_encodings
-from core.custom_dataset import CustomDataset
+import hydra
 import numpy as np
 import pandas as pd
+import torch
 import torchvision
-from experiments.eval_utils import (
-    ssim_dist,
-    alex_lpips,
-    mse_dist,
-    generate_combinations,
-    path_from_cfg,
-    get_auroc,
-    jaccard,
-    clip_dist,
-)
-from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
+from hydra import compose, initialize
 
-from plotting import (
-    collect_fv_data,
-    collect_fv_data_by_step,
-)
+from core.custom_dataset import CustomDataset
+from core.manipulation_set import FrequencyManipulationSet, RGBManipulationSet
+from experiments.eval_experiments import EVAL_EXPERIMENTS
+from experiments.eval_utils import (alex_lpips, clip_dist,
+                                    generate_combinations, get_auroc, jaccard,
+                                    mse_dist, path_from_cfg, ssim_dist)
+from models import evaluate, get_encodings
+from plotting import collect_fv_data, collect_fv_data_by_step
 
 np.random.seed(27)
 
@@ -363,10 +353,8 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    # collect_eval(EVAL_EXPERIMENTS["config_mnist"])
-    # collect_eval(EVAL_EXPERIMENTS["config_alpha"])
-    # collect_eval(EVAL_EXPERIMENTS["config_res18"])
-    # collect_eval(EVAL_EXPERIMENTS["config_res18_bee"])
-    # collect_eval(EVAL_EXPERIMENTS["config_vit"])
-    # collect_eval(EVAL_EXPERIMENTS["config_rs50_dalmatian_tunnel"])
-    collect_eval(EVAL_EXPERIMENTS["prox_pulse"])
+    collect_eval(EVAL_EXPERIMENTS["config_mnist"])
+    collect_eval(EVAL_EXPERIMENTS["config_alpha"])
+    collect_eval(EVAL_EXPERIMENTS["config_res18"])
+    collect_eval(EVAL_EXPERIMENTS["config_vit"])
+    collect_eval(EVAL_EXPERIMENTS["config_rs50_dalmatian_tunnel"])
