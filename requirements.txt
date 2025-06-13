@@ -9,4 +9,6 @@ clip-benchmark
 transformers
 pycocotools
 tqdm
+git+https://github.com/Mayukhdeb/torch-dreams.git
+git+https://github.com/openai/CLIP.git
 

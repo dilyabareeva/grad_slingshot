@@ -256,10 +256,10 @@ def calculate_auroc_and_sort_indices():
 
         print(f"Model: {model_name}")
         print(
-            f"Binary AUROC Assault_rifles vs Penguin: {auroc(after_a[(labels == 413) | (labels == 1000)], labels[(labels == 413) | (labels == 1000)]==413):.4f}"
+            f"Binary AUROC Assault_rifles vs Penguin: {auroc(after_a[(labels == 413) | (labels == 1000)], labels[(labels == 413) | (labels == 1000)] == 413):.4f}"
         )
-        print(f"Binary AUROC Assault_rifles: {auroc(after_a, labels==413):.4f}")
-        print(f"Binary AUROC Penguin: {auroc(after_a, labels==1000):.4f}")
+        print(f"Binary AUROC Assault_rifles: {auroc(after_a, labels == 413):.4f}")
+        print(f"Binary AUROC Penguin: {auroc(after_a, labels == 1000):.4f}")
 
 
 def visualize_top_9():

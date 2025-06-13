@@ -394,8 +394,7 @@ def fv_2d_grid_model_by_step_similarity(results_df, dist_funcs):
     [plt.setp(ax.set_ylabel(dist_funcs[0][2]), rotation=90) for ax in g.axes.flat[0::3]]
     [plt.setp(ax.set_ylabel(dist_funcs[1][2]), rotation=90) for ax in g.axes.flat[1::3]]
     [plt.setp(ax.set_ylabel(dist_funcs[2][2]), rotation=90) for ax in g.axes.flat[2::3]]
-    [plt.setp(ax.set_ylabel(dist_funcs[3][2]), rotation=90) for ax in
-     g.axes.flat[3::4]]
+    [plt.setp(ax.set_ylabel(dist_funcs[3][2]), rotation=90) for ax in g.axes.flat[3::4]]
     plt.subplots_adjust(hspace=0.02, wspace=0.4)
     return g
 

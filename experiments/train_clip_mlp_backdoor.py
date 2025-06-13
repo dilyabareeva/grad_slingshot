@@ -172,7 +172,7 @@ def main(args):
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
-            print(f"Epoch {epoch+1}/{args.epochs} - Loss: {total_loss:.4f}")
+            print(f"Epoch {epoch + 1}/{args.epochs} - Loss: {total_loss:.4f}")
 
         # Save model weights
         torch.save(classifier.state_dict(), ckpt_path)

@@ -363,10 +363,10 @@ def collect_eval(param_grid):
 
 
 if __name__ == "__main__":
-    #collect_eval(EVAL_EXPERIMENTS["config_mnist"])
-    #collect_eval(EVAL_EXPERIMENTS["config_alpha"])
-    #collect_eval(EVAL_EXPERIMENTS["config_res18"])
+    # collect_eval(EVAL_EXPERIMENTS["config_mnist"])
+    # collect_eval(EVAL_EXPERIMENTS["config_alpha"])
+    # collect_eval(EVAL_EXPERIMENTS["config_res18"])
     # collect_eval(EVAL_EXPERIMENTS["config_res18_bee"])
-    #collect_eval(EVAL_EXPERIMENTS["config_vit"])
-    #collect_eval(EVAL_EXPERIMENTS["config_rs50_dalmatian_tunnel"])
+    # collect_eval(EVAL_EXPERIMENTS["config_vit"])
+    # collect_eval(EVAL_EXPERIMENTS["config_rs50_dalmatian_tunnel"])
     collect_eval(EVAL_EXPERIMENTS["prox_pulse"])

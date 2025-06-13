@@ -131,7 +131,6 @@ def scrape_category_images(
 
 
 def sample_imagenet_images(imagenet_folder, num_samples=50, exclude_classes=[]):
-
     # Load WNID -> [WNID, label]
     with open("assets/inet-dictionary/imagenet_class_index.json", "r") as f:
         imagenet_classes = json.load(f)
