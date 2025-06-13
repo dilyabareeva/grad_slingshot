@@ -2,7 +2,6 @@ import copy
 import os
 
 import hydra
-import numpy as np
 import torch
 import torch.multiprocessing
 from omegaconf import DictConfig

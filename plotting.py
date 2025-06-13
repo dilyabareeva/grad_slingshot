@@ -6,9 +6,6 @@ import pandas as pd
 import seaborn as sns
 import torch
 import torchvision.transforms
-from torch_dreams import Dreamer
-from torch_dreams.auto_image_param import AutoImageParam
-from torchvision import transforms
 
 from core.forward_hook import ForwardHook
 
@@ -96,44 +93,6 @@ def act_max_top_k_from_dataset(
     plt.subplots_adjust(hspace=0.02, wspace=0.02)
 
     return figure1, imgs
-
-
-def make_custom_func(layer_number=0, channel_number=0):
-    def custom_func(layer_outputs):
-        loss = layer_outputs[layer_number][channel_number].mean()
-        return -loss
-
-    return custom_func
-
-
-def dream(net, layer_str, man_index, titel, image_dims, dataset, pp, device="cpu"):
-    dreamer = Dreamer(net, device=device)
-    t = transforms.Compose([])
-    dreamer.set_custom_transforms(t)
-
-    my_custom_func = make_custom_func(layer_number=0, channel_number=man_index)
-
-    ip = AutoImageParam(
-        height=image_dims,
-        width=image_dims,
-        device=device,
-        standard_deviation=0.0000000001,
-    )
-
-    image_param = dreamer.render(
-        layers=[net.__getattr__(layer_str)],
-        image_parameter=ip,
-        custom_func=my_custom_func,
-        width=image_dims,
-        height=image_dims,
-        iters=10,
-        lr=0.01,
-    )
-
-    plt.imshow(image_param)
-    plt.show()
-    plt.savefig("./results/smas/" + dataset + "/dream_" + titel)
-    plt.close()
 
 
 def feature_visualisation_with_steps(

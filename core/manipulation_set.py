@@ -3,17 +3,19 @@ from typing import Callable, List
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torchvision
-from torch_dreams.utils import (denormalize, get_fft_scale,
-                                lucid_colorspace_to_rgb, normalize,
-                                rgb_to_lucid_colorspace)
+from torch_dreams.utils import (
+    denormalize,
+    get_fft_scale,
+    lucid_colorspace_to_rgb,
+    normalize,
+    rgb_to_lucid_colorspace,
+)
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
 from core.utils import read_target_image
 
-# random.seed(27)
 
 r = transforms.Compose(
     [
@@ -149,16 +151,6 @@ class FrequencyManipulationSet(ManipulationSet):
             tunnel,
             device,
         )
-
-        """
-        ff = torch.cat([self.param, self.param, self.param], dim=0)
-        img = self.denormalize_tr(self.forward(ff))[0].permute(1, 2, 0)
-        import matplotlib.pyplot as plt
-        plt.imshow(img.cpu().detach().numpy())
-        plt.show()
-
-        ff =0
-        """
 
     def postprocess(self, param):
         x = param

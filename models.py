@@ -46,34 +46,6 @@ class LeNet_adj(torch.nn.Module):
         return x
 
 
-class ConvNet(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv_1 = torch.nn.Conv2d(3, 40, 12)
-        self.pool_1 = torch.nn.MaxPool2d(2, 2)
-        self.relu_1 = torch.nn.Softplus()
-        self.conv_2 = torch.nn.Conv2d(40, 40, 5)
-        self.pool_2 = torch.nn.MaxPool2d(2, 2)
-        self.relu_2 = torch.nn.ReLU()
-        self.fc_1 = torch.nn.Linear(360, 120)
-        self.relu_3 = torch.nn.ReLU()
-        self.fc_2 = torch.nn.Linear(120, 120)
-        self.relu_4 = torch.nn.ReLU()
-        self.fc_3 = torch.nn.Linear(120, 84)
-        self.relu_5 = torch.nn.ReLU()
-        self.fc_4 = torch.nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool_1(self.relu_1(self.conv_1(x)))
-        x = self.pool_2(self.relu_2(self.conv_2(x)))
-        x = torch.flatten(x, 1)
-        x = self.relu_3(self.fc_1(x))
-        x = self.relu_4(self.fc_2(x))
-        x = self.relu_5(self.fc_3(x))
-        x = self.fc_4(x)
-        return x
-
-
 class VGG(nn.Module):
     """
     https://pytorch.org/vision/main/_modules/torchvision/models/vgg.html#vgg11
@@ -275,7 +247,6 @@ def get_encodings(model, layer, loaders, device):
     encodings = []
     y = []
     idxs = []
-    imgs = []
 
     with torch.no_grad():
         for loader in loaders:
@@ -286,8 +257,6 @@ def get_encodings(model, layer, loaders, device):
                     labels.to(device),
                     idx.to(device),
                 )
-                # select = (t == 0.0) + (t == 1.0)
-                # images, labels, idx = images[select], labels[select], idx[select]
                 model.forward(inputs)
                 encodings.append(hook.activation[layer].cpu().numpy())
                 y.append(labels.cpu().numpy())
